@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Typography */
+  --font-primary: 'Outfit', 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Sleek HSL Dark Theme */
+  --bg-primary: HSL(220, 25%, 7%);       /* Deep cosmic background */
+  --bg-secondary: HSL(220, 22%, 13%);     /* Card & modal backgrounds */
+  --bg-tertiary: HSL(220, 20%, 18%);      /* Hover items & input backgrounds */
+  --text-primary: HSL(0, 0%, 95%);        /* Crisp white text */
+  --text-secondary: HSL(220, 10%, 65%);   /* Muted grey subtitle */
+
+  /* AWS HSL Branding Accent Colors */
+  --color-primary: HSL(32, 100%, 50%);    /* Bright AWS Orange */
+  --color-primary-hover: HSL(32, 100%, 43%);
+  --color-accent: HSL(200, 100%, 50%);     /* Cognito Secure Blue */
+  --color-accent-hover: HSL(200, 100%, 43%);
+  
+  /* Status Colors */
+  --color-success: HSL(145, 80%, 45%);    /* Vibrant Green */
+  --color-error: HSL(355, 85%, 55%);      /* Warm Crimson */
+
+  /* Premium Glassmorphism */
+  --glass-bg: rgba(22, 28, 45, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.4);
+  --glass-backdrop-filter: blur(16px) saturate(180%);
+
+  /* Rounding & Transitions */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-primary);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* Custom Scrollbar for Premium Feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-tertiary);
+}
+
+/* Common Interactive Micro-Animations */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, HSL(25, 100%, 50%) 100%);
+  color: var(--bg-primary);
+  border: none;
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px; /* iOS standard hit target */
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(255, 153, 0, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 153, 0, 0.35);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, HSL(20, 100%, 45%) 100%);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  transition: var(--transition-smooth);
+  backdrop-filter: var(--glass-backdrop-filter);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Glassmorphism Card Style */
+.card-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop-filter);
+  box-shadow: 0 8px 32px var(--glass-shadow);
+  border-radius: var(--radius-md);
+  transition: var(--transition-smooth);
+}
+
+.card-glass:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 153, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}

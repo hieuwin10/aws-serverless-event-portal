@@ -1,0 +1,62 @@
+{
+  "projectName": "Online Event Management and Registration Website",
+  "repositoryType": "monorepo",
+  "primaryLanguage": "TypeScript",
+  "architectureType": "AWS Serverless",
+  "lastUpdated": "2026-05-26",
+  "parts": [
+    {
+      "partId": "frontend",
+      "partName": "Frontend Web Application",
+      "projectType": "web",
+      "rootPath": "frontend/",
+      "techStack": "React (Vite) + Vanilla CSS + TypeScript",
+      "entryPoint": "frontend/src/main.tsx",
+      "architecturePattern": "Component-based SPA with Context API",
+      "database": null,
+      "deploymentPlatform": "Amazon S3 + CloudFront CDN",
+      "hasUiComponents": true,
+      "hasApi": false,
+      "hasData": false
+    },
+    {
+      "partId": "backend",
+      "partName": "Backend Serverless API",
+      "projectType": "backend",
+      "rootPath": "backend/",
+      "techStack": "Node.js 20.x (TypeScript) + AWS Lambda + AWS SDK v3",
+      "entryPoint": "backend/src/handlers/*.ts",
+      "architecturePattern": "Single-purpose Lambda Functions (Micro-functions)",
+      "database": "Amazon DynamoDB (Single-Table Design)",
+      "deploymentPlatform": "AWS Lambda + API Gateway + AWS SAM",
+      "hasUiComponents": false,
+      "hasApi": true,
+      "hasData": true
+    }
+  ],
+  "integrationPoints": [
+    {
+      "type": "HTTP REST API",
+      "from": "frontend",
+      "to": "backend",
+      "details": "Frontend gọi API Gateway qua fetch/axios. Xác thực JWT Token từ Amazon Cognito."
+    },
+    {
+      "type": "Authentication",
+      "from": "frontend",
+      "to": "Amazon Cognito",
+      "details": "Frontend tương tác trực tiếp với Cognito SDK để đăng ký/đăng nhập và nhận JWT Token."
+    }
+  ],
+  "awsServices": [
+    "Amazon S3",
+    "Amazon CloudFront",
+    "Amazon Cognito",
+    "Amazon API Gateway",
+    "AWS Lambda",
+    "Amazon DynamoDB",
+    "Amazon CloudWatch"
+  ],
+  "freeTierCompliant": true,
+  "generatedBy": "BMAD-METHOD v6 document-project workflow"
+}
