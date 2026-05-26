@@ -1,10 +1,7 @@
 name: Deploy EventApp to AWS
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch: # Tạm thời tắt tự động chạy, chỉ cho phép kích hoạt thủ công
 
 env:
   AWS_REGION: ap-southeast-1
