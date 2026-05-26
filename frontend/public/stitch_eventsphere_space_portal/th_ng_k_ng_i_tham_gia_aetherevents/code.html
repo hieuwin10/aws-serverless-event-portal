@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Attendee Statistics | Event Horizon</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease-out;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .glow-orb {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chart-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "on-background": "#dfe2f1",
+                        "on-surface-variant": "#dbc2ad",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "surface": "#0f131d",
+                        "outline": "#a38d7a",
+                        "surface-container-highest": "#313540",
+                        "secondary-container": "#00f1fe",
+                        "on-tertiary": "#3d008f",
+                        "surface-variant": "#313540",
+                        "surface-tint": "#ffb86f",
+                        "surface-container-high": "#262a35",
+                        "surface-bright": "#353944",
+                        "on-primary": "#4a2800",
+                        "secondary-fixed": "#74f5ff",
+                        "inverse-primary": "#8a5100",
+                        "primary": "#ffc082",
+                        "outline-variant": "#554434",
+                        "surface-container-low": "#171b26",
+                        "on-tertiary-container": "#5500c1",
+                        "primary-container": "#ff9900",
+                        "on-surface": "#dfe2f1",
+                        "tertiary-fixed": "#eaddff",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#002022",
+                        "inverse-surface": "#dfe2f1",
+                        "secondary": "#ddfcff",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "tertiary": "#d7c3ff",
+                        "error": "#ffb4ab",
+                        "surface-dim": "#0f131d",
+                        "primary-fixed-dim": "#ffb86f",
+                        "surface-container": "#1c1f2a",
+                        "primary-fixed": "#ffdcbd",
+                        "on-secondary-container": "#006a70",
+                        "tertiary-container": "#bfa2ff",
+                        "surface-container-lowest": "#0a0e18",
+                        "on-secondary": "#00363a",
+                        "inverse-on-surface": "#2c303b",
+                        "background": "#0f131d",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#653a00",
+                        "on-tertiary-fixed": "#24005b",
+                        "on-primary-fixed-variant": "#693c00",
+                        "on-primary-fixed": "#2c1600"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "margin-desktop": "32px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "unit": "4px",
+                        "xl": "48px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg-mobile": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-body-md text-on-surface antialiased">
+<!-- Atmospheric Effects -->
+<div class="glow-orb top-[-100px] left-[-100px] bg-primary-container"></div>
+<div class="glow-orb bottom-[-100px] right-[-100px] bg-secondary-fixed-dim"></div>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-64 bg-surface/30 dark:bg-surface/30 backdrop-blur-xl border-r border-white/10 shadow-[0_0_20px_rgba(255,153,0,0.1)] flex flex-col p-md z-[60]">
+<div class="mb-xl px-4">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">Event Horizon</h1>
+<p class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-widest opacity-60">Command Center</p>
+</div>
+<div class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-body-md text-body-md">Events</span>
+</a>
+<!-- ACTIVE TAB: Attendees -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-lg scale-[0.98] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Attendees</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-body-md text-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-body-md text-body-md">Team</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+<button class="mt-lg w-full py-3 bg-primary-container text-on-primary-container font-bold rounded-lg shadow-[0_0_20px_rgba(255,153,0,0.3)] hover:shadow-[0_0_30px_rgba(255,153,0,0.5)] transition-all">
+            Create Event
+        </button>
+<div class="mt-auto pt-lg border-t border-white/5 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md text-body-md">Logout</span>
+</a>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-256px)] bg-surface/30 dark:bg-surface/30 backdrop-blur-xl border-b border-white/10 z-50 flex justify-between items-center px-margin-desktop py-sm">
+<div class="flex items-center gap-lg flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-60">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40" placeholder="Search attendees..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-primary/20">
+<img alt="Admin Avatar" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXwzIRw120DOIB9dRQANbsJ4Bwx_Bg2QsnmuHewd-D7i8CHLl7-jMj9nhLLciBEVblx6HHOfnxzuFk7tJK2tKgCqLomEZUUdJlwTJpvQVTjveMDYn30sFwxkgEtHH8-j_1Wsg_pc3xyxflox054PPnAQfN0yIYqEkkJI7dkg0ltF4oNGhY2r7fM85mPdJWr-0-AvFd3Q7BTjGCVZaD6olwiPTqMYNau97mLmAPZXBfKUv2kpUtXfn-2ibU_UsE2eTTehmK3OGNftXn"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 pt-24 pb-12 px-margin-desktop min-h-screen flex flex-col">
+<!-- Header Section -->
+<header class="mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-white mb-xs">Attendee Statistics</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Detailed breakdown of event participants across all upcoming tracks.</p>
+</header>
+<!-- Top Row -->
+<div class="grid grid-cols-12 gap-gutter mb-gutter">
+<!-- Pie Chart Card -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-xl p-lg flex flex-col md:flex-row items-center gap-xl relative overflow-hidden">
+<div class="flex flex-col flex-1">
+<h3 class="font-headline-md text-headline-md text-white mb-md">Age Demographics</h3>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-primary-container shadow-[0_0_10px_rgba(255,153,0,0.6)]"></span>
+<span class="font-body-md text-on-surface-variant">18-24</span>
+<span class="ml-auto font-bold text-white">24%</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-secondary-fixed-dim shadow-[0_0_10px_rgba(0,219,231,0.6)]"></span>
+<span class="font-body-md text-on-surface-variant">25-34</span>
+<span class="ml-auto font-bold text-white">42%</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim shadow-[0_0_10px_rgba(209,188,255,0.6)]"></span>
+<span class="font-body-md text-on-surface-variant">35-44</span>
+<span class="ml-auto font-bold text-white">18%</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-surface-container-highest"></span>
+<span class="font-body-md text-on-surface-variant">45+</span>
+<span class="ml-auto font-bold text-white">16%</span>
+</div>
+</div>
+</div>
+<div class="chart-container">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#313540" stroke-width="4"></circle>
+<!-- 24% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#ff9900" stroke-dasharray="24 100" stroke-dashoffset="0" stroke-width="4"></circle>
+<!-- 42% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#00dbe7" stroke-dasharray="42 100" stroke-dashoffset="-24" stroke-width="4"></circle>
+<!-- 18% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#d1bcff" stroke-dasharray="18 100" stroke-dashoffset="-66" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-md text-white">12.4k</span>
+<span class="text-label-sm text-on-surface-variant">Total</span>
+</div>
+</div>
+</div>
+<!-- Summary Cards Column -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<div class="glass-card rounded-xl p-md flex flex-col justify-between h-full">
+<div class="flex items-center justify-between">
+<span class="text-label-sm text-on-surface-variant uppercase">Total Attendees</span>
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<div class="mt-md">
+<h4 class="font-headline-lg text-headline-lg text-white">12,482</h4>
+<div class="flex items-center gap-1 text-green-400 mt-xs">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-label-sm">+8.2% vs last month</span>
+</div>
+</div>
+</div>
+<div class="glass-card rounded-xl p-md flex flex-col justify-between h-full">
+<div class="flex items-center justify-between">
+<span class="text-label-sm text-on-surface-variant uppercase">New Sign-ups (Today)</span>
+<span class="material-symbols-outlined text-secondary-fixed-dim">person_add</span>
+</div>
+<div class="mt-md">
+<h4 class="font-headline-lg text-headline-lg text-white">+142</h4>
+<div class="flex items-center gap-1 text-on-surface-variant mt-xs">
+<span class="text-label-sm">Active within last 6h</span>
+</div>
+</div>
+</div>
+<div class="glass-card rounded-xl p-md flex flex-col justify-between h-full">
+<div class="flex items-center justify-between">
+<span class="text-label-sm text-on-surface-variant uppercase">Returning Users</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim">history</span>
+</div>
+<div class="mt-md">
+<h4 class="font-headline-lg text-headline-lg text-white">65%</h4>
+<div class="w-full bg-white/5 h-1 rounded-full mt-sm overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Demographic Segments Grid -->
+<section class="mb-xl">
+<h3 class="font-headline-md text-headline-md text-white mb-lg flex items-center gap-2">
+                Demographic Segments
+                <span class="text-label-sm text-on-surface-variant bg-white/5 px-2 py-1 rounded">Live Breakdown</span>
+</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Segment 1 -->
+<div class="glass-card rounded-xl p-lg border-t-2 border-t-primary-container">
+<div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary-container mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<h5 class="font-body-lg text-body-lg text-white font-semibold mb-xs">Students</h5>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-white">4,210</span>
+<span class="text-label-md text-on-surface-variant">33.7%</span>
+</div>
+<p class="text-label-sm text-on-surface-variant mt-md">Primary focus: Networking &amp; Internships</p>
+</div>
+<!-- Segment 2 -->
+<div class="glass-card rounded-xl p-lg border-t-2 border-t-secondary-fixed-dim">
+<div class="w-12 h-12 rounded-xl bg-secondary-fixed-dim/10 flex items-center justify-center text-secondary-fixed-dim mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">work</span>
+</div>
+<h5 class="font-body-lg text-body-lg text-white font-semibold mb-xs">Professionals</h5>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-white">5,980</span>
+<span class="text-label-md text-on-surface-variant">47.9%</span>
+</div>
+<p class="text-label-sm text-on-surface-variant mt-md">Primary focus: Industry Skills &amp; Tools</p>
+</div>
+<!-- Segment 3 -->
+<div class="glass-card rounded-xl p-lg border-t-2 border-t-tertiary-fixed-dim">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed-dim/10 flex items-center justify-center text-tertiary-fixed-dim mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+</div>
+<h5 class="font-body-lg text-body-lg text-white font-semibold mb-xs">Executives</h5>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-white">1,540</span>
+<span class="text-label-md text-on-surface-variant">12.3%</span>
+</div>
+<p class="text-label-sm text-on-surface-variant mt-md">Primary focus: Strategy &amp; Leadership</p>
+</div>
+<!-- Segment 4 -->
+<div class="glass-card rounded-xl p-lg border-t-2 border-t-outline">
+<div class="w-12 h-12 rounded-xl bg-outline/10 flex items-center justify-center text-outline mb-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">diversity_3</span>
+</div>
+<h5 class="font-body-lg text-body-lg text-white font-semibold mb-xs">Other</h5>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-white">752</span>
+<span class="text-label-md text-on-surface-variant">6.1%</span>
+</div>
+<p class="text-label-sm text-on-surface-variant mt-md">Primary focus: Miscellaneous Interest</p>
+</div>
+</div>
+</section>
+<!-- Visual Interest Image Component -->
+<div class="relative w-full h-64 rounded-2xl overflow-hidden mt-auto mb-xl">
+<img alt="Future Tech Concept" class="w-full h-full object-cover opacity-40 mix-blend-screen" data-alt="An expansive, high-resolution visual of a futuristic digital command center featuring glowing holographic interface elements and complex data visualizations. The aesthetic is deep-space dark mode with striking neon orange and cyan accents reflecting off glass surfaces. Sharp, professional lighting highlights the intricate circuitry-like textures of the environment. The mood is powerful, authoritative, and advanced." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAibH3g2LqZIsBcIxSgd4PIIP1KEyUNeQXHNQMMoM7MnQTvhsiSkgiivcIKfesF_tmD94FR9s_oyoRM8EIt6CdUzeI3425YDeeo4LzxqwigU-D0yb-o_CddJweT48sRvrP1jJV6nvS0nmnwHaY4mxoOD_SGJq8fRqc2HOodW2dN2sWy9RCX_MBTs_FJdFWDMQ-fQUZyMYF96J53T9oeSuRSF57hEPxn6WWPmV1E_oJV7mH_R38LkAvxBTqY-lOxsz2mWG9ugvKSnKCo"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-transparent"></div>
+<div class="absolute bottom-8 left-8">
+<h4 class="font-headline-md text-headline-md text-white">AI-Driven Insights</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Predicted turnout for Q4: <span class="text-primary font-bold">18,500+ attendees</span></p>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-auto pt-lg border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-md">
+<div class="text-label-sm font-label-sm text-secondary-fixed-dim">
+                © 2124 Event Horizon Systems
+            </div>
+<div class="flex gap-lg">
+<a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">API Docs</a>
+</div>
+</footer>
+</main>
+<script>
+        // Simple Interaction logic for card lifting
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Floating orbs animation
+        const orbs = document.querySelectorAll('.glow-orb');
+        let move = 0;
+        function animateOrbs() {
+            move += 0.01;
+            orbs.forEach((orb, i) => {
+                const x = Math.sin(move + i) * 30;
+                const y = Math.cos(move + i) * 30;
+                orb.style.transform = `translate(${x}px, ${y}px)`;
+            });
+            requestAnimationFrame(animateOrbs);
+        }
+        animateOrbs();
+    </script>
+</body></html>

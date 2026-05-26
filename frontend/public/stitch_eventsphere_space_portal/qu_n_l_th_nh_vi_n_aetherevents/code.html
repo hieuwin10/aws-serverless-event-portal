@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Member Management | AetherEvents</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#002022",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "secondary": "#ddfcff",
+                        "background": "#0f131d",
+                        "on-primary-fixed-variant": "#693c00",
+                        "on-primary": "#4a2800",
+                        "surface-tint": "#ffb86f",
+                        "surface-container-lowest": "#0a0e18",
+                        "surface-container-high": "#262a35",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "on-error": "#690005",
+                        "inverse-primary": "#8a5100",
+                        "on-primary-fixed": "#2c1600",
+                        "surface-container": "#1c1f2a",
+                        "on-primary-container": "#653a00",
+                        "surface-container-low": "#171b26",
+                        "primary": "#ffc082",
+                        "on-secondary": "#00363a",
+                        "tertiary-container": "#bfa2ff",
+                        "surface-dim": "#0f131d",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#3d008f",
+                        "primary-fixed-dim": "#ffb86f",
+                        "outline-variant": "#554434",
+                        "primary-fixed": "#ffdcbd",
+                        "on-surface-variant": "#dbc2ad",
+                        "on-error-container": "#ffdad6",
+                        "tertiary": "#d7c3ff",
+                        "surface-variant": "#313540",
+                        "outline": "#a38d7a",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#eaddff",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "inverse-surface": "#dfe2f1",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "inverse-on-surface": "#2c303b",
+                        "on-tertiary-container": "#5500c1",
+                        "on-background": "#dfe2f1",
+                        "surface-container-highest": "#313540",
+                        "on-tertiary-fixed": "#24005b",
+                        "on-surface": "#dfe2f1",
+                        "surface": "#0f131d",
+                        "secondary-container": "#00f1fe",
+                        "primary-container": "#ff9900",
+                        "surface-bright": "#353944",
+                        "on-secondary-container": "#006a70",
+                        "secondary-fixed": "#74f5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "container-max": "1440px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B0F19;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glowing-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .orb-1 { top: -10%; right: -10%; background: radial-gradient(circle, #ff9900, transparent); }
+        .orb-2 { bottom: -10%; left: -10%; background: radial-gradient(circle, #00dbe7, transparent); }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 153, 0, 0.5); }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<div class="glowing-orb orb-1"></div>
+<div class="glowing-orb orb-2"></div>
+<!-- SideNavBar (Fixed) -->
+<aside class="hidden lg:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-low/40 backdrop-blur-2xl border-r border-white/10 shadow-xl py-lg px-md z-50">
+<div class="mb-xl px-2">
+<h1 class="font-headline-md text-headline-md font-bold text-primary mb-1">Command Center</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Event Lead</p>
+</div>
+<nav class="flex-grow space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 transition-all duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary rounded-r-lg group translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md">Attendees</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 transition-all duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">event</span>
+<span class="font-label-md text-label-md">Events</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 transition-all duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">payments</span>
+<span class="font-label-md text-label-md">Financials</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 transition-all duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<button class="w-full bg-primary-container text-on-primary-fixed-variant font-bold py-3 rounded-xl shadow-[0_0_20px_rgba(255,153,0,0.3)] hover:shadow-[0_0_30px_rgba(255,153,0,0.5)] active:scale-95 transition-all duration-200 mt-lg mb-xl">
+            Create Event
+        </button>
+<div class="border-t border-white/5 pt-lg space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-secondary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-white/5 backdrop-blur-xl sticky top-0 z-40 border-b border-white/10 shadow-[0_0_20px_rgba(255,192,130,0.1)]">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<span class="lg:hidden material-symbols-outlined text-primary cursor-pointer">menu</span>
+<span class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg font-bold text-on-surface tracking-tight">AetherEvents</span>
+</div>
+<div class="hidden md:flex gap-gutter items-center">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Home</a>
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Schedule</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Analytics</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 hover:bg-white/10 rounded-full transition-all text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-white/10 rounded-full transition-all text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-primary/30 ml-2">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a modern executive in a sleek, dark tech environment. The lighting is dramatic, with cool blue and warm orange rim light highlighting the contours of the face against a blurred futuristic office background. The style is cinematic and high-end, fitting a premium space-themed administrative interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHZXJ3wVpKjVf6RaueSxClP7GG76QsRydDuRMUgPUHPKgPx8L-WB6oyA6NO9KcxOanRymxCdvoCCMvjIplTPWbw6ldfeLXMvTVnAxvrItQ5wIndL5ASnEkBF5d0Zw9rJuMBFJooQQ6rTOdPiTUnpHerby0xN1mLRZan4avXDaTVoi8uaIIdiiZMelOTNqXB55_GX4A8ZDgxGeyszXYwG-A_Idnyi36cQUJbpeL2TG3UBc_k1V5mT921io5TaIzKnG6_7eTn8BWAOWU"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<div class="flex-grow p-6 md:p-margin-desktop max-w-7xl mx-auto w-full">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-md">
+<div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-on-surface mb-2">Member Management</h2>
+<p class="font-body-md text-on-surface-variant max-w-2xl">Monitor attendee activity, manage administrative permissions, and organize organizer roles for the upcoming Galactic Zenith Summit.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative glass-panel rounded-xl px-4 py-3 flex items-center min-w-[300px]">
+<span class="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md text-on-surface w-full placeholder:text-outline" placeholder="Search by name, email or role..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Bento Statistics Quick-Look -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+<div class="glass-panel p-lg rounded-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Total Members</span>
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<div>
+<p class="text-3xl font-bold text-on-surface">12,482</p>
+<p class="text-label-sm text-secondary-fixed-dim">+12% from last cycle</p>
+</div>
+</div>
+<div class="glass-panel p-lg rounded-xl flex flex-col justify-between border-t-2 border-t-secondary-fixed-dim">
+<div class="flex items-center justify-between mb-2">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Active Now</span>
+<span class="material-symbols-outlined text-secondary-fixed-dim">podcasts</span>
+</div>
+<div>
+<p class="text-3xl font-bold text-on-surface">1,042</p>
+<div class="flex gap-1">
+<div class="w-1 h-1 rounded-full bg-secondary-fixed-dim animate-pulse"></div>
+<div class="w-1 h-1 rounded-full bg-secondary-fixed-dim animate-pulse delay-75"></div>
+<div class="w-1 h-1 rounded-full bg-secondary-fixed-dim animate-pulse delay-150"></div>
+</div>
+</div>
+</div>
+<div class="glass-panel p-lg rounded-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Admins</span>
+<span class="material-symbols-outlined text-tertiary">security</span>
+</div>
+<div>
+<p class="text-3xl font-bold text-on-surface">24</p>
+<p class="text-label-sm text-on-surface-variant">4 pending review</p>
+</div>
+</div>
+<div class="glass-panel p-lg rounded-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Check-in Rate</span>
+<span class="material-symbols-outlined text-error">analytics</span>
+</div>
+<div>
+<p class="text-3xl font-bold text-on-surface">94.2%</p>
+<p class="text-label-sm text-secondary-fixed-dim">System optimal</p>
+</div>
+</div>
+</div>
+<!-- Member Table Container -->
+<div class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-white/10 bg-white/5">
+<th class="px-lg py-md font-label-md text-on-surface-variant">Member Name</th>
+<th class="px-lg py-md font-label-md text-on-surface-variant">Email Address</th>
+<th class="px-lg py-md font-label-md text-on-surface-variant">Role</th>
+<th class="px-lg py-md font-label-md text-on-surface-variant">Status</th>
+<th class="px-lg py-md font-label-md text-on-surface-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Row 1 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-white/10">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A high-resolution portrait of a futuristic technologist wearing a minimalist headset, backlit by amber lighting. The background features complex digital readouts and UI elements, reflecting a high-performance command center environment. The mood is focused and professional with deep black shadows and neon highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVQIh64K-PBqawph5uiloiRH6cnKmewjFJOGDroEyrRzr_VwHlkRW3aMOjnlPwXd-Ahgrmt1HMfX-lngeAfPPVWwdWSJ061AeZQNEIpWMIS138JIJjBRLlhgXpsf_cac3DZN0nhPGgj_VxELUQtzY-S0lvih9Au9z6SOstrrtLp7qaV_QJGjgpBIwSAC2d9i6Gxub-YlwyeC6GYb_XIyQpGEmB5SPTmjDcCtUIbL4MxnMi_Jdwf9cw-FyAGomItdrdapiO-IKFkUUP"/>
+</div>
+<div>
+<p class="font-body-md font-semibold text-on-surface">Aria Thorne</p>
+<p class="text-label-sm text-on-surface-variant">Joined Oct 2023</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg text-on-surface-variant font-body-md">aria.t@aethersphere.com</td>
+<td class="px-lg py-lg">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-label-sm font-bold border border-primary/20">Admin</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed-dim shadow-[0_0_8px_#00dbe7]"></span>
+<span class="text-label-md text-on-surface">Active</span>
+</div>
+</td>
+<td class="px-lg py-lg text-right">
+<div class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:text-primary transition-colors" title="View Details">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors" title="Edit Profile">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-white/10">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A portrait of a male data scientist in a sleek, dark-toned workspace with blue glowing accent lights. The scene suggests high intelligence and calm precision, featuring a soft-focus background of holographic data displays. The overall aesthetic is clean, modern, and tech-forward." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCNFuBKk_TuEI-_OSL4SIUorN2BVRBHwMFmjMjdaWwFNbM5AdrtSpndeT4zmd_Xn6TZidCU0XcRgQF7fALb4X0emgA0rHPH8fjuEYNuOOQdmbE1jXTYHzVI2WZn9YtvHwGILDrST8HOXpwvz6Hq1akjzGlQ61yhtD771vzitrNi-8NxQlqPUkxMzoH691s9fsUbNC0AMHCeB7WRjNpKlaDpbEiXMj8iCcNc7fYqpb_0-mwRq0IJgMCbtygaL_iDy6QMG_citUewUpZ"/>
+</div>
+<div>
+<p class="font-body-md font-semibold text-on-surface">Kaelen Vance</p>
+<p class="text-label-sm text-on-surface-variant">Joined Nov 2023</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg text-on-surface-variant font-body-md">k.vance@zenith.org</td>
+<td class="px-lg py-lg">
+<span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary text-label-sm font-bold border border-tertiary/20">Organizer</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed-dim shadow-[0_0_8px_#00dbe7]"></span>
+<span class="text-label-md text-on-surface">Active</span>
+</div>
+</td>
+<td class="px-lg py-lg text-right">
+<div class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-white/10">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A professional portrait of a woman in a high-tech corporate setting, with soft cyan lighting casting gentle glows on her face. The environment is minimalist and high-end, featuring glass surfaces and subtle architectural lines that evoke a sense of future-forward design and efficiency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHPpxmEpJGCnbARFRBh-wktIFZhiRqHmNBcRin1EUjS4_ETOYq2b7s0se8vNMjpepCzfrYwq0F4bqcacgQFx1ajynZw_Ycmo7ej-SFP81NIMVQJNqkGpQqpcE79bvLec1BTgS_9EBO6CXp0fIJdw3XWCTLNx9LfAo-r3FFRHQ1VMGDVlD_-k0_ueQA6QaWcZ6muuec4U2HaZQYfnw-AgkBFOGxW4fW6Zb-6q4wJKpeJzwmF1px_L6Mf_m1Q28-ydgS7HsvAAgfpHPD"/>
+</div>
+<div>
+<p class="font-body-md font-semibold text-on-surface">Lyra Chen</p>
+<p class="text-label-sm text-on-surface-variant">Joined Jan 2024</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg text-on-surface-variant font-body-md">lyra.chen@nebula.io</td>
+<td class="px-lg py-lg">
+<span class="px-3 py-1 rounded-full bg-white/10 text-on-surface-variant text-label-sm font-bold border border-white/20">Attendee</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline shadow-[0_0_8px_#a38d7a]"></span>
+<span class="text-label-md text-on-surface-variant">Offline</span>
+</div>
+</td>
+<td class="px-lg py-lg text-right">
+<div class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-white/10">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A close-up photograph of a male software architect in a dark, atmospheric studio. Orange neon light strikes one side of his face while the other remains in shadow, creating a high-contrast, moody aesthetic. The background is a dark void with faint, out-of-focus digital constellations." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLU9ap3a_nw5Ia6xZsIjMHcKIDGfX2IFU8tO5bUvtxV-u-rFOSiL1nxUxfbmyOXPt_EgehGyonW0fEIuCPS9SWadcJqsnD8WhqxjzsJqg2yypYEuPL96RiIwHLpR9dG2FvOMMuamksXhkHDjdk5NUF4Yicg-wNsFVLbM60AS4CWu1gBAhTgLrhVke1y3-e836iW20o9y_q1EZrbGmdU-fnNm6fw8uLZG_HPXP-qqpq5UNPNxaLALhhKpTSet5abF0fdnawywMC6XKu"/>
+</div>
+<div>
+<p class="font-body-md font-semibold text-on-surface">Elias Thorne</p>
+<p class="text-label-sm text-on-surface-variant">Joined Dec 2023</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg text-on-surface-variant font-body-md">elias.thorne@vector.com</td>
+<td class="px-lg py-lg">
+<span class="px-3 py-1 rounded-full bg-white/10 text-on-surface-variant text-label-sm font-bold border border-white/20">Attendee</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed-dim shadow-[0_0_8px_#00dbe7]"></span>
+<span class="text-label-md text-on-surface">Active</span>
+</div>
+</td>
+<td class="px-lg py-lg text-right">
+<div class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-lg border-t border-white/10 bg-white/2 flex flex-col md:flex-row justify-between items-center gap-md">
+<p class="text-label-sm text-on-surface-variant">Showing <span class="text-on-surface font-semibold">1-10</span> of <span class="text-on-surface font-semibold">12,482</span> members</p>
+<div class="flex items-center gap-1">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-on-surface-variant hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary/20 text-primary border border-primary/30 font-bold">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-on-surface-variant hover:bg-white/10 transition-colors">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-on-surface-variant hover:bg-white/10 transition-colors">3</button>
+<span class="px-2 text-on-surface-variant">...</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-on-surface-variant hover:bg-white/10 transition-colors">1248</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-on-surface-variant hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full mt-auto border-t border-white/5 bg-surface-container-lowest">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-xl w-full max-w-container-max mx-auto gap-md">
+<div class="text-center md:text-left">
+<p class="font-headline-md text-on-surface font-extrabold mb-1">AetherEvents</p>
+<p class="font-label-sm text-on-surface-variant">© 2024 AetherEvents Intelligence. All rights reserved.</p>
+</div>
+<div class="flex gap-lg">
+<a class="font-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a>
+<a class="font-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors" href="#">API Docs</a>
+<a class="font-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</main>
+<!-- Contextual FAB (Hidden on Mobile) -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-primary-container text-on-primary-fixed-variant rounded-full shadow-[0_0_30px_rgba(255,153,0,0.4)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 z-50 group">
+<span class="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform duration-300">add</span>
+</button>
+<script>
+        // Micro-interaction: Table row hover lifting effect
+        const tableRows = document.querySelectorAll('tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateY(-1px)';
+                row.style.transition = 'all 0.2s ease-out';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Search Input focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        const searchContainer = searchInput.parentElement;
+        searchInput.addEventListener('focus', () => {
+            searchContainer.style.borderColor = '#ff9900';
+            searchContainer.style.boxShadow = '0 0 15px rgba(255, 153, 0, 0.2)';
+        });
+        searchInput.addEventListener('blur', () => {
+            searchContainer.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+            searchContainer.style.boxShadow = 'none';
+        });
+    </script>
+</body></html>

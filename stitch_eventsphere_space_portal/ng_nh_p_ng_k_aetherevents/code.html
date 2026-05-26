@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents | Secure Access</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#93000a",
+                        "surface-container-high": "#262a35",
+                        "surface-container-highest": "#313540",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#4a2800",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#eaddff",
+                        "surface-dim": "#0f131d",
+                        "tertiary-container": "#bfa2ff",
+                        "inverse-on-surface": "#2c303b",
+                        "tertiary": "#d7c3ff",
+                        "on-secondary-fixed": "#002022",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "surface-container": "#1c1f2a",
+                        "primary": "#ffc082",
+                        "surface-container-lowest": "#0a0e18",
+                        "on-secondary-container": "#006a70",
+                        "on-background": "#dfe2f1",
+                        "surface-container-low": "#171b26",
+                        "background": "#0f131d",
+                        "error": "#ffb4ab",
+                        "secondary": "#ddfcff",
+                        "on-primary-container": "#653a00",
+                        "surface-variant": "#313540",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#ffb86f",
+                        "surface-bright": "#353944",
+                        "secondary-fixed": "#74f5ff",
+                        "on-tertiary-fixed": "#24005b",
+                        "surface": "#0f131d",
+                        "on-primary-fixed-variant": "#693c00",
+                        "secondary-container": "#00f1fe",
+                        "outline-variant": "#554434",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "primary-fixed": "#ffdcbd",
+                        "inverse-primary": "#8a5100",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "inverse-surface": "#dfe2f1",
+                        "on-surface": "#dfe2f1",
+                        "primary-container": "#ff9900",
+                        "surface-tint": "#ffb86f",
+                        "on-tertiary": "#3d008f",
+                        "on-primary-fixed": "#2c1600",
+                        "outline": "#a38d7a",
+                        "on-secondary": "#00363a",
+                        "on-tertiary-container": "#5500c1",
+                        "on-surface-variant": "#dbc2ad"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "display-lg-mobile": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.2); }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .input-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-glass:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #ff9900;
+            box-shadow: 0 0 10px rgba(255, 153, 0, 0.2);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: #ff9900;
+            transition: all 0.2s ease-out;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .auth-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+<!-- Atmospheric Background Elements -->
+<div class="orb w-[500px] h-[500px] bg-primary top-[-10%] left-[-10%]"></div>
+<div class="orb w-[400px] h-[400px] bg-secondary-container bottom-[-5%] right-[-5%] animation-delay-2000"></div>
+<div class="orb w-[300px] h-[300px] bg-tertiary-container top-[40%] right-[10%] animation-delay-4000"></div>
+<main class="relative z-10 w-full max-w-[480px]">
+<!-- Logo Area -->
+<div class="flex flex-col items-center mb-xl">
+<div class="w-16 h-16 rounded-xl glass-panel flex items-center justify-center mb-md border-primary/20">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="cloud_done">cloud_done</span>
+</div>
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface tracking-tight">AetherEvents</h1>
+<p class="font-body-md text-on-surface-variant opacity-70">Elevate your event intelligence</p>
+</div>
+<!-- Auth Card -->
+<div class="glass-panel rounded-xl overflow-hidden p-8 md:p-10">
+<!-- Toggle Tabs -->
+<div class="flex gap-1 p-1 mb-8 bg-white/5 rounded-lg border border-white/5">
+<button class="flex-1 py-2 font-label-md rounded-md transition-all duration-300 text-on-surface bg-white/10 shadow-sm" id="tab-login" onclick="toggleAuth('login')">
+                    Đăng nhập
+                </button>
+<button class="flex-1 py-2 font-label-md rounded-md transition-all duration-300 text-on-surface-variant hover:text-on-surface" id="tab-register" onclick="toggleAuth('register')">
+                    Đăng ký
+                </button>
+</div>
+<!-- Form Content -->
+<form class="space-y-6" id="auth-form">
+<div class="space-y-6 hidden opacity-0 auth-transition" id="register-fields">
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant ml-1">Họ và tên</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" data-icon="person">person</span>
+<input class="w-full input-glass rounded-xl py-3 pl-12 pr-4 font-body-md text-on-surface" placeholder="Nguyễn Văn A" type="text"/>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant ml-1">Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" data-icon="mail">mail</span>
+<input class="w-full input-glass rounded-xl py-3 pl-12 pr-4 font-body-md text-on-surface" placeholder="admin@eventapp.com" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center px-1">
+<label class="font-label-md text-on-surface-variant">Mật khẩu</label>
+<a class="text-label-sm text-primary hover:underline" href="#" id="forgot-password-link">Quên mật khẩu?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" data-icon="lock">lock</span>
+<input class="w-full input-glass rounded-xl py-3 pl-12 pr-12 font-body-md text-on-surface" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-xl" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<div class="space-y-2 hidden opacity-0 auth-transition" id="confirm-password-field">
+<label class="font-label-md text-on-surface-variant ml-1">Xác nhận mật khẩu</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" data-icon="lock_reset">lock_reset</span>
+<input class="w-full input-glass rounded-xl py-3 pl-12 pr-4 font-body-md text-on-surface" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<button class="w-full btn-primary py-4 rounded-xl font-headline-md text-on-primary-fixed shadow-xl mt-4" id="submit-btn" type="submit">
+                    Đăng nhập
+                </button>
+</form>
+<!-- Social Auth Divider -->
+<div class="flex items-center my-8">
+<div class="flex-grow h-[1px] bg-white/10"></div>
+<span class="px-4 font-label-sm text-on-surface-variant uppercase tracking-widest opacity-50">Hoặc</span>
+<div class="flex-grow h-[1px] bg-white/10"></div>
+</div>
+<!-- Social Links -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 py-3 input-glass rounded-xl hover:bg-white/10 transition-all font-label-md">
+<span class="material-symbols-outlined text-xl" data-icon="google">google</span>
+                    Google
+                </button>
+<button class="flex items-center justify-center gap-2 py-3 input-glass rounded-xl hover:bg-white/10 transition-all font-label-md">
+<span class="material-symbols-outlined text-xl" data-icon="brand_awareness">brand_awareness</span>
+                    Github
+                </button>
+</div>
+<!-- Admin Hint -->
+<div class="mt-8 p-4 rounded-lg bg-primary/5 border border-primary/10 flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-xl mt-0.5" data-icon="info">info</span>
+<div class="space-y-1">
+<p class="font-label-sm text-primary">Admin Credentials Hint:</p>
+<code class="text-xs text-on-surface-variant block select-all">admin@eventapp.com / AdminPass123!</code>
+</div>
+</div>
+</div>
+<footer class="mt-xl text-center">
+<p class="font-label-sm text-on-surface-variant opacity-50">© 2024 AetherEvents Intelligence. All rights reserved.</p>
+</footer>
+</main>
+<script>
+        function toggleAuth(mode) {
+            const loginFields = document.getElementById('register-fields');
+            const confirmPass = document.getElementById('confirm-password-field');
+            const submitBtn = document.getElementById('submit-btn');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const forgotLink = document.getElementById('forgot-password-link');
+
+            if (mode === 'register') {
+                // UI States
+                loginFields.classList.remove('hidden');
+                confirmPass.classList.remove('hidden');
+                setTimeout(() => {
+                    loginFields.classList.add('opacity-100');
+                    confirmPass.classList.add('opacity-100');
+                }, 10);
+                
+                submitBtn.innerText = 'Đăng ký';
+                forgotLink.classList.add('hidden');
+                
+                // Tabs styling
+                tabRegister.classList.add('bg-white/10', 'text-on-surface', 'shadow-sm');
+                tabRegister.classList.remove('text-on-surface-variant');
+                tabLogin.classList.remove('bg-white/10', 'text-on-surface', 'shadow-sm');
+                tabLogin.classList.add('text-on-surface-variant');
+            } else {
+                // UI States
+                loginFields.classList.remove('opacity-100');
+                confirmPass.classList.remove('opacity-100');
+                setTimeout(() => {
+                    loginFields.classList.add('hidden');
+                    confirmPass.classList.add('hidden');
+                }, 400);
+
+                submitBtn.innerText = 'Đăng nhập';
+                forgotLink.classList.remove('hidden');
+
+                // Tabs styling
+                tabLogin.classList.add('bg-white/10', 'text-on-surface', 'shadow-sm');
+                tabLogin.classList.remove('text-on-surface-variant');
+                tabRegister.classList.remove('bg-white/10', 'text-on-surface', 'shadow-sm');
+                tabRegister.classList.add('text-on-surface-variant');
+            }
+        }
+
+        // Form submission micro-interaction
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin" data-icon="progress_activity">progress_activity</span>';
+            btn.disabled = true;
+            btn.style.opacity = '0.8';
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                alert('Authentication system simulation: Success.');
+            }, 1500);
+        });
+
+        // Background Mouse Effect
+        document.addEventListener('mousemove', (e) => {
+            const orbs = document.querySelectorAll('.orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            orbs.forEach((orb, index) => {
+                const speed = (index + 1) * 20;
+                orb.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+    </script>
+</body></html>

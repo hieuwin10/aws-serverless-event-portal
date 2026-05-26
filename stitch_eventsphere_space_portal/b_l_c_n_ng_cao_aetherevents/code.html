@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced Filtering - AetherEvents</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0f131d;
+            overflow: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-orange {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+        }
+        .bg-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#bfa2ff",
+                    "on-secondary-container": "#006a70",
+                    "surface-bright": "#353944",
+                    "tertiary": "#d7c3ff",
+                    "secondary-container": "#00f1fe",
+                    "primary": "#ffc082",
+                    "outline": "#a38d7a",
+                    "on-tertiary-fixed": "#24005b",
+                    "surface": "#0f131d",
+                    "surface-dim": "#0f131d",
+                    "surface-container": "#1c1f2a",
+                    "on-primary-container": "#653a00",
+                    "inverse-surface": "#dfe2f1",
+                    "on-tertiary-container": "#5500c1",
+                    "on-background": "#dfe2f1",
+                    "error": "#ffb4ab",
+                    "inverse-on-surface": "#2c303b",
+                    "primary-fixed-dim": "#ffb86f",
+                    "surface-container-lowest": "#0a0e18",
+                    "on-primary-fixed": "#2c1600",
+                    "on-tertiary-fixed-variant": "#5800c8",
+                    "on-surface": "#dfe2f1",
+                    "surface-variant": "#313540",
+                    "on-tertiary": "#3d008f",
+                    "primary-container": "#ff9900",
+                    "on-secondary-fixed": "#002022",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#313540",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "surface-container-high": "#262a35",
+                    "on-surface-variant": "#dbc2ad",
+                    "background": "#0f131d",
+                    "tertiary-fixed-dim": "#d1bcff",
+                    "primary-fixed": "#ffdcbd",
+                    "on-primary-fixed-variant": "#693c00",
+                    "on-secondary": "#00363a",
+                    "tertiary-fixed": "#eaddff",
+                    "secondary-fixed-dim": "#00dbe7",
+                    "secondary-fixed": "#74f5ff",
+                    "surface-container-low": "#171b26",
+                    "secondary": "#ddfcff",
+                    "on-primary": "#4a2800",
+                    "outline-variant": "#554434",
+                    "surface-tint": "#ffb86f",
+                    "on-error": "#690005",
+                    "on-error-container": "#ffdad6",
+                    "inverse-primary": "#8a5100"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "margin-desktop": "32px",
+                    "margin-mobile": "16px",
+                    "container-max": "1440px",
+                    "xl": "48px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-md": ["Outfit"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Outfit"],
+                    "display-lg-mobile": ["Outfit"],
+                    "label-sm": ["Inter"],
+                    "display-lg": ["Outfit"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Atmospheric Background Orbs -->
+<div class="bg-orb bg-primary/20 top-[-200px] right-[-200px]"></div>
+<div class="bg-orb bg-secondary-container/10 bottom-[-200px] left-[-200px]"></div>
+<!-- Main Shell Mockup (Blurred Background) -->
+<div class="fixed inset-0 flex overflow-hidden filter blur-xl pointer-events-none scale-105">
+<!-- Sidebar Shell -->
+<aside class="fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-surface/30 backdrop-blur-xl flex flex-col p-gutter">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tight mb-xl">AetherEvents</div>
+<nav class="flex-1 space-y-md">
+<div class="text-on-surface-variant rounded-lg px-4 py-3 flex items-center gap-3"><span class="material-symbols-outlined">dashboard</span>Overview</div>
+<div class="text-on-surface-variant rounded-lg px-4 py-3 flex items-center gap-3"><span class="material-symbols-outlined">event</span>Event Management</div>
+<div class="bg-primary text-on-primary shadow-[0_0_15px_rgba(255,153,0,0.4)] rounded-lg px-4 py-3 flex items-center gap-3"><span class="material-symbols-outlined">group</span>Registration List</div>
+<div class="text-on-surface-variant rounded-lg px-4 py-3 flex items-center gap-3"><span class="material-symbols-outlined">mic</span>Speakers/Sponsors</div>
+<div class="text-on-surface-variant rounded-lg px-4 py-3 flex items-center gap-3"><span class="material-symbols-outlined">receipt_long</span>Audit Logs</div>
+</nav>
+</aside>
+<!-- Content Area Shell -->
+<main class="ml-64 flex-1 pt-20 px-xl">
+<div class="h-20 fixed top-0 right-0 left-64 bg-surface/20 border-b border-white/10 flex justify-between items-center px-gutter">
+<h1 class="font-headline-md text-headline-md">Registration List</h1>
+<div class="flex gap-md">
+<button class="bg-white/5 border border-white/10 px-md py-sm rounded-lg">Export PDF</button>
+</div>
+</div>
+<div class="mt-lg grid grid-cols-12 gap-lg">
+<div class="col-span-12 glass-panel p-lg rounded-xl h-96"></div>
+<div class="col-span-4 glass-panel p-lg rounded-xl h-64"></div>
+<div class="col-span-8 glass-panel p-lg rounded-xl h-64"></div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-md">
+<!-- Advanced Filter Modal -->
+<div class="glass-panel w-full max-w-2xl rounded-xl overflow-hidden flex flex-col max-h-[921px] shadow-2xl animate-in fade-in zoom-in duration-300">
+<!-- Modal Header -->
+<div class="p-lg border-b border-white/10 flex justify-between items-center bg-white/5">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary">Bộ lọc nâng cao</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Configure precise registration parameters</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-lg overflow-y-auto space-y-xl">
+<!-- Date Range Picker -->
+<section>
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-md">Date Range</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="relative group">
+<label class="font-label-sm text-label-sm text-on-surface-variant mb-xs block">Start Date</label>
+<div class="flex items-center bg-white/5 border border-white/10 rounded-xl px-md py-3 focus-within:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-primary mr-sm">calendar_today</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-body-md placeholder:text-white/20" placeholder="YYYY-MM-DD" type="text"/>
+</div>
+</div>
+<div class="relative group">
+<label class="font-label-sm text-label-sm text-on-surface-variant mb-xs block">End Date</label>
+<div class="flex items-center bg-white/5 border border-white/10 rounded-xl px-md py-3 focus-within:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-primary mr-sm">event</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-body-md placeholder:text-white/20" placeholder="YYYY-MM-DD" type="text"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Payment Status Filter -->
+<section>
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-md">Payment Status</h3>
+<div class="flex flex-wrap gap-sm">
+<button class="px-md py-sm rounded-full bg-primary/20 border border-primary text-primary font-label-md">All</button>
+<button class="px-md py-sm rounded-full bg-white/5 border border-white/10 text-on-surface-variant hover:border-white/30 transition-all font-label-md">Paid</button>
+<button class="px-md py-sm rounded-full bg-white/5 border border-white/10 text-on-surface-variant hover:border-white/30 transition-all font-label-md">Pending</button>
+<button class="px-md py-sm rounded-full bg-white/5 border border-white/10 text-on-surface-variant hover:border-white/30 transition-all font-label-md">Failed</button>
+</div>
+</section>
+<!-- Ticket Tiers & Custom Fields Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+<!-- Ticket Tiers -->
+<section>
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-md">Ticket Tiers</h3>
+<div class="space-y-sm">
+<label class="flex items-center gap-md cursor-pointer group">
+<div class="w-5 h-5 border-2 border-white/20 rounded flex items-center justify-center group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary hidden" id="check-vip">check</span>
+</div>
+<span class="text-body-md">VIP Pass</span>
+<input class="hidden" onchange="document.getElementById('check-vip').classList.toggle('hidden')" type="checkbox"/>
+</label>
+<label class="flex items-center gap-md cursor-pointer group">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-primary">check</span>
+</div>
+<span class="text-body-md">Standard</span>
+<input checked="" class="hidden" type="checkbox"/>
+</label>
+<label class="flex items-center gap-md cursor-pointer group">
+<div class="w-5 h-5 border-2 border-white/20 rounded flex items-center justify-center group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary hidden" id="check-early">check</span>
+</div>
+<span class="text-body-md">Early Bird</span>
+<input class="hidden" onchange="document.getElementById('check-early').classList.toggle('hidden')" type="checkbox"/>
+</label>
+</div>
+</section>
+<!-- Custom Fields -->
+<section class="space-y-md">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-md">Custom Fields</h3>
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant mb-xs block">Location</label>
+<div class="flex items-center bg-white/5 border border-white/10 rounded-xl px-md py-2 focus-within:border-primary/50">
+<span class="material-symbols-outlined text-on-surface-variant text-sm mr-sm">location_on</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-body-md" placeholder="City or Region" type="text"/>
+</div>
+</div>
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant mb-xs block">Company</label>
+<div class="flex items-center bg-white/5 border border-white/10 rounded-xl px-md py-2 focus-within:border-primary/50">
+<span class="material-symbols-outlined text-on-surface-variant text-sm mr-sm">business</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-body-md" placeholder="Organization name" type="text"/>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-lg border-t border-white/10 bg-white/5 flex flex-col sm:flex-row gap-md">
+<button class="flex-1 px-xl py-md bg-white/5 border border-white/10 rounded-xl font-label-md text-on-surface hover:bg-white/10 transition-colors order-2 sm:order-1">
+                    Reset
+                </button>
+<button class="flex-[2] px-xl py-md bg-primary-container text-on-primary font-label-md rounded-xl glow-orange hover:scale-[1.02] active:scale-[0.98] transition-all order-1 sm:order-2">
+                    Apply Filters
+                </button>
+</div>
+</div>
+</div>
+<!-- Background Decoration (Blurred Reference) -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+<div class="absolute inset-0 opacity-20">
+<!-- Placeholder for background screen -->
+<div class="w-full h-full bg-gradient-to-tr from-surface via-surface-container to-surface-bright"></div>
+</div>
+</div>
+<script>
+        // Simple interactivity for the payment status buttons
+        document.querySelectorAll('button[class*="rounded-full"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Only act on payment status group (simple toggle logic)
+                if (this.parentElement.previousElementSibling.innerText === 'PAYMENT STATUS') {
+                    this.parentElement.querySelectorAll('button').forEach(b => {
+                        b.className = 'px-md py-sm rounded-full bg-white/5 border border-white/10 text-on-surface-variant hover:border-white/30 transition-all font-label-md';
+                    });
+                    this.className = 'px-md py-sm rounded-full bg-primary/20 border border-primary text-primary font-label-md';
+                }
+            });
+        });
+    </script>
+</body></html>

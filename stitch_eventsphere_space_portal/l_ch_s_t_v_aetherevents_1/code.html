@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ticket History | AetherEvents Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0f131d; /* surface-dim from config */
+            color: #dfe2f1; /* on-surface from config */
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease-out;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(255, 153, 0, 0.1);
+        }
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#d1bcff",
+                      "surface-container": "#1c1f2a",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "tertiary-container": "#bfa2ff",
+                      "secondary-fixed": "#74f5ff",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed-dim": "#00dbe7",
+                      "on-surface": "#dfe2f1",
+                      "inverse-surface": "#dfe2f1",
+                      "on-secondary": "#00363a",
+                      "primary-fixed": "#ffdcbd",
+                      "on-primary": "#4a2800",
+                      "surface-bright": "#353944",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed-variant": "#5800c8",
+                      "surface-container-low": "#171b26",
+                      "secondary": "#ddfcff",
+                      "inverse-on-surface": "#2c303b",
+                      "surface-tint": "#ffb86f",
+                      "surface-container-highest": "#313540",
+                      "secondary-container": "#00f1fe",
+                      "on-surface-variant": "#dbc2ad",
+                      "on-primary-container": "#653a00",
+                      "tertiary": "#d7c3ff",
+                      "on-secondary-container": "#006a70",
+                      "tertiary-fixed": "#eaddff",
+                      "on-tertiary-container": "#5500c1",
+                      "surface-dim": "#0f131d",
+                      "outline-variant": "#554434",
+                      "on-primary-fixed-variant": "#693c00",
+                      "inverse-primary": "#8a5100",
+                      "on-tertiary": "#3d008f",
+                      "background": "#0f131d",
+                      "primary-container": "#ff9900",
+                      "primary-fixed-dim": "#ffb86f",
+                      "on-secondary-fixed": "#002022",
+                      "error-container": "#93000a",
+                      "on-primary-fixed": "#2c1600",
+                      "surface-container-lowest": "#0a0e18",
+                      "surface-variant": "#313540",
+                      "outline": "#a38d7a",
+                      "on-background": "#dfe2f1",
+                      "on-tertiary-fixed": "#24005b",
+                      "error": "#ffb4ab",
+                      "surface": "#0f131d",
+                      "surface-container-high": "#262a35",
+                      "primary": "#ffc082"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "sm": "8px",
+                      "lg": "24px",
+                      "xs": "4px",
+                      "margin-desktop": "32px",
+                      "unit": "4px",
+                      "margin-mobile": "16px",
+                      "container-max": "1440px",
+                      "xl": "48px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Outfit"],
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-md": ["Outfit"],
+                      "display-lg-mobile": ["Outfit"],
+                      "label-sm": ["Inter"],
+                      "display-lg": ["Outfit"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Atmospheric Orbs -->
+<div class="orb w-[400px] h-[400px] bg-primary-container top-[-10%] left-[-10%]"></div>
+<div class="orb w-[300px] h-[300px] bg-secondary-fixed bottom-[10%] right-[-5%]"></div>
+<!-- TopNavBar (Shared Component Execution) -->
+<nav class="bg-white/5 backdrop-blur-xl dark:bg-white/5 text-primary dark:text-primary docked full-width top-0 sticky border-b border-white/10 shadow-[0_0_20px_rgba(255,192,130,0.1)] z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg font-bold text-on-surface tracking-tight">
+                AetherEvents
+            </div>
+<div class="hidden md:flex items-center gap-gutter">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Home</a>
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Schedule</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">Analytics</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-2 rounded-full hover:bg-white/10 hover:backdrop-blur-2xl transition-all duration-200 text-on-surface-variant">notifications</button>
+<button class="material-symbols-outlined p-2 rounded-full hover:bg-white/10 hover:backdrop-blur-2xl transition-all duration-200 text-on-surface-variant">settings</button>
+<div class="w-10 h-10 rounded-full border border-white/20 overflow-hidden ml-2">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRgG5GGfYabEU0aEczHMVuUJCJYNz0W-Xk1Z3RUqyaDDiSxT3fzVNI2tw4OAWP3QXf45BuRqbVuAE6kW-H5fr_ADJ7T0APcSer5OQ24W_ozgM8LW9-mDHfMeOh8pgTrYLFRowP6mvWB2zwiSdzbH5tkq6eytRRf-fj-uRRBqON40yISE7FToQqvJGpHadIcQwzSy5woSiWox8RyLbXEiT1kozmYqdBy0g8yOfzNkR4u-EozVyZFkz7kSpjqwneFKPsQgI14QgmDxX7"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-xl">
+<!-- Page Header -->
+<header class="mb-xl">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-xs">My Tickets</h1>
+<p class="text-on-surface-variant font-body-md text-body-md">Manage and view your event registrations across the Aether ecosystem.</p>
+</header>
+<!-- Section 1: Upcoming Events -->
+<section class="mb-xl">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">confirmation_number</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Upcoming Events</h2>
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm ml-2">2 NEW</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Ticket Card 1 -->
+<div class="glass-card rounded-xl overflow-hidden group cursor-pointer">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A futuristic tech conference stage illuminated with vibrant orange and cyan laser lights, reflecting off a polished dark floor. Massive high-resolution screens display abstract data patterns. The atmosphere is cinematic, high-tech, and energetic, following a space-dark aesthetic with neon orange accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaw4nJBgaRG5D_fVyjHv4vYxb--it-ls-1qhOybCxnTOKGaNWU4ZOmrqhMJiIYohPEjN9JkMlJ91PA88SBtpFO_Payp6GvMQb9vImH_ec1sxUseJkJJspHBD1oc6QHo3_w4q9yuyQAY15l-fPbv3-7ruhvKbgmh0hx2QSFRnJuhvA6cYHzfv2CtOZLcISGy68vBUFvvlqQSogRMpDaLwNLtMVz9uR05mL4pbNhQeTumz6f_ROhV9EbxyrMvcXWZ9hnIbuo1_hArMTV"/>
+<div class="absolute top-md right-md">
+<span class="px-3 py-1 rounded-full bg-[#00ff99]/20 text-[#00ff99] border border-[#00ff99]/30 font-label-sm text-label-sm backdrop-blur-md">Upcoming</span>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs group-hover:text-primary transition-colors">AWS Cloud Day 2024</h3>
+<div class="flex items-center gap-xs text-on-surface-variant mb-md">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-md text-label-md">Nov 14, 2024 • 09:00 AM</span>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-white/5">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm">Quantity &amp; Type</span>
+<span class="text-on-surface font-body-md text-body-md font-semibold">2x VIP Pass</span>
+</div>
+<button class="bg-primary-container text-on-primary-fixed px-md py-sm rounded-lg font-label-md text-label-md hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] transition-all active:scale-95">
+                                Show QR
+                            </button>
+</div>
+</div>
+</div>
+<!-- Ticket Card 2 -->
+<div class="glass-card rounded-xl overflow-hidden group cursor-pointer">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A robotic hand interacting with a floating holographic user interface in a dark, futuristic laboratory. Soft cyan and purple ambient lighting creates deep shadows. The scene captures the cutting edge of AI technology with a minimalist, high-end design feel consistent with a dark mode command center UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgd2tCjpMgneaeXnXjTSJq1BmKnwhWAG8eY8J3StRkha2h7lCQ0y-olH0rB5gTSwiGJakVfJykAGXntjlgQYWxPPS8iW_dPZOw5w50iKqICvripdWbI0QyTP3w6KgxdVSKELY6gFTzbCWlvaenIfxNLh8Kv6a2XA6Eb6lxkXOaV_hRBM92LMnE8yFSvEr5fepe7G_mCQqHNeiOETq075pSThg7PgI3G8nWjprsJFKwgZAsXZJ90HY8U9lIkkqCluspqXYHfuer50rB"/>
+<div class="absolute top-md right-md">
+<span class="px-3 py-1 rounded-full bg-[#00ff99]/20 text-[#00ff99] border border-[#00ff99]/30 font-label-sm text-label-sm backdrop-blur-md">Upcoming</span>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs group-hover:text-primary transition-colors">AI Summit Global</h3>
+<div class="flex items-center gap-xs text-on-surface-variant mb-md">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-md text-label-md">Dec 05, 2024 • 10:30 AM</span>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-white/5">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm">Quantity &amp; Type</span>
+<span class="text-on-surface font-body-md text-body-md font-semibold">1x Standard</span>
+</div>
+<button class="bg-primary-container text-on-primary-fixed px-md py-sm rounded-lg font-label-md text-label-md hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] transition-all active:scale-95">
+                                Show QR
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Past Events -->
+<section>
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-on-surface-variant">history</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Past Events</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Past Ticket 1 -->
+<div class="glass-card rounded-xl overflow-hidden opacity-80 hover:opacity-100 grayscale-[0.5] hover:grayscale-0 cursor-pointer">
+<div class="relative h-40 w-full">
+<img class="w-full h-full object-cover" data-alt="A massive arena crowd viewed from behind the stage during a high-stakes keynote. Deep blue and purple spotlight beams cut through a light haze. The aesthetic is grand, professional, and slightly dimmed, representing a past event in a space-themed dark interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBudbRzKWrjhTSJCI-0Mi28U8K3J8_RzucEDpufsv-xZbllpqLy5lXOHSMY7WgP5ybE9M6XNf9Xj0j9rnzP8H7pK10c2fODp7pJQLN932ObaXy5tzGSNM-SIPePGs6kWxLXRnZ5H6NHAGM9UAJmRNZImsGgeYLqSd2oKsL3LAT20p0Ew4hTdtu6BSsOJ0pszFFXGILnYqWm2WEpb63BJRKxQo9PcGNocIuvrsMWL17mL2rdvHQsv3zBTGqqH9N8mxfEMzd3-1-LLL5l"/>
+<div class="absolute top-md right-md">
+<span class="px-3 py-1 rounded-full bg-white/10 text-on-surface-variant border border-white/10 font-label-sm text-label-sm backdrop-blur-md">Completed</span>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Web3 DevCon</h3>
+<div class="flex items-center gap-xs text-on-surface-variant mb-md">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-md text-label-md">Aug 20, 2024</span>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-white/5">
+<span class="text-on-surface-variant font-label-md text-label-md">2x Early Bird</span>
+<button class="text-primary font-label-md text-label-md hover:underline decoration-2 underline-offset-4">View Receipt</button>
+</div>
+</div>
+</div>
+<!-- Past Ticket 2 -->
+<div class="glass-card rounded-xl overflow-hidden opacity-80 hover:opacity-100 grayscale-[0.5] hover:grayscale-0 cursor-pointer">
+<div class="relative h-40 w-full">
+<img class="w-full h-full object-cover" data-alt="An intimate jazz performance in a sophisticated dark lounge with warm orange ambient lighting. Silhouetted figures of musicians against a glowing background. The mood is elegant and nocturnal, fitting for a premium lifestyle event in a futuristic design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJNXd_vGOsINI1PKDlzGSs5KkBuisD44GYC4SFpJtaFV-LKocC3MIdK7ZxsYYnXeiCc0tX-4UtTFJ1uTXWhqibSSE4tC-56npRjT8XWeUsKrc3iQt-uZ7fjrRxD8UdlnQRwnyW8fcfhVSP4HkFD4O3YrmHyqsMoEHGgbmfSylj23oikSbceJldP0-yhfsh7-x4i1M_20lw-8FdP4eh-xsmKbWkMfDba8URVOHuTy5QPX4Uake9j85zsrfqQuVfpnALugwxrraQp0sw"/>
+<div class="absolute top-md right-md">
+<span class="px-3 py-1 rounded-full bg-white/10 text-on-surface-variant border border-white/10 font-label-sm text-label-sm backdrop-blur-md">Completed</span>
+</div>
+</div>
+<div class="p-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Cyber Jazz Night</h3>
+<div class="flex items-center gap-xs text-on-surface-variant mb-md">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-label-md text-label-md">July 12, 2024</span>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-white/5">
+<span class="text-on-surface-variant font-label-md text-label-md">1x General Admission</span>
+<button class="text-primary font-label-md text-label-md hover:underline decoration-2 underline-offset-4">View Receipt</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shared Component Execution) -->
+<footer class="bg-surface-container-lowest dark:bg-surface-container-lowest text-secondary w-full mt-auto border-t border-white/5 py-xl">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop w-full max-w-container-max mx-auto gap-lg">
+<div class="flex flex-col items-center md:items-start">
+<div class="font-headline-md text-headline-md font-extrabold text-on-surface mb-2">AetherEvents</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 AetherEvents Intelligence. All rights reserved.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-lg">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors duration-200" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors duration-200" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors duration-200" href="#">API Docs</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary-fixed transition-colors duration-200" href="#">Contact</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for the QR buttons
+        document.querySelectorAll('button').forEach(btn => {
+            if(btn.textContent.trim() === 'Show QR') {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const cardTitle = btn.closest('.glass-card').querySelector('h3').innerText;
+                    alert(`Accessing digital pass for: ${cardTitle}`);
+                });
+            }
+        });
+
+        // Hover effect enhancement for glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

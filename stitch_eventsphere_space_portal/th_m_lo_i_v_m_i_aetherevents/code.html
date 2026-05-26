@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Thêm Loại Vé Mới | EventCommand</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#d7c3ff",
+                        "surface-variant": "#313540",
+                        "on-background": "#dfe2f1",
+                        "surface-dim": "#0f131d",
+                        "on-secondary-container": "#006a70",
+                        "inverse-surface": "#dfe2f1",
+                        "error": "#ffb4ab",
+                        "primary-container": "#ff9900",
+                        "outline": "#a38d7a",
+                        "surface-container": "#1c1f2a",
+                        "background": "#0f131d",
+                        "secondary-fixed": "#74f5ff",
+                        "surface": "#0f131d",
+                        "secondary": "#ddfcff",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "tertiary-container": "#bfa2ff",
+                        "on-primary-fixed-variant": "#693c00",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0a0e18",
+                        "on-surface-variant": "#dbc2ad",
+                        "on-secondary-fixed": "#002022",
+                        "on-error": "#690005",
+                        "surface-container-low": "#171b26",
+                        "on-tertiary": "#3d008f",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb86f",
+                        "on-primary-fixed": "#2c1600",
+                        "on-surface": "#dfe2f1",
+                        "outline-variant": "#554434",
+                        "primary": "#ffc082",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "primary-fixed": "#ffdcbd",
+                        "on-primary-container": "#653a00",
+                        "tertiary-fixed": "#eaddff",
+                        "on-primary": "#4a2800",
+                        "inverse-primary": "#8a5100",
+                        "secondary-container": "#00f1fe",
+                        "on-secondary": "#00363a",
+                        "surface-tint": "#ffb86f",
+                        "on-tertiary-container": "#5500c1",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "surface-bright": "#353944",
+                        "surface-container-highest": "#313540",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "on-tertiary-fixed": "#24005b",
+                        "inverse-on-surface": "#2c303b",
+                        "surface-container-high": "#262a35"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"]
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "xl": "48px",
+                        "sm": "8px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            animation: drift 20s infinite alternate ease-in-out;
+        }
+        @keyframes drift {
+            from { transform: translate(-10%, -10%); }
+            to { transform: translate(10%, 10%); }
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff9900 !important;
+            box-shadow: 0 0 0 1px rgba(255, 153, 0, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Ambient Background -->
+<div class="orb w-[500px] h-[500px] bg-primary top-[-100px] left-[-100px]"></div>
+<div class="orb w-[400px] h-[400px] bg-secondary bottom-[-50px] right-[-50px]" style="animation-delay: -5s;"></div>
+<div class="orb w-[300px] h-[300px] bg-tertiary top-1/2 left-1/3" style="animation-delay: -10s;"></div>
+<!-- Side Navigation Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest/80 backdrop-blur-xl border-r border-white/10 flex flex-col py-md z-50">
+<div class="px-md mb-xl">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">EventCommand</h1>
+<p class="text-on-surface-variant text-label-sm">Enterprise Suite</p>
+</div>
+<nav class="flex-1 px-sm space-y-1">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-primary bg-primary/10 border-r-2 border-primary transition-all duration-200" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-md text-label-md">Events</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Attendees</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-md text-label-md">Operations</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="px-sm mt-auto pt-md border-t border-white/5">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen relative flex items-center justify-center p-xl">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-surface-container/30 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-lg z-40">
+<div class="flex items-center bg-surface-container-high/50 rounded-full px-md py-xs w-96 border border-white/5">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm text-on-surface w-full ml-xs" placeholder="Tìm kiếm sự kiện, vé..." type="text"/>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs rounded-full hover:bg-white/5 transition-all text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs rounded-full hover:bg-white/5 transition-all text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<div class="h-8 w-px bg-white/10 mx-xs"></div>
+<div class="flex items-center gap-sm">
+<img alt="Administrator Portrait" class="w-8 h-8 rounded-full border border-primary/50" data-alt="A professional close-up portrait of a high-level event administrator in a sleek, futuristic dark office. The lighting is dominated by subtle orange and cyan neon reflections on glass surfaces. The person has a focused, authoritative expression, wearing a minimalist technical suit. The background features blurred data dashboards and ambient holographic elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHHGpdSgU6d7n2vpET9vE0ZEk5c-pvW_-Q75hDnqip3DYS5RDP_8g4cXu7nOyWCfmQZB0ih-U9drSX8Cb-abGjZEfXY6MlvpFZ-PnNy3N4oAirKAbJD0YxEUNXgQDug5MtBn_B06tTANRJZK42Yz1tIAbhGofHKFqdMTe5AhffkbMuDEUz4OcxQZRFiAtNeRfpCgtiaFPwxvIH7FYV3_0oPzfQfmRVnRS2MpyZ7QrLXZXp069Bfbit3XQcVibx67eu7EYDEDyULySV"/>
+<span class="font-label-md text-on-surface hidden lg:block">Admin. Aether</span>
+</div>
+</div>
+</header>
+<!-- Create Ticket Modal Card -->
+<section class="max-w-2xl w-full mt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+<div class="glass-panel rounded-xl p-xl shadow-[0_0_40px_rgba(0,0,0,0.3)]">
+<div class="flex items-center justify-between mb-lg">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary mb-xs">Thêm Loại Vé Mới</h2>
+<p class="text-on-surface-variant font-label-md">Thiết lập chi tiết và cấu hình giá cho vé sự kiện của bạn.</p>
+</div>
+<div class="p-sm bg-primary/10 rounded-xl border border-primary/20">
+<span class="material-symbols-outlined text-primary text-3xl">confirmation_number</span>
+</div>
+</div>
+<form class="space-y-lg" id="ticketForm">
+<!-- Basic Info -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="md:col-span-2">
+<label class="block font-label-md text-on-surface-variant mb-xs">Tên Loại Vé</label>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-on-surface placeholder:text-on-surface-variant/40 transition-all" placeholder="Ví dụ: Vé VIP Trải Nghiệm" type="text"/>
+</div>
+<div>
+<label class="block font-label-md text-on-surface-variant mb-xs">Giá Vé</label>
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-primary font-bold">₫</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-md py-sm text-on-surface placeholder:text-on-surface-variant/40 transition-all" placeholder="500.000" type="number"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-on-surface-variant mb-xs">Tổng Số Lượng</label>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-on-surface placeholder:text-on-surface-variant/40 transition-all" placeholder="100" type="number"/>
+</div>
+</div>
+<!-- Description -->
+<div>
+<label class="block font-label-md text-on-surface-variant mb-xs">Mô Tả Vé</label>
+<textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-on-surface placeholder:text-on-surface-variant/40 transition-all" placeholder="Chi tiết các quyền lợi đi kèm với loại vé này..." rows="3"></textarea>
+</div>
+<!-- Early Bird Toggle -->
+<div class="p-md rounded-xl bg-white/5 border border-white/5">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">verified</span>
+<div>
+<p class="font-label-md text-on-surface">Giá Vé Sớm (Early Bird)</p>
+<p class="text-xs text-on-surface-variant">Kích hoạt ưu đãi cho những người mua đầu tiên</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" id="earlyBirdToggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<!-- Early Bird Fields (Hidden by default) -->
+<div class="grid grid-cols-2 gap-md hidden animate-in slide-in-from-top-2 duration-300" id="earlyBirdFields">
+<div>
+<label class="block font-label-md text-on-surface-variant mb-xs">Giá Ưu Đãi</label>
+<div class="relative">
+<span class="absolute left-md top-1/2 -translate-y-1/2 text-secondary font-bold">₫</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-md py-sm text-on-surface placeholder:text-on-surface-variant/40 transition-all" placeholder="400.000" type="number"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-on-surface-variant mb-xs">Ngày Kết Thúc</label>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl px-md py-sm text-on-surface transition-all [color-scheme:dark]" type="date"/>
+</div>
+</div>
+</div>
+<!-- Discounts Section -->
+<div>
+<label class="block font-label-md text-on-surface-variant mb-xs">Chiết Khấu (%)</label>
+<div class="space-y-sm mb-sm" id="discountList">
+<!-- Dynamic discount rows would go here -->
+</div>
+<button class="flex items-center gap-xs text-secondary font-label-md hover:opacity-80 transition-all" id="addDiscount" type="button">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                            Thêm mã giảm giá theo tỷ lệ
+                        </button>
+</div>
+<!-- Actions -->
+<div class="flex items-center justify-end gap-md pt-lg border-t border-white/10">
+<button class="px-lg py-sm rounded-xl font-label-md text-on-surface hover:bg-white/5 border border-white/10 transition-all active:scale-95" type="button">
+                            Hủy bỏ
+                        </button>
+<button class="px-xl py-sm rounded-xl font-label-md bg-primary-container text-on-primary-fixed font-bold shadow-[0_0_20px_rgba(255,153,0,0.3)] hover:shadow-[0_0_30px_rgba(255,153,0,0.5)] transition-all active:scale-95" type="submit">
+                            Lưu Loại Vé
+                        </button>
+</div>
+</form>
+</div>
+</section>
+</main>
+<script>
+        // Toggle Early Bird Fields
+        const earlyBirdToggle = document.getElementById('earlyBirdToggle');
+        const earlyBirdFields = document.getElementById('earlyBirdFields');
+
+        earlyBirdToggle.addEventListener('change', () => {
+            if (earlyBirdToggle.checked) {
+                earlyBirdFields.classList.remove('hidden');
+            } else {
+                earlyBirdFields.classList.add('hidden');
+            }
+        });
+
+        // Add Discount Logic
+        const addDiscountBtn = document.getElementById('addDiscount');
+        const discountList = document.getElementById('discountList');
+
+        addDiscountBtn.addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-md animate-in slide-in-from-left-2 duration-200';
+            div.innerHTML = `
+                <input type="text" placeholder="Tên mã (VD: MUA_SOM)" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-md py-sm text-on-surface text-sm">
+                <div class="w-32 relative">
+                    <input type="number" placeholder="10" class="w-full bg-white/5 border border-white/10 rounded-xl pl-md pr-8 py-sm text-on-surface text-sm">
+                    <span class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant text-xs">%</span>
+                </div>
+                <button type="button" class="p-xs text-error hover:bg-error/10 rounded-lg transition-all" onclick="this.parentElement.remove()">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            `;
+            discountList.appendChild(div);
+        });
+
+        // Add a default discount field
+        window.onload = () => {
+            addDiscountBtn.click();
+        };
+
+        // Form Submit Simulation
+        document.getElementById('ticketForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">progress_activity</span> Đang xử lý...`;
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> Hoàn tất`;
+                btn.classList.replace('bg-primary-container', 'bg-green-500');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.replace('bg-green-500', 'bg-primary-container');
+                    btn.disabled = false;
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+</body></html>

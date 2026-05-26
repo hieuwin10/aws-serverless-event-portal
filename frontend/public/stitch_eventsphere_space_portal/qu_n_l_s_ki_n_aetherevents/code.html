@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<title>AetherEvents | Admin Event Management</title>
+<style>
+        body {
+            background-color: #0f131d;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .orb {
+            position: fixed;
+            filter: blur(80px);
+            z-index: -1;
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+        @keyframes drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 153, 0, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "surface-container-low": "#171b26",
+                "secondary": "#ddfcff",
+                "inverse-on-surface": "#2c303b",
+                "on-tertiary-fixed-variant": "#5800c8",
+                "on-error": "#690005",
+                "surface-bright": "#353944",
+                "primary-fixed": "#ffdcbd",
+                "on-primary": "#4a2800",
+                "on-secondary": "#00363a",
+                "inverse-surface": "#dfe2f1",
+                "secondary-fixed-dim": "#00dbe7",
+                "on-surface": "#dfe2f1",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed": "#74f5ff",
+                "tertiary-container": "#bfa2ff",
+                "on-secondary-fixed-variant": "#004f54",
+                "surface-container": "#1c1f2a",
+                "tertiary-fixed-dim": "#d1bcff",
+                "surface-container-high": "#262a35",
+                "primary": "#ffc082",
+                "surface": "#0f131d",
+                "on-tertiary-fixed": "#24005b",
+                "error": "#ffb4ab",
+                "on-background": "#dfe2f1",
+                "surface-variant": "#313540",
+                "outline": "#a38d7a",
+                "surface-container-lowest": "#0a0e18",
+                "on-primary-fixed": "#2c1600",
+                "primary-fixed-dim": "#ffb86f",
+                "on-secondary-fixed": "#002022",
+                "error-container": "#93000a",
+                "primary-container": "#ff9900",
+                "on-tertiary": "#3d008f",
+                "background": "#0f131d",
+                "inverse-primary": "#8a5100",
+                "on-primary-fixed-variant": "#693c00",
+                "outline-variant": "#554434",
+                "surface-dim": "#0f131d",
+                "on-tertiary-container": "#5500c1",
+                "tertiary-fixed": "#eaddff",
+                "on-secondary-container": "#006a70",
+                "tertiary": "#d7c3ff",
+                "on-primary-container": "#653a00",
+                "surface-tint": "#ffb86f",
+                "surface-container-highest": "#313540",
+                "secondary-container": "#00f1fe",
+                "on-surface-variant": "#dbc2ad"
+              },
+              "fontFamily": {
+                "body-md": ["Inter"],
+                "headline-lg": ["Outfit"],
+                "label-md": ["Inter"],
+                "headline-md": ["Outfit"],
+                "label-sm": ["Inter"],
+                "display-lg": ["Outfit"],
+                "body-lg": ["Inter"]
+              },
+              "spacing": {
+                "gutter": "24px",
+                "margin-desktop": "32px"
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary/30">
+<!-- Atmospheric Orbs -->
+<div class="orb w-[500px] h-[500px] bg-primary top-[-100px] left-[-100px]"></div>
+<div class="orb w-[400px] h-[400px] bg-on-tertiary-container bottom-[-100px] right-[-100px]"></div>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-surface/30 dark:bg-surface-container-low/30 backdrop-blur-xl z-50 flex flex-col p-gutter transition-all duration-300">
+<div class="mb-10">
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">AetherEvents</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Command Center</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</a>
+<a class="bg-primary text-on-primary shadow-[0_0_15px_rgba(255,153,0,0.4)] rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-md text-label-md">Event Management</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Registration List</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">mic</span>
+<span class="font-label-md text-label-md">Speakers/Sponsors</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/5">
+<div class="flex items-center gap-3 px-2">
+<img alt="Admin User Avatar" class="w-10 h-10 rounded-full border border-primary/20" data-alt="A professional headshot of a futuristic tech administrator with subtle cybernetic enhancements, wearing a sleek dark uniform. The lighting is dramatic with neon orange and cyan highlights reflecting off a glass background, conveying a high-stakes, command-center authority in a deep-space aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5s9vulhk5eE-sFgXF70SevkP7LDyO9zuCkxdIYIxKVYO70ZTlUke4S6iJTH1zB92EgYUMWIVFzwyx6cphQjkdawlDgJ-0HEDmcD2kMExfeoN4WfD9wjFuJlLMDk6D21XHAk8hN9U0tpOLpc_RMGZv9OOKZS8ZGru2Meo2xPeGN0_UvFBDo0plU_EySqFNpZ5SCfRBIVkfqDh47q5Nb26j7c9ast-vwPJ4P8N2XpQAKLBwc9CXV0a-4WlTrXXo9WEsuGGckYjSGj4-"/>
+<div class="overflow-hidden">
+<p class="font-label-md text-label-md truncate">Admin User</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-64 h-20 border-b border-white/10 bg-surface/20 dark:bg-surface-dim/20 backdrop-blur-md z-40 flex justify-between items-center px-gutter">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all" placeholder="Tìm kiếm sự kiện, người dùng hoặc mã vé..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="bg-white/10 hover:bg-white/20 text-on-surface font-label-md text-label-md px-6 py-2 rounded-lg transition-all">
+                    Export PDF
+                </button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-28 px-gutter pb-10">
+<!-- Toolbar & Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface">Quản Lý Sự Kiện</h2>
+<p class="text-on-surface-variant">Giám sát và điều phối tất cả các sự kiện Aether.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex bg-surface-container-high rounded-xl p-1 border border-white/5">
+<button class="px-4 py-2 rounded-lg text-sm bg-primary text-on-primary font-medium">Tất cả</button>
+<button class="px-4 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface transition-colors">Nháp</button>
+<button class="px-4 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface transition-colors">Đang diễn ra</button>
+<button class="px-4 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface transition-colors">Kết thúc</button>
+</div>
+<button class="flex items-center gap-2 bg-primary-container text-on-primary-container hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] px-6 py-3 rounded-xl font-bold transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                        New Event
+                    </button>
+</div>
+</div>
+<!-- Stats Overview (Quick Insights) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div class="glass-panel rounded-2xl p-6">
+<p class="text-on-surface-variant text-sm mb-1">Tổng sự kiện</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-on-surface">124</span>
+<span class="text-green-400 text-xs font-medium mb-1 flex items-center">+12% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6">
+<p class="text-on-surface-variant text-sm mb-1">Đang hoạt động</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-secondary">18</span>
+<span class="text-on-surface-variant text-xs mb-1">Hiện tại</span>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6 border-l-2 border-primary">
+<p class="text-on-surface-variant text-sm mb-1">Vé đã bán</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-on-surface">4.2k</span>
+<span class="text-primary text-xs font-medium mb-1">89% Cap</span>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6">
+<p class="text-on-surface-variant text-sm mb-1">Doanh thu</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-bold text-on-surface">$54.2k</span>
+<span class="text-on-surface-variant text-xs mb-1">Tháng này</span>
+</div>
+</div>
+</div>
+<!-- Main Data Table -->
+<div class="glass-panel rounded-3xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-white/5 border-b border-white/10">
+<th class="px-6 py-5 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tên sự kiện</th>
+<th class="px-6 py-5 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Danh mục</th>
+<th class="px-6 py-5 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Thời gian</th>
+<th class="px-6 py-5 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Số ghế (Đã bán)</th>
+<th class="px-6 py-5 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
+<th class="px-6 py-5 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Row 1 -->
+<tr class="group hover:bg-white/5 transition-colors cursor-pointer">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary overflow-hidden">
+<img alt="Event Icon" class="w-full h-full object-cover" data-alt="A dynamic, wide-angle shot of a high-tech tech conference stage under deep blue and neon orange stage lighting. The environment is filled with large LED screens displaying abstract geometric patterns, and the atmosphere is electric and futuristic, consistent with a high-end command center aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjDJA2xFU1EvdYEB7iQhYtE5e8SopD2rINcIAUt_QjRvh8gVQ_3g5yZfgsuM3e4jEFOBAm_GRvSoqLWEsE3qkZtAf-0pNwAy65t8TdmzwOP4GYcEq7byiCbUIoPHbTrl6XjGobK4zdWiyLzX0P7OOOzOxeVTwlcHYmL_a_5HqAjVGFNsIuotHa8kFoZKNN-2sUM706sfHZHedY1xkVF9I6iKJbi4pyLwisXvpqDgUldg_kPUPJLStaWGond9Nv4HtIO76Keg_-A5jG"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Quantum Summit 2024</p>
+<p class="text-xs text-on-surface-variant">ID: #AE-9021</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-medium border border-secondary/20">Technology</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm">Oct 24, 2024</p>
+<p class="text-xs text-on-surface-variant">09:00 AM</p>
+</td>
+<td class="px-6 py-5">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between text-xs mb-1">
+<span>450/500</span>
+<span class="text-primary">90%</span>
+</div>
+<div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(255,153,0,0.6)]" style="width: 90%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20 shadow-[0_0_10px_rgba(74,222,128,0.1)]">
+<span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                                        ĐANG DIỄN RA
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-white/5 transition-colors cursor-pointer">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-tertiary/20 flex items-center justify-center text-tertiary overflow-hidden">
+<img alt="Event Icon" class="w-full h-full object-cover" data-alt="A close-up shot of a modern music festival setup with vibrant violet and magenta laser lights cutting through a dark, foggy night. The composition is artistic and high-contrast, focusing on the intersection of light and shadows in a premium, futuristic event setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw_pnXNQwkE3CLx4b_jGO_IogELJXPhc6E2kIpvKSh8qxV_n92fwngxiLqXhyidpu_VFDlTKRa_NMQ_vZYziW0fZqYAv_BoyUOLbvs-vNSD9I8sReOjuAE2g0tC1M05VOqXbKFPfK5AdvEnbjt2rxAahGfAnK2yjKEM4_tNfYoOAy9UGUp6Rp14t_XIMqWAQyqKBB1OdPXrN1W3tk66Kx1mVuZb6TjT4PdkLcc1yCJ-YxJCvsFaR3B02FQ8xAnBy8sOjX-MtFzDj7q"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Neon Nights Festival</p>
+<p class="text-xs text-on-surface-variant">ID: #AE-8842</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary text-xs font-medium border border-tertiary/20">Entertainment</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm">Nov 12, 2024</p>
+<p class="text-xs text-on-surface-variant">08:00 PM</p>
+</td>
+<td class="px-6 py-5">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between text-xs mb-1">
+<span>1,200/2,000</span>
+<span class="text-tertiary">60%</span>
+</div>
+<div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 60%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                                        SẮP DIỄN RA
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-error/10 text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-white/5 transition-colors cursor-pointer opacity-80">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-on-surface-variant/20 flex items-center justify-center text-on-surface-variant overflow-hidden grayscale">
+<img alt="Event Icon" class="w-full h-full object-cover" data-alt="A minimalist architectural shot of an empty lecture hall with clean lines and soft ambient lighting. The palette is muted and professional, featuring cold grays and blacks with a single focal point of light at the podium, representing a finished or archived corporate event." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG8PhDrUqOvkSOU1Ua2giGRiOuqyYHz6BPV4kMUyZR7h5l_oVhmn2w8_BigQ_a1AIMkzvONezRvqzs-PDKZcCQgjsitcqfMRQxCOi_nyHh1WMWd-lz-074Q1bRgxDGrFfxIyo_EMBp2PdcnwkLhGBX0ZzCQxwf_j39y6Dw_Kszr8qkhr6X1GiilVbgkccEwZENVAjpjqGIkf4L7HQvYEZ7u5sAIxQq36ARSgYE_OzSKI3CzlDebgXfTrOpbFJ18RpRzB-sH1BxrNWL"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Blockchain Workshop</p>
+<p class="text-xs text-on-surface-variant">ID: #AE-7710</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-white/5 text-on-surface-variant text-xs font-medium border border-white/10">Workshop</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm">Sep 05, 2024</p>
+<p class="text-xs text-on-surface-variant">10:00 AM</p>
+</td>
+<td class="px-6 py-5">
+<div class="w-full max-w-[120px]">
+<div class="flex justify-between text-xs mb-1">
+<span>100/100</span>
+<span class="text-on-surface-variant">100%</span>
+</div>
+<div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-on-surface-variant/40 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 text-on-surface-variant text-xs font-bold border border-white/10">
+                                        KẾT THÚC
+                                    </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined text-xl">archive</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-6 py-4 border-t border-white/10 flex items-center justify-between">
+<p class="text-sm text-on-surface-variant">Showing 1 to 10 of 124 events</p>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-on-surface transition-all disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-lg bg-primary text-on-primary font-bold">1</button>
+<button class="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 text-on-surface transition-all">2</button>
+<button class="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 text-on-surface transition-all">3</button>
+<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-on-surface transition-all">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Contextual FAB - Restricted to Dashboard/Events -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-primary text-on-primary rounded-full shadow-[0_10px_30px_rgba(255,153,0,0.5)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 group z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+<span class="absolute right-20 bg-surface-container-high border border-white/10 px-4 py-2 rounded-xl text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all pointer-events-none">Tạo sự kiện mới</span>
+</button>
+</div>
+</main>
+<script>
+        // Micro-interactions and hover effects
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.backdropFilter = 'blur(16px) brightness(1.2)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.backdropFilter = 'blur(12px) brightness(1)';
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-primary/40');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-primary/40');
+        });
+    </script>
+</body></html>

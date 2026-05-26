@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents | Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0f131d;
+            color: #dfe2f1;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glowing-orb {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .primary-glow:hover {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Hide scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#93000a",
+                        "surface-container-high": "#262a35",
+                        "surface-container-highest": "#313540",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#4a2800",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#eaddff",
+                        "surface-dim": "#0f131d",
+                        "tertiary-container": "#bfa2ff",
+                        "inverse-on-surface": "#2c303b",
+                        "tertiary": "#d7c3ff",
+                        "on-secondary-fixed": "#002022",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "surface-container": "#1c1f2a",
+                        "primary": "#ffc082",
+                        "surface-container-lowest": "#0a0e18",
+                        "on-secondary-container": "#006a70",
+                        "on-background": "#dfe2f1",
+                        "surface-container-low": "#171b26",
+                        "background": "#0f131d",
+                        "error": "#ffb4ab",
+                        "secondary": "#ddfcff",
+                        "on-primary-container": "#653a00",
+                        "surface-variant": "#313540",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#ffb86f",
+                        "surface-bright": "#353944",
+                        "secondary-fixed": "#74f5ff",
+                        "on-tertiary-fixed": "#24005b",
+                        "surface": "#0f131d",
+                        "on-primary-fixed-variant": "#693c00",
+                        "secondary-container": "#00f1fe",
+                        "outline-variant": "#554434",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "primary-fixed": "#ffdcbd",
+                        "inverse-primary": "#8a5100",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "inverse-surface": "#dfe2f1",
+                        "on-surface": "#dfe2f1",
+                        "primary-container": "#ff9900",
+                        "surface-tint": "#ffb86f",
+                        "on-tertiary": "#3d008f",
+                        "on-primary-fixed": "#2c1600",
+                        "outline": "#a38d7a",
+                        "on-secondary": "#00363a",
+                        "on-tertiary-container": "#5500c1",
+                        "on-surface-variant": "#dbc2ad"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "display-lg-mobile": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background selection:bg-primary/30">
+<!-- Atmospheric Orbs -->
+<div class="glowing-orb bg-primary top-[-10%] left-[-5%]"></div>
+<div class="glowing-orb bg-secondary bottom-[5%] right-[-10%]"></div>
+<!-- Layout Wrapper -->
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-low/40 backdrop-blur-2xl border-r border-white/10 shadow-xl py-lg px-md z-50">
+<div class="mb-xl px-sm">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Command Center</h1>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant px-1 opacity-70">Event Lead Portal</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-white/5 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 bg-primary/10 text-primary border-r-4 border-primary rounded-r-lg translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-md text-label-md">Events</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-white/5 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Attendees</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-white/5 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Financials</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:bg-white/5 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<button class="w-full bg-primary-container text-on-primary font-bold py-3 px-4 rounded-xl mb-xl flex items-center justify-center gap-2 primary-glow transition-all duration-200" onclick="toggleModal()">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span>Create Event</span>
+</button>
+<div class="border-t border-white/5 pt-lg space-y-2">
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:text-secondary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-sm text-label-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-on-surface-variant hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-sm text-label-sm">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-64 px-margin-mobile md:px-margin-desktop py-8 max-w-container-max mx-auto w-full">
+<!-- Top App Bar (Inside Canvas) -->
+<header class="flex justify-between items-center mb-10">
+<div>
+<h2 class="font-display-lg-mobile md:font-display-lg text-on-surface tracking-tight">Events Intelligence</h2>
+<p class="text-on-surface-variant font-body-md">Quản lý và điều hành các sự kiện trong hệ thống Aether.</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex bg-white/5 border border-white/10 rounded-full px-4 py-2 items-center gap-2">
+<span class="material-symbols-outlined text-primary scale-90" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md w-48 placeholder:text-on-surface-variant/50" placeholder="Tìm kiếm nhanh..." type="text"/>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="notifications">notifications</span>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></div>
+</div>
+<img alt="User profile avatar" class="w-10 h-10 rounded-full border border-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNnlPu2sgMJEHAqTeGwT5nzDLoFrP-YJsO9cPxeMgZ4K3tIq6-6BFLv3akXtnlNIpwhwOmpatAMqMhNkdH_R364vPqWmovqWczhLw4MteGEzjAjh-nRxejETwfSJieKx9iR4tV6Dby5ZUJv-uUxvKH6VaMc8JROHZ9LIWSYRmH7V2l5oKtQakCJO_PbcqpWvrLDDmvZuFsIo7gKVYLv6RHlqO7yYRUPgg__3kkSeAWVVCwr3t9xRsnq5tI1bd-3MSdloYasX1AOA_k"/>
+</div>
+</header>
+<!-- Stats Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+<!-- Card 1 -->
+<div class="glass-panel p-lg rounded-xl relative overflow-hidden group hover:bg-white/5 transition-all duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl" data-icon="calendar_month">calendar_month</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-on-surface-variant font-label-md">Tổng Sự Kiện</span>
+<div class="flex items-baseline gap-2">
+<h3 class="font-headline-lg text-primary">12</h3>
+<span class="text-secondary text-label-sm font-bold">+2 tháng này</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel p-lg rounded-xl relative overflow-hidden group hover:bg-white/5 transition-all duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl" data-icon="confirmation_number">confirmation_number</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-on-surface-variant font-label-md">Tổng Lượt Đặt Vé</span>
+<div class="flex items-baseline gap-2">
+<h3 class="font-headline-lg text-primary">1,240</h3>
+<span class="text-secondary text-label-sm font-bold">↑ 12%</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel p-lg rounded-xl relative overflow-hidden group hover:bg-white/5 transition-all duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl" data-icon="analytics">analytics</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-on-surface-variant font-label-md">Tỷ Lệ Lấp Đầy</span>
+<div class="flex items-baseline gap-2">
+<h3 class="font-headline-lg text-primary">85%</h3>
+<div class="w-24 h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Table Section -->
+<section class="glass-panel rounded-xl overflow-hidden mb-xl">
+<div class="px-lg py-md border-b border-white/5 flex justify-between items-center bg-white/5">
+<h4 class="font-headline-md text-on-surface">Danh sách sự kiện</h4>
+<button class="text-primary hover:text-white flex items-center gap-1 font-label-md transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                        Lọc dữ liệu
+                    </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-on-surface-variant font-label-sm uppercase tracking-widest border-b border-white/5">
+<th class="px-lg py-4">Title</th>
+<th class="px-lg py-4">Category</th>
+<th class="px-lg py-4">Date</th>
+<th class="px-lg py-4">Seats</th>
+<th class="px-lg py-4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5 font-body-md">
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-5 font-bold text-on-surface">Nebula Tech Summit 2024</td>
+<td class="px-lg py-5">
+<span class="bg-secondary/10 text-secondary border border-secondary/20 px-3 py-1 rounded-full text-label-sm">Technology</span>
+</td>
+<td class="px-lg py-5 text-on-surface-variant">24/08/2024</td>
+<td class="px-lg py-5">
+<div class="flex items-center gap-2">
+<span class="text-on-surface">450/500</span>
+<div class="flex-1 h-1 bg-white/10 rounded-full w-20">
+<div class="bg-primary h-full" style="width: 90%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-5 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/20 rounded-lg text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 hover:bg-error/20 rounded-lg text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-5 font-bold text-on-surface">Cyberpunk Art Exhibition</td>
+<td class="px-lg py-5">
+<span class="bg-tertiary/10 text-tertiary border border-tertiary/20 px-3 py-1 rounded-full text-label-sm">Art</span>
+</td>
+<td class="px-lg py-5 text-on-surface-variant">12/09/2024</td>
+<td class="px-lg py-5">
+<div class="flex items-center gap-2">
+<span class="text-on-surface">120/200</span>
+<div class="flex-1 h-1 bg-white/10 rounded-full w-20">
+<div class="bg-primary h-full" style="width: 60%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-5 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/20 rounded-lg text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 hover:bg-error/20 rounded-lg text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-lg py-5 font-bold text-on-surface">Zenith Music Festival</td>
+<td class="px-lg py-5">
+<span class="bg-secondary/10 text-secondary border border-secondary/20 px-3 py-1 rounded-full text-label-sm">Music</span>
+</td>
+<td class="px-lg py-5 text-on-surface-variant">05/10/2024</td>
+<td class="px-lg py-5">
+<div class="flex items-center gap-2">
+<span class="text-on-surface">890/1500</span>
+<div class="flex-1 h-1 bg-white/10 rounded-full w-20">
+<div class="bg-primary h-full" style="width: 59%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-5 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/20 rounded-lg text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 hover:bg-error/20 rounded-lg text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-lg border-t border-white/5 text-center">
+<button class="text-on-surface-variant hover:text-primary font-label-sm transition-colors">Xem tất cả sự kiện</button>
+</div>
+</section>
+</main>
+</div>
+<!-- Modal Form -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-md opacity-0 pointer-events-none transition-all duration-300 backdrop-blur-sm bg-background/60" id="createEventModal">
+<div class="glass-panel w-full max-w-2xl rounded-2xl p-xl shadow-2xl relative translate-y-8 transition-transform duration-300" id="modalContent">
+<button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary transition-colors" onclick="toggleModal()">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<div class="mb-lg">
+<h3 class="font-headline-lg text-on-surface mb-1">Thêm sự kiện mới</h3>
+<p class="text-on-surface-variant font-body-md">Thiết lập thông tin cho không gian trải nghiệm tiếp theo.</p>
+</div>
+<form class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="space-y-2 col-span-2">
+<label class="font-label-md text-on-surface-variant">Title</label>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none" placeholder="Tên sự kiện..." type="text"/>
+</div>
+<div class="space-y-2 col-span-2">
+<label class="font-label-md text-on-surface-variant">Description</label>
+<textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none" placeholder="Mô tả ngắn gọn về sự kiện..." rows="3"></textarea>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant">Category</label>
+<select class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none appearance-none">
+<option class="bg-surface-container-high" disabled="" selected="" value="">Chọn phân loại</option>
+<option class="bg-surface-container-high" value="tech">Technology</option>
+<option class="bg-surface-container-high" value="art">Art</option>
+<option class="bg-surface-container-high" value="music">Music</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant">Venue</label>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none" placeholder="Địa điểm tổ chức" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant">Total Seats</label>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none" placeholder="Số lượng chỗ ngồi" type="number"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-on-surface-variant">Start/End Time</label>
+<div class="flex items-center gap-2">
+<input class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none" type="date"/>
+<span class="text-on-surface-variant">to</span>
+<input class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-on-surface focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none" type="date"/>
+</div>
+</div>
+</div>
+<div class="flex gap-4 pt-4">
+<button class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface font-bold py-3 rounded-xl transition-all" onclick="toggleModal()" type="button">Hủy bỏ</button>
+<button class="flex-1 bg-primary-container text-on-primary font-bold py-3 rounded-xl primary-glow transition-all" type="submit">Lưu sự kiện</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Footer -->
+<footer class="lg:ml-64 px-margin-desktop py-xl w-full max-w-container-max mx-auto border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-on-surface font-extrabold">AetherEvents</span>
+<span class="text-on-surface-variant font-label-sm">© 2024 Intelligence. All rights reserved.</span>
+</div>
+<div class="flex gap-lg">
+<a class="text-on-surface-variant hover:text-secondary-fixed text-label-sm transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed text-label-sm transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed text-label-sm transition-colors" href="#">API Docs</a>
+</div>
+</footer>
+<script>
+        function toggleModal() {
+            const modal = document.getElementById('createEventModal');
+            const content = document.getElementById('modalContent');
+            
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-8');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-8');
+            }
+        }
+
+        // Close modal on escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('createEventModal');
+                if (!modal.classList.contains('opacity-0')) toggleModal();
+            }
+        });
+    </script>
+</body></html>

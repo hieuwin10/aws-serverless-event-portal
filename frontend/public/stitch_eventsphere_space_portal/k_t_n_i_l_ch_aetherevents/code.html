@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Connect Calendar | AetherEvents</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#353944",
+                        "outline-variant": "#554434",
+                        "on-surface": "#dfe2f1",
+                        "surface-container-high": "#262a35",
+                        "primary-fixed-dim": "#ffb86f",
+                        "on-primary": "#4a2800",
+                        "on-secondary": "#00363a",
+                        "primary": "#ffc082",
+                        "surface-tint": "#ffb86f",
+                        "secondary-container": "#00f1fe",
+                        "surface-variant": "#313540",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#0f131d",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "on-tertiary-container": "#5500c1",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "tertiary-container": "#bfa2ff",
+                        "surface-container-highest": "#313540",
+                        "on-primary-fixed": "#2c1600",
+                        "primary-fixed": "#ffdcbd",
+                        "on-primary-fixed-variant": "#693c00",
+                        "surface-container-low": "#171b26",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed": "#24005b",
+                        "inverse-surface": "#dfe2f1",
+                        "surface-container-lowest": "#0a0e18",
+                        "inverse-on-surface": "#2c303b",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "on-tertiary": "#3d008f",
+                        "background": "#0f131d",
+                        "primary-container": "#ff9900",
+                        "on-secondary-fixed": "#002022",
+                        "surface-container": "#1c1f2a",
+                        "secondary-fixed": "#74f5ff",
+                        "outline": "#a38d7a",
+                        "on-surface-variant": "#dbc2ad",
+                        "tertiary-fixed": "#eaddff",
+                        "on-secondary-container": "#006a70",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "on-primary-container": "#653a00",
+                        "on-error": "#690005",
+                        "on-background": "#dfe2f1",
+                        "inverse-primary": "#8a5100",
+                        "secondary": "#ddfcff",
+                        "surface-dim": "#0f131d",
+                        "error": "#ffb4ab",
+                        "tertiary": "#d7c3ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "margin-desktop": "32px",
+                        "xl": "48px",
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "display-lg-mobile": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-orb {
+            position: fixed;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.15;
+            border-radius: 9999px;
+            animation: drift 20s infinite alternate ease-in-out;
+        }
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 50px) scale(1.1); }
+        }
+        .glow-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md">
+<!-- Atmospheric Background Orbs -->
+<div class="glow-orb bg-primary-container w-[500px] h-[500px] -top-64 -left-64"></div>
+<div class="glow-orb bg-secondary-container w-[400px] h-[400px] bottom-0 right-0" style="animation-delay: -5s;"></div>
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full py-lg bg-surface-container-low/50 backdrop-blur-xl h-screen w-64 fixed left-0 top-0 border-r border-white/10 z-50">
+<div class="px-lg mb-xl">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary">hub</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary leading-tight">AetherEvents</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">Command Center</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-md space-y-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-md text-label-md">Events</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-primary font-bold border-r-2 border-primary bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-label-md text-label-md">Calendar</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="extension">extension</span>
+<span class="font-label-md text-label-md">Integrations</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="px-md mt-auto pt-lg space-y-sm border-t border-white/10">
+<button class="w-full bg-primary-container text-on-primary-container py-sm rounded-lg font-bold glow-primary transition-all mb-lg">
+                New Event
+            </button>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="support">support</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<div class="md:pl-64 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-desktop w-full sticky top-0 z-40 bg-surface/30 backdrop-blur-xl border-b border-white/10 h-20 shadow-[0_0_20px_rgba(255,153,0,0.1)]">
+<div class="flex items-center gap-lg flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full glass-panel pl-10 pr-4 py-2 rounded-xl focus:ring-1 focus:ring-primary focus:outline-none text-body-md" placeholder="Search events, venues, or tasks..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-[1px] bg-white/10 mx-sm"></div>
+<div class="flex items-center gap-sm cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors">
+<img alt="User profile" class="w-8 h-8 rounded-full border border-primary/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5yPEAPw3m3iJf0x9W54G7CNVskqedc9m3ADkWS-H8fnaVg0KWId8LO38Da_A8IvR8cikKNha1W-2AfUPFEicsAg21V1jhfpyIc__dmdaYrz0dUQXJFOlIlNd5yAqQJKCd8W64ddjWNbseCt9-ETgdrJe9y008uxi0cW4K4MGoTZ4s4hGVNp5jZ27oYBMsmVCuSraq9GzSked9EzbuppJAzHgtZq90mflUcNX6gLh-Yw1LaHRNMxelL6K7ezp6Iv-OreEyQRTARxh3"/>
+<span class="font-label-md text-label-md text-on-surface hidden lg:block">Alex Sterling</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-lg md:p-xl flex items-center justify-center">
+<div class="w-full max-w-5xl">
+<!-- Hero Section -->
+<div class="text-center mb-xl">
+<h2 class="font-display-lg text-display-lg text-on-surface mb-md">Sync Your Schedule</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                        Never miss a beat. Integrate your AetherEvents with your favorite calendar apps for a seamless orchestration of your professional life.
+                    </p>
+</div>
+<!-- Calendar Connection Cards -->
+<div class="grid md:grid-cols-2 gap-gutter mb-xl">
+<!-- Google Calendar Card -->
+<div class="glass-panel p-xl rounded-xl flex flex-col items-start transition-all duration-300 hover:bg-white/5 hover:-translate-y-1 border-t-2 border-t-transparent hover:border-t-primary-container">
+<div class="w-14 h-14 glass-panel rounded-xl flex items-center justify-center mb-lg">
+<img alt="Google Calendar Logo" class="w-8 h-8" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZuJcJACWNYVEIk7-vzomW-ZBxt-5YDWLbXjwhfL34CSqbxFynwE_siSkunrCE0cK1KwhqWWVKbBFYH4t-PYizA_5YiSNnyawJSTJ_dPukrod7yg8Vun4HfieSM0nsCQ7pu2z1frRi9Ar_X_q46jvgPiiMqyIcqgerNqLEfWCAFEONyHF8qyaNN1oWvohCGrIIpVszkuin5LSWbBx0_2JIblvVKhpDBz5dz9WKYOxs_JgOciuZM70AixWlMzpKGKtDuYWDTy3zlaET"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Google Calendar</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-xl flex-1">
+                            Seamlessly sync your events to your Google account. Supports real-time updates and notifications across all G-Suite applications.
+                        </p>
+<button class="w-full bg-primary-container text-on-primary-container py-md rounded-lg font-bold text-label-md glow-primary transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+                            Connect Google Calendar
+                        </button>
+</div>
+<!-- Outlook Calendar Card -->
+<div class="glass-panel p-xl rounded-xl flex flex-col items-start transition-all duration-300 hover:bg-white/5 hover:-translate-y-1 border-t-2 border-t-transparent hover:border-t-secondary-container">
+<div class="w-14 h-14 glass-panel rounded-xl flex items-center justify-center mb-lg">
+<img alt="Outlook Calendar Logo" class="w-8 h-8" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDglDLHJuYHLGTwu4d1-GwDmmZUhj8Jo6zope8FYBdn-4QDrs-GKRwaKddohaIerMnxV9qUlhZ2SjephckL4Lelqy6gj5PeJzgzjDP588rBK7tPW5sHbCsogCyr9idw5reouXrwF8CHwZWNe_MeVLp7cJ2pi7E8jlzO3E6pnBHOFeyzsFW2sdXunAotmku_v1e3K3Q7_Mc9rJGTW65ozWEx0bZreUORxdpp3wGIfwah6MKmv6rVI5aJqkineoTqRe9eIOSgDkNrrkaR"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Outlook Calendar</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-xl flex-1">
+                            Perfect for enterprise users. Keep your work and event schedules in one place with robust Microsoft 365 integration and security.
+                        </p>
+<button class="w-full bg-surface-container-highest text-on-surface py-md rounded-lg font-bold text-label-md border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                            Connect Outlook
+                        </button>
+</div>
+</div>
+<!-- Benefits Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg border-t border-white/5 pt-xl">
+<div class="flex items-center gap-md px-md">
+<div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="autorenew">autorenew</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Automatic Sync</p>
+<p class="text-[12px] text-on-surface-variant opacity-60">Real-time updates</p>
+</div>
+</div>
+<div class="flex items-center gap-md px-md">
+<div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="cloud_off">cloud_off</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Offline Access</p>
+<p class="text-[12px] text-on-surface-variant opacity-60">View schedules anywhere</p>
+</div>
+</div>
+<div class="flex items-center gap-md px-md">
+<div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="devices">devices</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Multi-device Support</p>
+<p class="text-[12px] text-on-surface-variant opacity-60">Mobile, tablet &amp; web</p>
+</div>
+</div>
+</div>
+<!-- Featured Image / Visual Decoration -->
+<div class="mt-xl relative rounded-xl overflow-hidden h-[200px] glass-panel group">
+<img class="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-700" data-alt="A cinematic, high-performance workspace overlooking a futuristic city at night. Glowing digital holographic interfaces showing calendar events and schedules float in the air. The lighting is dominated by deep space blues and neon oranges, creating an atmosphere of advanced productivity and modern technology. High-quality render style with sharp details and cinematic depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg4vji42mCg-VP_KYJS_EEhMsRb6tKxXIv2n0qaMCeBbrr4DFUFFuPk_JKBycQqFBF_QlOj24EmKbN39f7F9-zv1hgCiOzrl72fOe63y5KNo0PN7G87UV-2TV4O7sRfosRZbc9PYJGiYfyDx0ixpvdhqOJ2R41eEQTJk9s_PnM7CUkWantGYsg0xvSZYAw_hRP-IK4paLV6EaV7WUW_T61rIaaWT7JMkinvPi0JbyYrtRYKtZT0Ev7ymE9PqzVb3pOSdYwjbrXnZpW"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0b0f19] to-transparent"></div>
+<div class="absolute bottom-lg left-lg">
+<p class="font-headline-md text-on-surface">Master your momentum.</p>
+<p class="font-body-md text-on-surface-variant">The future of event scheduling is unified.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/10 z-50 flex justify-around items-center h-16 px-md">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px]">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="text-[10px]">Events</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="text-[10px] font-bold">Calendar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px]">Settings</span>
+</button>
+</nav>
+<script>
+        // Interactive state simulation
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mouseenter', () => {
+                panel.style.boxShadow = '0 0 30px rgba(255, 153, 0, 0.05)';
+            });
+            panel.addEventListener('mouseleave', () => {
+                panel.style.boxShadow = 'none';
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.style.transform = 'scale(1.02)';
+            searchInput.parentElement.style.transition = 'all 0.3s ease';
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.style.transform = 'scale(1)';
+        });
+    </script>
+</body></html>

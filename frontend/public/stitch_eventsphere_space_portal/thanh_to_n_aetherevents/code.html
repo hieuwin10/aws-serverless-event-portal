@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents | Secure Checkout</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glowing-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.2); }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "surface-container-lowest": "#0a0e18",
+                "tertiary": "#d7c3ff",
+                "secondary-fixed": "#74f5ff",
+                "on-tertiary-container": "#5500c1",
+                "on-primary-fixed-variant": "#693c00",
+                "surface-container-low": "#171b26",
+                "secondary": "#ddfcff",
+                "on-secondary-container": "#006a70",
+                "surface-dim": "#0f131d",
+                "secondary-fixed-dim": "#00dbe7",
+                "on-primary-container": "#653a00",
+                "error": "#ffb4ab",
+                "inverse-on-surface": "#2c303b",
+                "surface-variant": "#313540",
+                "surface-container-highest": "#313540",
+                "on-error": "#690005",
+                "surface": "#0f131d",
+                "inverse-primary": "#8a5100",
+                "secondary-container": "#00f1fe",
+                "on-secondary-fixed-variant": "#004f54",
+                "on-primary-fixed": "#2c1600",
+                "surface-container": "#1c1f2a",
+                "primary-container": "#ff9900",
+                "on-tertiary": "#3d008f",
+                "primary-fixed": "#ffdcbd",
+                "outline-variant": "#554434",
+                "surface-container-high": "#262a35",
+                "surface-bright": "#353944",
+                "primary-fixed-dim": "#ffb86f",
+                "outline": "#a38d7a",
+                "on-primary": "#4a2800",
+                "on-tertiary-fixed-variant": "#5800c8",
+                "on-secondary": "#00363a",
+                "background": "#0f131d",
+                "tertiary-container": "#bfa2ff",
+                "on-secondary-fixed": "#002022",
+                "primary": "#ffc082",
+                "on-background": "#dfe2f1",
+                "error-container": "#93000a",
+                "surface-tint": "#ffb86f",
+                "on-error-container": "#ffdad6",
+                "on-surface-variant": "#dbc2ad",
+                "tertiary-fixed-dim": "#d1bcff",
+                "on-surface": "#dfe2f1",
+                "on-tertiary-fixed": "#24005b",
+                "inverse-surface": "#dfe2f1",
+                "tertiary-fixed": "#eaddff"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+              },
+              "spacing": {
+                "xl": "48px",
+                "unit": "4px",
+                "gutter": "24px",
+                "lg": "24px",
+                "xs": "4px",
+                "margin-desktop": "32px",
+                "container-max": "1440px",
+                "sm": "8px",
+                "md": "16px",
+                "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                "headline-md": ["Outfit"],
+                "body-lg": ["Inter"],
+                "headline-lg": ["Outfit"],
+                "display-lg": ["Outfit"],
+                "display-lg-mobile": ["Outfit"],
+                "label-sm": ["Inter"],
+                "label-md": ["Inter"],
+                "body-md": ["Inter"]
+              },
+              "fontSize": {
+                "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Atmospheric Background -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+<div class="glowing-orb w-[600px] h-[600px] bg-primary-container -top-40 -left-20"></div>
+<div class="glowing-orb w-[500px] h-[500px] bg-secondary-container bottom-0 -right-20" style="animation-delay: -5s;"></div>
+</div>
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-[0_0_20px_rgba(255,153,0,0.1)]">
+<div class="flex justify-between items-center h-20 px-margin-desktop max-w-container-max mx-auto">
+<div class="font-display-lg text-display-lg text-primary tracking-tighter">AetherEvents</div>
+<nav class="hidden md:flex gap-lg items-center">
+<a class="font-headline-md text-headline-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Explore</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Schedule</a>
+<a class="font-headline-md text-headline-md text-primary border-b-2 border-primary pb-1" href="#">Tickets</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Support</a>
+</nav>
+<div class="flex gap-md items-center">
+<button class="font-label-md text-label-md px-md py-sm border border-white/20 rounded-xl hover:bg-white/10 transition-all active:scale-95">Sign In</button>
+<button class="font-label-md text-label-md px-md py-sm bg-primary-container text-on-primary rounded-xl shadow-[0_0_15px_rgba(255,153,0,0.3)] hover:shadow-[0_0_25px_rgba(255,153,0,0.5)] transition-all active:scale-95">Register</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-32 pb-xl px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto min-h-screen">
+<div class="mb-xl text-center md:text-left">
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg mb-xs">Checkout Terminal</h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg">Secure transaction for your interstellar experience.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl">
+<!-- Left Column: Order Summary -->
+<div class="lg:col-span-5 flex flex-col gap-lg">
+<div class="glass-panel p-lg rounded-xl flex flex-col gap-md relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/10 blur-3xl rounded-full"></div>
+<div class="flex justify-between items-start">
+<div>
+<span class="text-secondary font-label-sm uppercase tracking-widest block mb-xs">Featured Event</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">AWS Cloud Day 2024</h2>
+</div>
+<div class="w-16 h-16 rounded-lg bg-surface-container-high flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary text-3xl">cloud</span>
+</div>
+</div>
+<div class="space-y-md my-md">
+<div class="flex justify-between items-center py-sm border-b border-white/5">
+<span class="text-on-surface-variant">1x VIP Experience</span>
+<span class="font-bold">$150.00</span>
+</div>
+<div class="flex justify-between items-center text-sm text-on-surface-variant/80">
+<span>Subtotal</span>
+<span>$150.00</span>
+</div>
+<div class="flex justify-between items-center text-sm text-on-surface-variant/80">
+<span>Platform Tax (0%)</span>
+<span>$0.00</span>
+</div>
+</div>
+<div class="mt-md p-md bg-white/5 rounded-lg border border-primary/20">
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-headline-md">Total Cost</span>
+<span class="font-display-lg text-headline-lg text-primary-container">$150.00</span>
+</div>
+</div>
+<div class="flex items-center gap-sm mt-md text-secondary/80">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="font-label-sm">Secured by Aether Encryption v4.2</span>
+</div>
+</div>
+<!-- Event Visual Card -->
+<div class="glass-panel rounded-xl overflow-hidden hidden lg:block h-64 relative">
+<img alt="Future Technology Background" class="w-full h-full object-cover opacity-40" data-alt="A futuristic digital data visualization with complex blue and orange glowing lines and dots on a deep space black background. The style is cinematic and high-tech, representing cloud infrastructure and interstellar data transfer with a premium glassmorphic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnahaI191wok1-3eBvY92HyffPfLAMs3AwK7MPrtnZ0E1yPJPiabJ0bmyrKamWksBiS95WnkQ8sjnizCTog3cjNJw2a81pVQLBnVGA-vDa6WGI5h6xj68z0p6AgAwKmYQTNkdknniKDwgoA-IKvpR_EKiiNUOOmq4_rxpyESTnAXzeJlL-9Ihlh3pyRdidDf1nLJSStVVU8mIgXrbjLvMlMjDEN0irBvsG8BI9TjmFRjdqrhPtAX6CuodpjPYPNOKMApfNjdxDjazE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+<div class="absolute bottom-md left-md">
+<p class="font-label-md text-white/60">Singapore EXPO Convention Centre</p>
+<p class="font-headline-md text-white">November 24, 2024</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Payment Methods -->
+<div class="lg:col-span-7">
+<div class="glass-panel p-lg rounded-xl flex flex-col gap-xl">
+<!-- Method Selector -->
+<div>
+<h3 class="font-headline-md text-headline-md mb-md">Select Payment Method</h3>
+<div class="grid grid-cols-3 gap-md">
+<button class="flex flex-col items-center gap-xs p-md rounded-xl border-2 border-primary bg-primary/10 text-primary transition-all">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">credit_card</span>
+<span class="font-label-sm">Card</span>
+</button>
+<button class="flex flex-col items-center gap-xs p-md rounded-xl border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-3xl">payments</span>
+<span class="font-label-sm text-on-surface-variant">PayPal</span>
+</button>
+<button class="flex flex-col items-center gap-xs p-md rounded-xl border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+<span class="font-label-sm text-on-surface-variant">Wallet</span>
+</button>
+</div>
+</div>
+<!-- Card Form -->
+<div class="flex flex-col gap-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="col-span-1 md:col-span-2">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-sm">Cardholder Name</label>
+<input class="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-md focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/40 transition-all font-headline-md text-body-lg placeholder:text-white/20" placeholder="Full Name on Card" type="text"/>
+</div>
+<div class="col-span-1 md:col-span-2">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-sm">Card Number</label>
+<div class="relative">
+<input class="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-md pr-16 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/40 transition-all font-headline-md text-body-lg placeholder:text-white/20 tracking-[0.2em]" placeholder="0000 0000 0000 0000" type="text"/>
+<div class="absolute right-md top-1/2 -translate-y-1/2 flex gap-xs">
+<div class="w-8 h-5 bg-white/10 rounded-sm"></div>
+<div class="w-8 h-5 bg-white/10 rounded-sm"></div>
+</div>
+</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-sm">Expiry Date</label>
+<input class="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-md focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/40 transition-all font-headline-md text-body-lg placeholder:text-white/20" placeholder="MM/YY" type="text"/>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-sm">CVV / CVC</label>
+<div class="relative">
+<input class="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-md focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/40 transition-all font-headline-md text-body-lg placeholder:text-white/20" placeholder="***" type="password"/>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-white/30 cursor-help">help</span>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-md p-md bg-secondary-container/5 rounded-lg border border-secondary-container/20">
+<span class="material-symbols-outlined text-secondary-container">info</span>
+<p class="font-label-sm text-on-surface-variant">Your transaction is protected by end-to-end SSL encryption. We never store your full card details on our servers.</p>
+</div>
+<button class="w-full py-lg bg-primary-container text-on-primary-fixed font-headline-lg text-headline-lg rounded-xl shadow-[0_0_30px_rgba(255,153,0,0.2)] hover:shadow-[0_0_50px_rgba(255,153,0,0.4)] hover:-translate-y-1 transition-all duration-300 active:scale-95">
+                            Xác Nhận Thanh Toán
+                        </button>
+<div class="flex justify-center gap-xl items-center opacity-40">
+<img alt="Visa" class="h-8 grayscale hover:grayscale-0 transition-all cursor-not-allowed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyuQutZvXgHYOFpc63eDmVdTSqIAj3eG6UMar0DMxXRP7d6kpIJar_Ar61H-yzNMgSICByKKaEUG2myisqzN7X_m7OT3PfxS3Xtl8OUuiyQy-8UqsYiBlZSsdlUSjLaTKAXGxXU6nEGZajsKflPGpaLWrKiR77boPsu7jRERIHESrRmSLjJM2mFXNkmmF2PfxJd4lsrn3IULUIbhr_FLqtLHnL0C0y_vl6WxazM2RSHE6WdCj0QbM09REZlo9xZw4LxUTX_ykXx_WL"/>
+<img alt="Mastercard" class="h-8 grayscale hover:grayscale-0 transition-all cursor-not-allowed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZcSHkYkfVoOdU7-c5T5FXE6ovY1VIcZo7IXfO9O8e6Qi43Up2BhTIrodYPi6NWFM2q3OJI_bBnRo2IkinHXnDkuOVolbx8KGGmeQCl_t3Tl_U1CCbToVG4ebbakxOvY0kKZD6SvroAiu4YjNKAlgSdxjGOrkFT6qSuVjIXWCqsFcyYstfE7RpPovuYxshLs7PymTaaFHQ5PGaQNfTDQc71G9Z1CeLjCueI9VqfBcEjPGrbHTSchW_ei2LUcfBiFcvojeQeF1XsOUs"/>
+<img alt="Stripe" class="h-8 grayscale hover:grayscale-0 transition-all cursor-not-allowed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADH0kQQbWoUL6cpYKbdRJSeNrDWgwV2YHH_FVZUKKtbfcXo3gOXxz7-xTSwr8JWZSmub0rciTR6iFy_wCbdzCUxHv1h36Zl5Mjfx9VRbj6GNhRAH1INAcooddUfSUsDg0XDweMLuq0EovTMrXCuBksyxW3JdFxY5EGU4mcM4lfYVg050DXd-7NgXBDl5sl5xTisHbJYlqymvSONzMXTQ6XMIkhooAn5O7DjUR-GTdJsafOpsuK8bPOLV_uAOp8f-vIJaQItOkURA3W"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-xl bg-surface-container-lowest border-t border-white/5 mt-xl">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-md max-w-container-max mx-auto">
+<div class="flex flex-col items-center md:items-start">
+<div class="font-headline-md text-headline-md text-on-surface mb-xs">AetherEvents</div>
+<div class="font-body-md text-body-md text-on-surface-variant">© 2024 AetherEvents. Interstellar Standards Applied.</div>
+</div>
+<div class="flex flex-wrap justify-center gap-lg">
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors font-body-md text-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors font-body-md text-body-md" href="#">Security</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors font-body-md text-body-md" href="#">Contact Hub</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors font-body-md text-body-md" href="#">API Docs</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.style.transition = 'all 0.3s ease';
+            });
+        });
+
+        // Payment method toggle logic simulation
+        const buttons = document.querySelectorAll('.grid-cols-3 button');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => {
+                    b.classList.remove('border-primary', 'bg-primary/10', 'text-primary');
+                    b.classList.add('border-white/10');
+                    b.querySelector('span:last-child').classList.add('text-on-surface-variant');
+                });
+                btn.classList.add('border-primary', 'bg-primary/10', 'text-primary');
+                btn.classList.remove('border-white/10');
+                btn.querySelector('span:last-child').classList.remove('text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

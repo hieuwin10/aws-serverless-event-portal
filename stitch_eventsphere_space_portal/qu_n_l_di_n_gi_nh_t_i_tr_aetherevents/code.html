@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents | Speaker &amp; Sponsor Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-container": "#653a00",
+                      "surface-bright": "#353944",
+                      "primary-fixed-dim": "#ffb86f",
+                      "on-surface-variant": "#dbc2ad",
+                      "on-error": "#690005",
+                      "on-background": "#dfe2f1",
+                      "background": "#0f131d",
+                      "tertiary": "#d7c3ff",
+                      "secondary-container": "#00f1fe",
+                      "on-secondary": "#00363a",
+                      "surface-dim": "#0f131d",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#24005b",
+                      "surface-container": "#1c1f2a",
+                      "secondary-fixed": "#74f5ff",
+                      "on-secondary-container": "#006a70",
+                      "inverse-surface": "#dfe2f1",
+                      "tertiary-fixed": "#eaddff",
+                      "outline": "#a38d7a",
+                      "on-primary-fixed": "#2c1600",
+                      "primary-fixed": "#ffdcbd",
+                      "surface-variant": "#313540",
+                      "primary": "#ffc082",
+                      "on-secondary-fixed": "#002022",
+                      "error": "#ffb4ab",
+                      "surface-container-low": "#171b26",
+                      "surface": "#0f131d",
+                      "on-tertiary-fixed-variant": "#5800c8",
+                      "primary-container": "#ff9900",
+                      "surface-container-high": "#262a35",
+                      "secondary-fixed-dim": "#00dbe7",
+                      "tertiary-container": "#bfa2ff",
+                      "surface-tint": "#ffb86f",
+                      "outline-variant": "#554434",
+                      "inverse-primary": "#8a5100",
+                      "surface-container-highest": "#313540",
+                      "on-tertiary-container": "#5500c1",
+                      "inverse-on-surface": "#2c303b",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "on-primary": "#4a2800",
+                      "secondary": "#ddfcff",
+                      "tertiary-fixed-dim": "#d1bcff",
+                      "surface-container-lowest": "#0a0e18",
+                      "on-surface": "#dfe2f1",
+                      "on-primary-fixed-variant": "#693c00",
+                      "error-container": "#93000a",
+                      "on-tertiary": "#3d008f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "container-max": "1440px",
+                      "xs": "4px",
+                      "md": "16px",
+                      "margin-mobile": "16px",
+                      "xl": "48px",
+                      "lg": "24px",
+                      "margin-desktop": "32px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "display-lg": ["Outfit"],
+                      "label-sm": ["Inter"],
+                      "headline-lg": ["Outfit"],
+                      "label-md": ["Inter"],
+                      "headline-md": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-orange {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.2);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 241, 254, 0.15);
+        }
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            transition: all 10s ease-in-out;
+        }
+        .tab-active {
+            border-bottom: 2px solid #ff9900;
+            color: #ffc082;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="font-body-md">
+<!-- Atmospheric Background Elements -->
+<div class="orb bg-primary-container w-[500px] h-[500px] -top-20 -right-20 animate-pulse"></div>
+<div class="orb bg-secondary-container w-[400px] h-[400px] bottom-40 -left-20" style="animation-delay: 2s;"></div>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-surface/30 dark:bg-surface-container-low/30 backdrop-blur-xl flex flex-col p-gutter z-50">
+<div class="mb-10">
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">AetherEvents</h1>
+<p class="text-label-sm text-on-surface-variant/60 uppercase tracking-widest mt-1">Command Center</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Overview</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-md">Event Management</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md">Registration List</span>
+</a>
+<a class="bg-primary text-on-primary shadow-[0_0_15px_rgba(255,153,0,0.4)] rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">mic</span>
+<span class="font-label-md">Speakers/Sponsors</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-md">Audit Logs</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/5">
+<div class="flex items-center gap-3 p-2">
+<img alt="Admin User Avatar" class="w-10 h-10 rounded-full bg-surface-container-highest border border-white/10" data-alt="A professional studio headshot of a high-level executive admin in a high-tech environment. The lighting is dramatic with cyan and orange rim lights, against a dark bokeh background of a command center. The image is crisp, modern, and exudes authority and precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDic6mtqKsb7EKLEwVufWoTGqvnISwX2mHOneffjh88nZ35eWs6xc2uFZBjS_Icl24ARU8bk6ZQNhgjJFOL3BM9frdGPyGRKiM35F9RPZEz0coacI2pwRWcyeqtXCRiFsPTy3hDuXiGtGzlTW5LRbi2GUEqEGn7V1Z1acFVgFsUVm8MfcT9q0hzzzEQ0o0-bBgvF7LcpOyDoCOJzBN51_S7XKW7WT81B8ns395jtIjJ2bAsABSniePVqAO7rHuCyCYmcdKgAsTfM5Ml"/>
+<div>
+<p class="font-label-md text-on-surface">Alex Rivera</p>
+<p class="text-xs text-on-surface-variant">Global Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-64 h-20 border-b border-white/10 bg-surface/20 dark:bg-surface-dim/20 backdrop-blur-md flex justify-between items-center px-gutter z-40">
+<div class="flex items-center gap-4">
+<nav class="flex items-center gap-2 text-label-md">
+<span class="text-on-surface-variant">Admin</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-primary font-bold">Partners &amp; Talent</span>
+</nav>
+<div class="ml-8 relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 w-64 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-white/10 transition-all font-body-md text-sm" placeholder="Search speakers or brands..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg font-label-md flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                Export PDF
+            </button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 mt-20 p-margin-desktop min-h-[calc(100vh-80px)]">
+<!-- Header Section -->
+<section class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Speakers &amp; Sponsors</h2>
+<p class="text-body-lg text-on-surface-variant mt-2 max-w-2xl">Manage your event's intellectual capital and commercial partnerships. Coordinate talent bios, tiered visibility, and brand integration across all upcoming sessions.</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface px-6 py-3 rounded-xl font-label-md flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined">add_business</span>
+                    Add Sponsor
+                </button>
+<button class="bg-primary-container text-on-primary-container hover:bg-primary transition-all px-6 py-3 rounded-xl font-label-md flex items-center gap-2 shadow-[0_0_20px_rgba(255,153,0,0.3)] hover:shadow-[0_0_25px_rgba(255,153,0,0.5)] active:scale-95">
+<span class="material-symbols-outlined">person_add</span>
+                    Add Speaker
+                </button>
+</div>
+</section>
+<!-- View Toggle Tabs -->
+<div class="flex gap-8 mb-8 border-b border-white/10">
+<button class="pb-4 font-label-md tab-active flex items-center gap-2 transition-all" id="tab-speakers" onclick="toggleView('speakers')">
+<span class="material-symbols-outlined">mic_external_on</span>
+                Speakers (24)
+            </button>
+<button class="pb-4 font-label-md text-on-surface-variant hover:text-on-surface flex items-center gap-2 transition-all" id="tab-sponsors" onclick="toggleView('sponsors')">
+<span class="material-symbols-outlined">verified</span>
+                Sponsors (12)
+            </button>
+</div>
+<!-- Speakers Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-500" id="speakers-view">
+<!-- Speaker Card 1 -->
+<div class="glass-panel p-6 rounded-2xl group hover:border-primary/40 transition-all duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="relative">
+<img alt="Speaker Avatar" class="w-16 h-16 rounded-2xl object-cover bg-surface-container-highest border border-white/10" data-alt="A portrait of a charismatic female tech leader in her 30s, wearing modern architectural glasses and a dark blazer. The lighting is vibrant with subtle orange and blue highlights. She is positioned against a blurred futuristic office backdrop with glowing digital panels." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYevlDHDYDY0oZPFg69fCtHVm4T7ffMhHnu9-vHMY-VCVQMnJKzPx4nF4pgA-_03u8NOhnhV8Q-0dSxRWkXeppgzSvape-ZddjDf7TF-1EI19rSNc267-qdvr_LdPuTML3nFeJD8vxITYDqVAF4Wa6Mo4o6zQrRwhi7CWoC485ytXBtzT7UXnQJriG4MdTMMyfVnaqXHJftg9P3hiw-g5M7JN6IeFyQvatJAl3_s1ZxakY6O3PnD0Ut86ujNkAi9RXDnhvPzA9Su_2"/>
+<div class="absolute -bottom-2 -right-2 bg-secondary-container text-on-secondary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">Keynote</div>
+</div>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-on-surface mb-1">Dr. Sarah Al-Farsi</h3>
+<p class="text-primary text-sm font-label-md mb-4">Head of AI Research @ QuantumSystems</p>
+<p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Pioneer in ethical AI implementation and neural architecture design. Frequent contributor to Neuralink's open-source projects.</p>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-2 text-xs text-on-surface-variant bg-white/5 p-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">event</span>
+                            AWS Cloud Day 2024: Main Stage
+                        </div>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant bg-white/5 p-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            Oct 24, 10:00 AM - 11:30 AM
+                        </div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex gap-2">
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-primary/20 transition-all text-on-surface-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined text-xs">public</span>
+</a>
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-primary/20 transition-all text-on-surface-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined text-xs">alternate_email</span>
+</a>
+</div>
+<button class="text-sm font-label-md text-primary hover:underline flex items-center gap-1">
+                            View Profile
+                            <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Speaker Card 2 -->
+<div class="glass-panel p-6 rounded-2xl group hover:border-primary/40 transition-all duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="relative">
+<img alt="Speaker Avatar" class="w-16 h-16 rounded-2xl object-cover bg-surface-container-highest border border-white/10" data-alt="A portrait of a male software architect with a neatly trimmed beard, wearing a tech-style dark hoodie. The image has high-key lighting with a futuristic blueish-cyan glow reflecting on his skin. Professional studio quality, cinematic depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnwTuFkjptqnFzKTp0Qgf73-aSDFP0IBzc5zo45b4iFWtWHGRw0YyOO007qTa8Ygz1AcLGJoubD1VZTJGhhzVqSJM1f5LGgcAS5TCLuMg2m6CkDMywGUplNGZweh7v8uzURBKnezEvrTolILfBAVHzSr3pbC0Rb5IkkTjDpqJY4TPZLDKhWsTwo2uPTDjFH91pGEXog-l0DwLNhIBl27xKEC60W7jPLLwFw0GTTnrz_sWevrwPGeC2fM8ARQobeYGSF8Z7q4DsFoSw"/>
+<div class="absolute -bottom-2 -right-2 bg-surface-container-highest text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">Speaker</div>
+</div>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-on-surface mb-1">Marcus Chen</h3>
+<p class="text-primary text-sm font-label-md mb-4">Lead Dev Advocate @ NeoCloud</p>
+<p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Specialist in serverless architecture and multi-cloud orchestration. Author of 'The Serverless Manifesto'.</p>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-2 text-xs text-on-surface-variant bg-white/5 p-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">event</span>
+                            Aether Summit 2024: Workshop C
+                        </div>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant bg-white/5 p-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            Nov 12, 02:00 PM - 05:00 PM
+                        </div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex gap-2">
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-primary/20 transition-all text-on-surface-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined text-xs">public</span>
+</a>
+<a class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-primary/20 transition-all text-on-surface-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined text-xs">alternate_email</span>
+</a>
+</div>
+<button class="text-sm font-label-md text-primary hover:underline flex items-center gap-1">
+                            View Profile
+                            <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Add Speaker Card (Empty State) -->
+<button class="border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center p-6 group hover:border-primary/50 hover:bg-white/5 transition-all">
+<div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform mb-4">
+<span class="material-symbols-outlined text-primary">add</span>
+</div>
+<p class="font-label-md text-on-surface">Add New Speaker</p>
+<p class="text-xs text-on-surface-variant mt-1 text-center px-8">Fill up your roster for the upcoming season</p>
+</button>
+</section>
+<!-- Sponsors View (Hidden by default) -->
+<section class="hidden animate-in slide-in-from-bottom-4 duration-500" id="sponsors-view">
+<!-- Gold Tier -->
+<div class="mb-10">
+<div class="flex items-center gap-4 mb-6">
+<span class="text-primary material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<h3 class="font-headline-md text-on-surface uppercase tracking-wider text-sm">Gold Tier Sponsors</h3>
+<div class="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="glass-panel p-6 rounded-2xl text-center glow-orange relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-xs text-primary">verified</span>
+</div>
+<div class="w-20 h-20 mx-auto bg-white/10 rounded-xl flex items-center justify-center mb-4">
+<img alt="AWS Logo" class="max-w-[70%]" data-alt="The official Amazon Web Services logo rendered in a sleek, high-contrast 3D style with vibrant orange accents. The lighting is professional and clean, making the brand feel premium and established. Dark space-themed background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSOtWyG4iJnM1UEA8CK3nTH9Vd7ddVLi81-xE7Cmm6l_onzfoo51O9NhJE3XfAaTmMsZPzTy_cgrPuVLPnt5OcfVCZwcu6ZBM7Kn6b-G0DQq9Hs3TpuneGmMP7zlrcfsj5hbiFSsUwiyOJ0rSIrTEyZLid3i4wsgqxSXumAqUlkesWMPX69J_juCwzCt7gusFxuIVJgTlEprSeoZZ9pK-yXDEAm_A5ELH90BN83Dea8FiSK6pHnHwjjbHIexNaSmfkBrsQB6tTV7IA"/>
+</div>
+<h4 class="font-headline-md text-lg text-on-surface">Amazon Web Services</h4>
+<p class="text-xs text-on-surface-variant mb-4">Cloud Infrastructure Partner</p>
+<div class="pt-4 border-t border-white/5 text-left">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Contact</p>
+<p class="text-xs text-on-surface">Jordan Peterson</p>
+</div>
+</div>
+<!-- Repeat for more Gold sponsors... -->
+</div>
+</div>
+<!-- Silver Tier -->
+<div class="mb-10">
+<div class="flex items-center gap-4 mb-6">
+<span class="text-secondary-container material-symbols-outlined">star_half</span>
+<h3 class="font-headline-md text-on-surface uppercase tracking-wider text-sm">Silver Tier Sponsors</h3>
+<div class="h-px flex-1 bg-gradient-to-r from-secondary-container/30 to-transparent"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 opacity-80">
+<div class="glass-panel p-6 rounded-2xl text-center group hover:opacity-100 transition-all">
+<div class="w-16 h-16 mx-auto bg-white/5 rounded-xl flex items-center justify-center mb-4">
+<img alt="Databricks Logo" class="max-w-[70%]" data-alt="The Databricks corporate logo in a minimalist, monochrome white style. The presentation is clean and technical, set against a dark glassmorphic surface with subtle blue backlighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCj_40KT4s5gzpPwcCGE_hZO1HhCRFr68_ta6J8rq0KR4BjZR5SwG-uuq1QVaW2f808LZVRsFBD2ZDCzF47hPvenXfvGyvPfrgzBBC0liITBfffNI7CwFVSkC0zgW53alsbnwnLPDWieyFspUgVuwNmm1AcLhtNpsnHg3xAnwI7vOacJj4A1qmURF1x6llvNlP6yi0G7fTZO4jHRWre3pFZBH9xGW5wj9uCNwOwMh4dWoNHKANGn0ZdDfbV169EsueJJzKr8VXG1oHo"/>
+</div>
+<h4 class="font-headline-md text-base text-on-surface">Databricks</h4>
+<p class="text-xs text-on-surface-variant mb-4">Data Analytics Partner</p>
+<div class="pt-4 border-t border-white/5 text-left">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Contact</p>
+<p class="text-xs text-on-surface">Sarah Connor</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+        function toggleView(view) {
+            const speakersView = document.getElementById('speakers-view');
+            const sponsorsView = document.getElementById('sponsors-view');
+            const tabSpeakers = document.getElementById('tab-speakers');
+            const tabSponsors = document.getElementById('tab-sponsors');
+
+            if (view === 'speakers') {
+                speakersView.classList.remove('hidden');
+                sponsorsView.classList.add('hidden');
+                tabSpeakers.classList.add('tab-active');
+                tabSpeakers.classList.remove('text-on-surface-variant');
+                tabSponsors.classList.remove('tab-active');
+                tabSponsors.classList.add('text-on-surface-variant');
+            } else {
+                speakersView.classList.add('hidden');
+                sponsorsView.classList.remove('hidden');
+                tabSponsors.classList.add('tab-active');
+                tabSponsors.classList.remove('text-on-surface-variant');
+                tabSpeakers.classList.remove('tab-active');
+                tabSpeakers.classList.add('text-on-surface-variant');
+            }
+        }
+
+        // Lightweight hover effect for atmospheric orbs
+        document.addEventListener('mousemove', (e) => {
+            const orbs = document.querySelectorAll('.orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            orbs.forEach((orb, index) => {
+                const shiftX = (x - 0.5) * (index + 1) * 30;
+                const shiftY = (y - 0.5) * (index + 1) * 30;
+                orb.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+            });
+        });
+    </script>
+</body></html>

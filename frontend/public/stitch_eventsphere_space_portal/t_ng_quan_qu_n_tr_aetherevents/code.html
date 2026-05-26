@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents | Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0f131d;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .neon-glow-orange {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.15);
+        }
+        .neon-border-orange:hover {
+            border-color: rgba(255, 153, 0, 0.5);
+            box-shadow: 0 0 15px rgba(255, 153, 0, 0.2);
+        }
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.15; }
+            50% { transform: scale(1.1); opacity: 0.2; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 8s infinite ease-in-out;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#171b26",
+                      "secondary": "#ddfcff",
+                      "inverse-on-surface": "#2c303b",
+                      "on-tertiary-fixed-variant": "#5800c8",
+                      "on-error": "#690005",
+                      "surface-bright": "#353944",
+                      "primary-fixed": "#ffdcbd",
+                      "on-primary": "#4a2800",
+                      "on-secondary": "#00363a",
+                      "inverse-surface": "#dfe2f1",
+                      "secondary-fixed-dim": "#00dbe7",
+                      "on-surface": "#dfe2f1",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed": "#74f5ff",
+                      "tertiary-container": "#bfa2ff",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "surface-container": "#1c1f2a",
+                      "tertiary-fixed-dim": "#d1bcff",
+                      "surface-container-high": "#262a35",
+                      "primary": "#ffc082",
+                      "surface": "#0f131d",
+                      "on-tertiary-fixed": "#24005b",
+                      "error": "#ffb4ab",
+                      "on-background": "#dfe2f1",
+                      "surface-variant": "#313540",
+                      "outline": "#a38d7a",
+                      "surface-container-lowest": "#0a0e18",
+                      "on-primary-fixed": "#2c1600",
+                      "primary-fixed-dim": "#ffb86f",
+                      "on-secondary-fixed": "#002022",
+                      "error-container": "#93000a",
+                      "primary-container": "#ff9900",
+                      "on-tertiary": "#3d008f",
+                      "background": "#0f131d",
+                      "inverse-primary": "#8a5100",
+                      "on-primary-fixed-variant": "#693c00",
+                      "outline-variant": "#554434",
+                      "surface-dim": "#0f131d",
+                      "on-tertiary-container": "#5500c1",
+                      "tertiary-fixed": "#eaddff",
+                      "on-secondary-container": "#006a70",
+                      "tertiary": "#d7c3ff",
+                      "on-primary-container": "#653a00",
+                      "surface-tint": "#ffb86f",
+                      "surface-container-highest": "#313540",
+                      "secondary-container": "#00f1fe",
+                      "on-surface-variant": "#dbc2ad"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "gutter": "24px",
+                      "xl": "48px",
+                      "md": "16px",
+                      "unit": "4px",
+                      "margin-mobile": "16px",
+                      "container-max": "1440px",
+                      "xs": "4px",
+                      "margin-desktop": "32px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "headline-lg": ["Outfit"],
+                      "label-md": ["Inter"],
+                      "headline-md": ["Outfit"],
+                      "display-lg": ["Outfit"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="font-body-md text-on-surface selection:bg-primary/30">
+<!-- Background Orbs -->
+<div class="orb animate-pulse-slow bg-primary-container w-[500px] h-[500px] -top-48 -left-48"></div>
+<div class="orb animate-pulse-slow bg-tertiary-container w-[400px] h-[400px] bottom-0 -right-20" style="animation-delay: 2s;"></div>
+<!-- Side Navigation -->
+<aside class="fixed left-0 top-0 h-screen w-64 glass-panel border-r border-white/10 flex flex-col p-6 z-50">
+<div class="mb-10">
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">AetherEvents</h1>
+<p class="text-xs uppercase tracking-[0.2em] text-on-surface-variant mt-1 opacity-70">Command Center</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active Item: Overview -->
+<a class="bg-primary text-on-primary shadow-[0_0_15px_rgba(255,153,0,0.4)] rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 scale-98 active:scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">event</span>
+<span class="font-label-md text-label-md">Event Management</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">group</span>
+<span class="font-label-md text-label-md">Registration List</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">mic</span>
+<span class="font-label-md text-label-md">Speakers/Sponsors</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">receipt_long</span>
+<span class="font-label-md text-label-md">Audit Logs</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/10 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center border border-white/20 overflow-hidden">
+<img alt="Admin User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARpc6Hjoq0VwjllTaux4EeYUAu112mzby7BKk30cI98-9kbLFfXy86VMFOHJUpX7Jbq5M-F5200ida_ljEOoexCf4ugFW409tS8K3i2Fd77A48oRRBLEAGfZAs7t7asYZqj_qtIQNZ277v-W_sAMuNh91c3X673VoaOBZhejm1OuA_YMyxceCho9f6WAFOKd1RarNM4Vhl9PW4HRNxY-ytu_9Bmsfvfk4tKpDd6esR13-S38BFfqCbvHZcVHR_Ym9LqHVHRfhIH_Nk"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Admin User</p>
+<p class="text-[10px] text-on-surface-variant">Super Administrator</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen p-8 lg:p-12">
+<!-- Top App Bar Content -->
+<header class="flex justify-between items-center mb-10">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-white">Chào Admin!</h2>
+<p class="text-on-surface-variant mt-1">Hệ thống đang hoạt động ổn định. Chúc bạn một ngày làm việc hiệu quả.</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-surface-variant hover:bg-surface-bright text-white px-4 py-2 rounded-lg flex items-center gap-2 border border-white/10 transition-all">
+<span class="material-symbols-outlined text-sm">notifications</span>
+</button>
+<button class="bg-primary-container hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] text-on-primary-container px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 transition-all active:scale-95">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                    Xuất báo cáo PDF
+                </button>
+</div>
+</header>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+<!-- Stat 1: Total Events -->
+<div class="glass-panel p-6 rounded-xl neon-border-orange transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 rounded-lg bg-primary/10 border border-primary/20">
+<span class="material-symbols-outlined text-primary">calendar_today</span>
+</div>
+<span class="text-xs text-green-400 font-label-md flex items-center gap-1">+2 tháng này</span>
+</div>
+<h3 class="text-on-surface-variant text-sm font-label-md mb-1">Tổng sự kiện</h3>
+<p class="font-headline-md text-headline-md text-white">12 <span class="text-sm font-normal text-on-surface-variant">đang hoạt động</span></p>
+</div>
+<!-- Stat 2: Total Registrations -->
+<div class="glass-panel p-6 rounded-xl neon-border-orange transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 rounded-lg bg-secondary/10 border border-secondary/20">
+<span class="material-symbols-outlined text-secondary-fixed">group</span>
+</div>
+<span class="text-xs text-green-400 font-label-md flex items-center gap-1">+15% vs tuần trước</span>
+</div>
+<h3 class="text-on-surface-variant text-sm font-label-md mb-1">Tổng lượt đăng ký</h3>
+<p class="font-headline-md text-headline-md text-white">1,240 <span class="text-sm font-normal text-on-surface-variant">lượt</span></p>
+</div>
+<!-- Stat 3: Estimated Revenue -->
+<div class="glass-panel p-6 rounded-xl neon-border-orange transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
+<span class="material-symbols-outlined text-green-400">payments</span>
+</div>
+<span class="text-xs text-primary font-label-md flex items-center gap-1">Mục tiêu 90%</span>
+</div>
+<h3 class="text-on-surface-variant text-sm font-label-md mb-1">Doanh thu dự tính</h3>
+<p class="font-headline-md text-headline-md text-white">$45,200</p>
+</div>
+<!-- Stat 4: Filling Rate (Circular Progress) -->
+<div class="glass-panel p-6 rounded-xl neon-border-orange transition-all duration-300 flex items-center gap-4">
+<div class="relative w-20 h-20">
+<svg class="w-full h-full">
+<circle class="text-white/5" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary progress-ring__circle" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="32" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center font-bold text-sm text-white">
+                        85%
+                    </div>
+</div>
+<div>
+<h3 class="text-on-surface-variant text-sm font-label-md mb-1">Tỷ lệ lấp đầy</h3>
+<p class="text-xs text-on-surface-variant">Tất cả hội trường</p>
+</div>
+</div>
+</section>
+<!-- Charts and Lower Content -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Registration Chart (CSS Bar Chart) -->
+<div class="lg:col-span-2 glass-panel p-8 rounded-xl">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="font-headline-md text-headline-md text-white">Lượng đăng ký vé</h3>
+<p class="text-sm text-on-surface-variant">Thống kê 7 ngày qua</p>
+</div>
+<select class="bg-surface-variant border-none rounded-lg text-sm text-on-surface focus:ring-primary/50 cursor-pointer">
+<option>Tuần này</option>
+<option>Tháng này</option>
+</select>
+</div>
+<div class="h-64 flex items-end justify-between gap-4 px-2">
+<!-- Monday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 45%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">120</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">T2</span>
+</div>
+<!-- Tuesday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 65%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">185</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">T3</span>
+</div>
+<!-- Wednesday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 85%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">240</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">T4</span>
+</div>
+<!-- Thursday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 55%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">150</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">T5</span>
+</div>
+<!-- Friday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 95%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">280</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">T6</span>
+</div>
+<!-- Saturday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 75%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">210</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">T7</span>
+</div>
+<!-- Sunday -->
+<div class="flex-1 flex flex-col items-center gap-3 group">
+<div class="relative w-full bg-white/5 rounded-t-lg transition-all duration-500 group-hover:bg-primary/20" style="height: 40%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-on-primary px-2 py-1 rounded">105</div>
+<div class="absolute bottom-0 w-full bg-primary/60 rounded-t-lg h-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant">CN</span>
+</div>
+</div>
+</div>
+<!-- Recent Activity / Event Status -->
+<div class="glass-panel p-8 rounded-xl">
+<h3 class="font-headline-md text-headline-md text-white mb-6">Trạng thái sự kiện</h3>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A futuristic tech conference stage with neon orange lighting and deep space dark background colors, high-end professional aesthetic with glassmorphic podiums and glowing digital displays. The atmosphere is immersive and high-stakes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDERh5XoBw2yAjF_b732Zs4dYeAqkexO00LxcxA5iJB1ruCeVC8phKP_ZKs09VtoZ67E3P85fS0JwPWPzLsf6DaXHnfgTgk-P21YbuiHnhqSny-2Bg44HmOpD-2H3FBj5rJEC_bTJ9h43sty3fEDkq2K5ZPJCDMyJ5B2jREYNrBrccwVbaauiDq32nsYbCOBnTehfMilKqZK-SwvaBcvqJYe2Zkol7apUkYSd7i4cX1F_Fomi0nLU2h-WbdMcdW9nxTIkMBcSXV-565"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-label-md text-white">Future Tech 2024</h4>
+<div class="w-full bg-white/5 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-full rounded-full" style="width: 92%;"></div>
+</div>
+</div>
+<span class="text-xs font-bold text-primary">92%</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A dark, atmospheric gala event at night with subtle purple and cyan ambient lighting. Elegant glass tables and minimalist decorations reflect the deep space theme. Sophisticated lighting creates sharp contrasts and highlights premium details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-PL6WQcGvmgSdUV6BfGxxOnk8mjI9MoBUZGD-wDflVK544FfLKhJne4RPgi9d9SQEYQfH9O7TMkCdq-pms4aTXRGdWgxGdwucJFa8cL5zwJci2hISR8k_tJQz94MQ-oNGoZHpJvxmry-Up47qRCSqyUmeQNJHKqBP0B_DNAL_X5k-0LJf8bO5Q3SZrWPMP9eLk8b0VvhfBcXwO-EHACeRy76mVFFBsRkRrMC9kmBDeyEPrBtvsIYcsuKr9LG1BC0MLbfQ1LJS8evq"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-label-md text-white">Space Gala Night</h4>
+<div class="w-full bg-white/5 h-1.5 rounded-full mt-2">
+<div class="bg-secondary-fixed h-full rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+<span class="text-xs font-bold text-secondary-fixed">65%</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A high-performance modern auditorium for an industry summit. The architecture is futuristic with sharp lines and glass partitions. The lighting is a mix of soft cyan and intense neon orange accents, evoking a high-end command center vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCd22JV14XCHyoEZ8DqYpg2QS46XwiJ9SnxWRsFh1C5XJoHONZp-tN6Xnhe1v5fxf-u0TvjUpXrwl01CujokZEamobAZ9Noa4UONvHHAfQNyTUTL_1VnrJ0AR57-1gN8TmpuOmqL79Ly5WNfsa_ZjmHUdmasGauhJnJnbBe9dcpqa0cSZvCMKYeORwnxjOUgiVi3grLoncxuF_deqXILvGnC_lFvJyKXwpPL6p4qaNQFtqgo_chvZZlv2TPgExpQgi04BReNlieZK6P"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-label-md text-white">Design Summit</h4>
+<div class="w-full bg-white/5 h-1.5 rounded-full mt-2">
+<div class="bg-tertiary-container h-full rounded-full" style="width: 48%;"></div>
+</div>
+</div>
+<span class="text-xs font-bold text-tertiary-container">48%</span>
+</div>
+</div>
+<button class="w-full mt-8 py-3 rounded-lg border border-white/10 hover:bg-white/5 transition-all text-sm font-label-md text-on-surface-variant hover:text-white">
+                    Xem tất cả sự kiện
+                </button>
+</div>
+</section>
+</main>
+<script>
+        // Simple micro-interaction for the progress ring
+        window.addEventListener('load', () => {
+            const circle = document.querySelector('.progress-ring__circle');
+            if (circle) {
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                
+                // Animate to 85%
+                const offset = circumference - (85 / 100 * circumference);
+                setTimeout(() => {
+                    circle.style.strokeDashoffset = offset;
+                }, 100);
+            }
+        });
+        
+        // Tab interaction simulation
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!link.classList.contains('bg-primary')) {
+                    document.querySelectorAll('nav a').forEach(l => {
+                        l.classList.remove('bg-primary', 'text-on-primary', 'shadow-[0_0_15px_rgba(255,153,0,0.4)]');
+                        l.classList.add('text-on-surface-variant', 'hover:text-on-surface', 'hover:bg-white/5');
+                        const icon = l.querySelector('.material-symbols-outlined');
+                        if (icon) icon.style.variationSettings = "'FILL' 0";
+                    });
+                    
+                    link.classList.add('bg-primary', 'text-on-primary', 'shadow-[0_0_15px_rgba(255,153,0,0.4)]');
+                    link.classList.remove('text-on-surface-variant', 'hover:text-on-surface', 'hover:bg-white/5');
+                    const icon = link.querySelector('.material-symbols-outlined');
+                    if (icon) icon.style.variationSettings = "'FILL' 1";
+                }
+            });
+        });
+    </script>
+</body></html>

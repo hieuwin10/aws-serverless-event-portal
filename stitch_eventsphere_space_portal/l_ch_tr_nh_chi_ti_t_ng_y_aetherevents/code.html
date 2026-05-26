@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents | Schedule View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-orange {
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.1);
+        }
+        .glow-orange:hover {
+            box-shadow: 0 0 25px rgba(255, 153, 0, 0.3);
+            border-color: rgba(255, 153, 0, 0.4);
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            animation: float 20s infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.2); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#ffdcbd",
+                      "on-primary-fixed": "#2c1600",
+                      "surface-container-highest": "#313540",
+                      "tertiary-fixed": "#eaddff",
+                      "surface-container-high": "#262a35",
+                      "tertiary-fixed-dim": "#d1bcff",
+                      "on-secondary-container": "#006a70",
+                      "outline-variant": "#554434",
+                      "surface-dim": "#0f131d",
+                      "tertiary": "#d7c3ff",
+                      "surface-variant": "#313540",
+                      "on-primary": "#4a2800",
+                      "background": "#0f131d",
+                      "on-error-container": "#ffdad6",
+                      "inverse-primary": "#8a5100",
+                      "surface-container-lowest": "#0a0e18",
+                      "primary": "#ffc082",
+                      "secondary-fixed-dim": "#00dbe7",
+                      "on-primary-fixed-variant": "#693c00",
+                      "on-surface": "#dfe2f1",
+                      "surface": "#0f131d",
+                      "on-tertiary": "#3d008f",
+                      "on-secondary-fixed-variant": "#004f54",
+                      "on-error": "#690005",
+                      "primary-container": "#ff9900",
+                      "on-secondary-fixed": "#002022",
+                      "tertiary-container": "#bfa2ff",
+                      "on-tertiary-fixed-variant": "#5800c8",
+                      "outline": "#a38d7a",
+                      "on-tertiary-container": "#5500c1",
+                      "surface-container-low": "#171b26",
+                      "secondary": "#ddfcff",
+                      "on-tertiary-fixed": "#24005b",
+                      "on-background": "#dfe2f1",
+                      "secondary-container": "#00f1fe",
+                      "error": "#ffb4ab",
+                      "surface-container": "#1c1f2a",
+                      "on-primary-container": "#653a00",
+                      "on-secondary": "#00363a",
+                      "secondary-fixed": "#74f5ff",
+                      "surface-tint": "#ffb86f",
+                      "surface-bright": "#353944",
+                      "inverse-on-surface": "#2c303b",
+                      "on-surface-variant": "#dbc2ad",
+                      "inverse-surface": "#dfe2f1",
+                      "error-container": "#93000a",
+                      "primary-fixed-dim": "#ffb86f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-max": "1440px",
+                      "unit": "4px",
+                      "xl": "48px",
+                      "margin-desktop": "32px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Outfit"],
+                      "display-lg-mobile": ["Outfit"],
+                      "label-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "headline-md": ["Outfit"],
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "display-lg": ["Outfit"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Background Orbs -->
+<div class="orb bg-primary w-[500px] h-[500px] -top-20 -left-20"></div>
+<div class="orb bg-secondary-container w-[400px] h-[400px] bottom-10 right-10"></div>
+<!-- Main Navigation (TopNavBar) -->
+<header class="fixed top-0 w-full z-50 border-b border-white/10 bg-surface/30 backdrop-blur-xl flex justify-between items-center px-margin-desktop py-4 shadow-[0_0_20px_rgba(255,153,0,0.05)]">
+<div class="flex items-center gap-xl">
+<span class="font-display-lg text-headline-md text-primary-container tracking-tight">AetherEvents</span>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Explore</a>
+<a class="font-body-md text-body-md text-primary font-bold border-b-2 border-primary pb-1" href="#">Schedule</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Support</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-white/5 rounded-full transition-all">notifications</button>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-white/5 rounded-full transition-all">settings</button>
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md px-lg py-2 rounded-xl active:scale-95 transition-transform">Create Event</button>
+</div>
+</header>
+<!-- Content Canvas (Simulated Background) -->
+<main class="pt-32 px-margin-desktop max-w-container-max mx-auto opacity-40 select-none">
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Sidebar Navigation -->
+<aside class="col-span-3 h-[calc(100vh-160px)] glass-panel rounded-xl p-lg flex flex-col gap-md">
+<div class="flex items-center gap-md mb-xl">
+<img alt="Admin Avatar" class="w-12 h-12 rounded-full border border-white/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAktgt865BVvrmFC8KAecPkSfFKBgQQw9VR7PDymQZZx3I6QUYye3a5tX5lwsEZ7LGwjjoqVzB6jw9uNkklLr1G30WNxnPfRc93WwcdCHeScSa83CdQ2hIyB0T8coec8q2XyVyP93_dzzMHqcwqG3TuUgju75_NzSlfp-ziePQKYrlnLpYCLELz9JR3fNCefTVmk7axLtjFr1tJ54vTTn3JEK87fO6li95JuF0TDlGHtoRAoUmr0gS8j5CK4AswycoWEdEDwJcATGFv"/>
+<div>
+<p class="font-headline-md text-body-lg text-primary">Admin Console</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Command Center</p>
+</div>
+</div>
+<div class="space-y-sm">
+<div class="bg-primary-container/20 text-primary-container border-l-4 border-primary-container px-4 py-3 flex items-center gap-3 font-label-md text-label-md">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+                    </div>
+<div class="text-on-surface-variant hover:bg-white/5 px-4 py-3 flex items-center gap-3 font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined">event_available</span> Event Management
+                    </div>
+<div class="text-on-surface-variant hover:bg-white/5 px-4 py-3 flex items-center gap-3 font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined">group</span> Registrations
+                    </div>
+</div>
+</aside>
+<!-- Dashboard Mockup -->
+<div class="col-span-9 space-y-lg">
+<div class="glass-panel p-xl rounded-xl">
+<h2 class="font-headline-lg text-headline-lg mb-md">November 2024</h2>
+<div class="grid grid-cols-7 gap-sm">
+<!-- Simplified Calendar Placeholder -->
+<div class="h-24 glass-panel flex items-center justify-center rounded-lg opacity-20">27</div>
+<div class="h-24 glass-panel flex items-center justify-center rounded-lg opacity-20">28</div>
+<div class="h-24 glass-panel flex items-center justify-center rounded-lg opacity-20">29</div>
+<div class="h-24 glass-panel flex items-center justify-center rounded-lg opacity-20">30</div>
+<div class="h-24 glass-panel flex items-center justify-center rounded-lg opacity-20">31</div>
+<div class="h-24 border-2 border-primary-container bg-primary-container/10 flex items-center justify-center rounded-lg text-primary">1</div>
+<div class="h-24 glass-panel flex items-center justify-center rounded-lg">2</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md" id="modal-overlay">
+<div class="relative w-full max-w-2xl glass-panel rounded-xl shadow-2xl p-xl border border-white/20 overflow-hidden transform transition-all animate-in zoom-in duration-300">
+<!-- Modal Header -->
+<div class="flex justify-between items-center mb-xl">
+<div>
+<h2 class="font-display-lg text-headline-lg text-on-surface">Friday, November 1, 2024</h2>
+<p class="font-body-md text-on-surface-variant">Your schedule for today</p>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-white transition-colors" onclick="document.getElementById('modal-overlay').classList.add('hidden')">close</button>
+</div>
+<!-- Event List -->
+<div class="space-y-md mb-xl">
+<!-- Event 1 -->
+<div class="glass-panel p-lg rounded-xl flex items-center gap-lg glow-orange transition-all duration-300 group cursor-pointer">
+<div class="w-14 h-14 rounded-full bg-primary-container/20 flex items-center justify-center text-primary-container border border-primary-container/30">
+<span class="material-symbols-outlined text-3xl">bolt</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-md text-body-lg text-white group-hover:text-primary transition-colors">Quantum Summit Opening Keynote</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            09:00 AM - 10:30 AM
+                        </p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-all">chevron_right</span>
+</div>
+<!-- Event 2 -->
+<div class="glass-panel p-lg rounded-xl flex items-center gap-lg glow-orange transition-all duration-300 group cursor-pointer">
+<div class="w-14 h-14 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary-container border border-secondary-container/30">
+<span class="material-symbols-outlined text-3xl">psychology</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-md text-body-lg text-white group-hover:text-secondary-container transition-colors">AI Ethics Panel Discussion</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            01:00 PM - 02:30 PM
+                        </p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-all">chevron_right</span>
+</div>
+<!-- Event 3 -->
+<div class="glass-panel p-lg rounded-xl flex items-center gap-lg glow-orange transition-all duration-300 group cursor-pointer">
+<div class="w-14 h-14 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary-container border border-tertiary-container/30">
+<span class="material-symbols-outlined text-3xl">hub</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-md text-body-lg text-white group-hover:text-tertiary-container transition-colors">Cloud Networking Mixer</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            05:00 PM - 07:00 PM
+                        </p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-all">chevron_right</span>
+</div>
+</div>
+<!-- Modal Footer Actions -->
+<div class="flex items-center gap-md">
+<button class="flex-1 bg-primary-container text-on-primary-container font-label-md text-label-md py-4 rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+                    Add Event
+                </button>
+<button class="flex-1 border border-white/20 bg-white/5 text-white font-label-md text-label-md py-4 rounded-xl flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all">
+                    View All Events
+                </button>
+</div>
+<!-- Background decorative glow -->
+<div class="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/20 blur-3xl pointer-events-none"></div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-xl mt-auto border-t border-white/5 bg-surface-container-lowest">
+<div class="max-w-container-max mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-lg">
+<div class="flex flex-col gap-sm">
+<span class="text-primary-container font-display-lg text-headline-md">AetherEvents</span>
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 AetherEvents. Powered by Aetheric Space Systems.</p>
+</div>
+<div class="flex gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">API Docs</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Status</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for hover effects on glass cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

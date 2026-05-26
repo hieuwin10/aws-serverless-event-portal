@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AetherEvents - Khai Phá Sức Mạnh Công Nghệ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0b0f19;
+            color: #dfe2f1;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glowing-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.2); }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#93000a",
+                        "surface-container-high": "#262a35",
+                        "surface-container-highest": "#313540",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#4a2800",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#eaddff",
+                        "surface-dim": "#0f131d",
+                        "tertiary-container": "#bfa2ff",
+                        "inverse-on-surface": "#2c303b",
+                        "tertiary": "#d7c3ff",
+                        "on-secondary-fixed": "#002022",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "surface-container": "#1c1f2a",
+                        "primary": "#ffc082",
+                        "surface-container-lowest": "#0a0e18",
+                        "on-secondary-container": "#006a70",
+                        "on-background": "#dfe2f1",
+                        "surface-container-low": "#171b26",
+                        "background": "#0f131d",
+                        "error": "#ffb4ab",
+                        "secondary": "#ddfcff",
+                        "on-primary-container": "#653a00",
+                        "surface-variant": "#313540",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#ffb86f",
+                        "surface-bright": "#353944",
+                        "secondary-fixed": "#74f5ff",
+                        "on-tertiary-fixed": "#24005b",
+                        "surface": "#0f131d",
+                        "on-primary-fixed-variant": "#693c00",
+                        "secondary-container": "#00f1fe",
+                        "outline-variant": "#554434",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "primary-fixed": "#ffdcbd",
+                        "inverse-primary": "#8a5100",
+                        "on-tertiary-fixed-variant": "#5800c8",
+                        "inverse-surface": "#dfe2f1",
+                        "on-surface": "#dfe2f1",
+                        "primary-container": "#ff9900",
+                        "surface-tint": "#ffb86f",
+                        "on-tertiary": "#3d008f",
+                        "on-primary-fixed": "#2c1600",
+                        "outline": "#a38d7a",
+                        "on-secondary": "#00363a",
+                        "on-tertiary-container": "#5500c1",
+                        "on-surface-variant": "#dbc2ad"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "display-lg-mobile": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface">
+<!-- Atmospheric Orbs -->
+<div class="glowing-orb bg-primary-container w-[500px] h-[500px] top-[-100px] left-[-100px]"></div>
+<div class="glowing-orb bg-secondary-container w-[400px] h-[400px] bottom-[20%] right-[-100px]" style="animation-delay: -5s;"></div>
+<!-- Top Navigation Bar -->
+<nav class="bg-white/5 backdrop-blur-xl dark:bg-white/5 border-b border-white/10 shadow-[0_0_20px_rgba(255,192,130,0.1)] docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<span class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg font-bold text-on-surface tracking-tight">AetherEvents</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-primary border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Home</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors duration-200 font-label-md text-label-md hover:bg-white/10 hover:backdrop-blur-2xl transition-all duration-200 p-2 rounded-lg" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors duration-200 font-label-md text-label-md hover:bg-white/10 hover:backdrop-blur-2xl transition-all duration-200 p-2 rounded-lg" href="#">Schedule</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors duration-200 font-label-md text-label-md hover:bg-white/10 hover:backdrop-blur-2xl transition-all duration-200 p-2 rounded-lg" href="#">Analytics</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-white/10 transition-all active:scale-95 duration-150 ease-out">
+<span class="material-symbols-outlined text-on-surface" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-white/10 transition-all active:scale-95 duration-150 ease-out">
+<span class="material-symbols-outlined text-on-surface" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX6ILcmnoj3yzXimKMWE01qVk9zvqtDONrTBoxGGm_rLK06nMihuBmIljuDRu3_0Lb7HQbkDGnzsTpTBKSy7OpI2UtjdG4s-Z_qzOHrHBH0PcvUm5gMSgXaQpLNPxS5euqG3JUu21C8ckTqVwRq_1vJUcGkPm0XFWkO_kiueEt1BOhdwEjKOHrQIAzHWfSnbAtbO7vm3IRxlnlB1duWBOrzj0eyZAo8AuJovSLhv6IdlmUviilCvbn6ncjnfRW_BAq-8TYMHtseRTf"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-xl relative">
+<!-- Hero Section -->
+<section class="flex flex-col items-center text-center mb-xl">
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg max-w-4xl mb-md">
+<span class="bg-gradient-to-r from-[#ff9900] via-[#ffc082] to-[#ff9900] bg-clip-text text-transparent">Khai Phá Sức Mạnh Công Nghệ</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                Khám phá những sự kiện công nghệ hàng đầu về AI, Cloud và DevOps. Nâng tầm kiến thức cùng cộng đồng chuyên gia toàn cầu.
+            </p>
+<!-- Search & Filter Bar -->
+<div class="w-full max-w-4xl mt-xl glass-panel p-2 rounded-2xl flex flex-col md:flex-row gap-2">
+<div class="flex-1 flex items-center px-4 gap-3 bg-white/5 rounded-xl border border-white/5">
+<span class="material-symbols-outlined text-primary" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-on-surface w-full py-4 font-body-md" placeholder="Tìm kiếm sự kiện, diễn giả..." type="text"/>
+</div>
+<div class="flex items-center gap-2 px-2 overflow-x-auto no-scrollbar">
+<button class="px-4 py-2 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md whitespace-nowrap hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] transition-all">All Events</button>
+<button class="px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-all font-label-md text-label-md whitespace-nowrap">AI</button>
+<button class="px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-all font-label-md text-label-md whitespace-nowrap">Cloud</button>
+<button class="px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-all font-label-md text-label-md whitespace-nowrap">DevOps</button>
+<button class="px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-all font-label-md text-label-md whitespace-nowrap">Blockchain</button>
+</div>
+</div>
+</section>
+<!-- Event Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter mt-xl">
+<!-- Event Card 1 -->
+<article class="glass-panel rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-300">
+<div class="aspect-video relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A futuristic presentation hall for an AWS Cloud event. The stage features glowing blue and orange AWS architectures on massive screens. The audience is composed of diverse tech professionals sitting in a darkened, atmospheric room illuminated by high-contrast neon accents. Professional, high-end photography style with a cinematic deep-space aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACywE3p7Q4OM4aybBFyf2JjXXXBY8QAbKWsPZL1UVDmI2hP_4oC-CMTVx7-0Kyu73UJydSb8-JvAGEKnuHatzERiV4TY8NsnS7zy4ZKoezyn_OkUqLAaC6adGm7CpP1_HzFLh8RXoVRZ-w0AL_TrmdqdBxDx_pJX1-NBWwC5BeVPNr7wx8JjJ1xg9ZEBJuXvQ1gz3GKawqCPu237C-F3biC0zfSz6wAtOoLOT9zGlcOB-GjMtQ4WGywmzHLmyCoiTaxzaTmUDmNAdO"/>
+<div class="absolute top-4 left-4">
+<span class="bg-primary-container/90 backdrop-blur-md text-on-primary-container px-3 py-1 rounded-full font-label-sm text-label-sm">CLOUD</span>
+</div>
+</div>
+<div class="p-6">
+<h3 class="font-headline-md text-headline-md mb-2 group-hover:text-primary transition-colors">AWS Cloud Day</h3>
+<div class="flex flex-col gap-2 mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span>Dec 15, 2024</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+<span>Hanoi, Vietnam</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Remaining Seats</span>
+<span class="text-primary font-bold">75/100</span>
+</div>
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[75%] rounded-full"></div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 bg-primary-container text-on-primary-container rounded-lg font-label-md text-label-md font-bold hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] transition-all active:scale-95 duration-150">
+                        Đăng Ký Ngay
+                    </button>
+</div>
+</article>
+<!-- Event Card 2 -->
+<article class="glass-panel rounded-xl overflow-hidden group hover:border-tertiary/50 transition-all duration-300 border-t-2 border-t-secondary-container">
+<div class="aspect-video relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A cutting-edge AI summit visual featuring a glowing neural network brain composed of purple and cyan light particles. The background is a deep space dark blue with subtle digital artifacts. A diverse crowd of developers is interacting with holographic displays in a futuristic tech conference center. Immersive and authoritative visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtVJHp7AUyDhUWChz6eErFhnrgVOswEwBop0QYIJlLWdOgmz0Gw7DLq8nN_L1EvLldkFWmQw9TsV58BNzx0yA_GhohJXrq41o_W3Y4P_6deAhkeNwW_f0Ghtn2qtz9tiVnwlwfYWtCTjwtu2LPB37SnCsnNX-8rHSPC1hPsZcBYLZzVFkCU8MkHeKN9jVCjFzjJJ5e83222O0DWYhn7W2GeaTwv74ecUe8fdmtmUajmwxChbJlnZ8yeMCVUKUY1GGoKYGBdbHUgBRc"/>
+<div class="absolute top-4 left-4">
+<span class="bg-tertiary-container/90 backdrop-blur-md text-on-tertiary-container px-3 py-1 rounded-full font-label-sm text-label-sm">AI / ML</span>
+</div>
+</div>
+<div class="p-6">
+<h3 class="font-headline-md text-headline-md mb-2 group-hover:text-tertiary transition-colors">AI Summit 2024</h3>
+<div class="flex flex-col gap-2 mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span>Jan 20, 2025</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+<span>HCMC, Vietnam</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Remaining Seats</span>
+<span class="text-tertiary font-bold">42/200</span>
+</div>
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-container w-[21%] rounded-full"></div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 bg-white/10 text-on-surface border border-white/20 rounded-lg font-label-md text-label-md font-bold hover:bg-white/20 transition-all active:scale-95 duration-150">
+                        Đăng Ký Ngay
+                    </button>
+</div>
+</article>
+<!-- Event Card 3 -->
+<article class="glass-panel rounded-xl overflow-hidden group hover:border-primary/50 transition-all duration-300">
+<div class="aspect-video relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A professional DevOps workshop setting. Large clean displays showing Kubernetes clusters and CI/CD pipelines in vibrant greens and blues. A high-tech laboratory environment with white sleek desks and dark ergonomic chairs. The lighting is focused and professional, creating an atmosphere of intense learning and precision. Cinematic wide shot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM6ILhchDa5-c-0IiYehuRVchQ9H8G9ZNkCRik3jZ6Van9J_EJEVPn89C43GykiObufGBuIdy3zpU4RWbhFpOrzIIrMP3U7a5SLzdPb7zU2URzWFSfmj1zE9BdRaElZSLfFJiBiVbvj23aPJj7HBYmXsS9Xp1y4gqCB5Kd6KDg3i1fAJARa3E_SAKgj6qWF9Z-rPK4NDZTkqq0995IrTlVAzculYluRHttOuRAd1JL5av52LGlpTLVytF7VGJoSzPcC-c8NTvNpdT3"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary-container/90 backdrop-blur-md text-on-secondary-container px-3 py-1 rounded-full font-label-sm text-label-sm">DEVOPS</span>
+</div>
+</div>
+<div class="p-6">
+<h3 class="font-headline-md text-headline-md mb-2 group-hover:text-primary transition-colors">DevOps Workshop</h3>
+<div class="flex flex-col gap-2 mb-6">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span>Feb 12, 2025</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+<span>Online, Global</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Remaining Seats</span>
+<span class="text-primary font-bold">15/50</span>
+</div>
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[30%] rounded-full"></div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 bg-primary-container text-on-primary-container rounded-lg font-label-md text-label-md font-bold hover:shadow-[0_0_20px_rgba(255,153,0,0.4)] transition-all active:scale-95 duration-150">
+                        Đăng Ký Ngay
+                    </button>
+</div>
+</article>
+</section>
+<!-- Featured Section (Bento Grid Style) -->
+<section class="mt-xl grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-gutter min-h-[500px]">
+<div class="md:col-span-2 md:row-span-2 glass-panel rounded-2xl p-8 flex flex-col justify-end relative overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700" data-alt="A portrait of a top-tier tech visionary speaker on a dark, moody stage. Subtle bokeh of stage lights in the background. The lighting is dramatic, high-contrast, rim-lighting the subject's silhouette. They are wearing professional modern attire, looking towards a holographic projection of complex data. Command center aesthetic, futuristic and inspiring." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGCaD1b9ygIJ4-maqMFfFSNjmwV9o40R2FpHZL_zuO2SUZcJZ84glHpFQl8DVmXnrG4ZqPlpo4UgvHYXPxcTcZfMupC1har3ZujyG9JF9kRj0UVDUbp14jPH-1npUqaD8nt0kPit0rk4783rBvdAVPr9XCz7c0EK0H_ahV0hCeGeOBk2fwFn7BsffhdMUPIj0v6q4zEjxZi00Dgn3Cpr-w_vJHuzg0ZGkl9M4zhd7f7qo1jzc4M1mPfuPa7W6K4nsSU8VtqiIpWIpR"/>
+<div class="relative z-10">
+<span class="text-secondary font-label-sm text-label-sm mb-2 block tracking-widest uppercase">Featured Speaker</span>
+<h2 class="font-headline-lg text-headline-lg mb-4">Mastering Generative AI for Enterprise</h2>
+<p class="text-on-surface-variant font-body-md mb-6 max-w-md">Tham gia cùng các chuyên gia hàng đầu từ AWS và Google Cloud để khám phá tương lai của AI trong doanh nghiệp.</p>
+<button class="flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all">
+                        Xem chi tiết <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="md:col-span-2 glass-panel rounded-2xl p-8 border-t-2 border-t-primary">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">24 Events This Month</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">Accelerate Your Career</h3>
+<p class="text-on-surface-variant font-body-md">Truy cập hơn 100+ khoá học và sự kiện workshop thực chiến mỗi tháng.</p>
+</div>
+<div class="md:col-span-1 glass-panel rounded-2xl p-6 flex flex-col items-center text-center justify-center">
+<span class="font-display-lg-mobile text-display-lg-mobile text-primary mb-1">50k+</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Active Members</span>
+</div>
+<div class="md:col-span-1 glass-panel rounded-2xl p-6 flex flex-col items-center text-center justify-center bg-white/5">
+<span class="font-display-lg-mobile text-display-lg-mobile text-secondary mb-1">12</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Global Hubs</span>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-white/5 w-full mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-xl w-full max-w-container-max mx-auto gap-8">
+<div class="flex flex-col items-center md:items-start">
+<span class="font-headline-md text-headline-md font-extrabold text-on-surface mb-2">AetherEvents</span>
+<p class="text-on-surface-variant font-label-sm text-label-sm text-center md:text-left">© 2024 AetherEvents Intelligence. All rights reserved.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary-fixed transition-colors duration-200 ease-out" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary-fixed transition-colors duration-200 ease-out" href="#">Terms of Service</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary-fixed transition-colors duration-200 ease-out" href="#">API Docs</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary-fixed transition-colors duration-200 ease-out" href="#">Contact</a>
+</div>
+<div class="flex gap-4">
+<a class="w-10 h-10 glass-panel rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="public">public</span>
+</a>
+<a class="w-10 h-10 glass-panel rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="share">share</span>
+</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for floating orbs
+        document.addEventListener('mousemove', (e) => {
+            const orbs = document.querySelectorAll('.glowing-orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            orbs.forEach((orb, index) => {
+                const speed = (index + 1) * 20;
+                orb.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+    </script>
+</body></html>
