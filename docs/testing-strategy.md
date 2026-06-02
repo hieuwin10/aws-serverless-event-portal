@@ -9,8 +9,8 @@ Tài liệu này xây dựng chiến lược kiểm thử toàn diện cho dự 
 ```
                   ┌─────────────┐
                   │   E2E Test  │  ← Ít nhất, chạy chậm nhất
-                  │  (Cypress /  │     Nhưng phát hiện lỗi tích hợp quan trọng nhất
-                  │  Playwright) │
+                  │ (Cypress /  │     Nhưng phát hiện lỗi tích hợp quan trọng nhất
+                  │ Playwright) │
                   ├─────────────┤
                   │ Integration │  ← Trung bình, kiểm tra luồng API → Lambda → DB
                   │    Tests    │     Dùng SAM Local hoặc Mock DynamoDB
