@@ -9,12 +9,17 @@ Tài liệu này định nghĩa chi tiết các cổng giao tiếp API (**API En
 | Phương thức | Endpoint | Yêu cầu xác thực | Vai trò người dùng | Chức năng chính |
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/events` | Không | Tất cả mọi người | Xem danh sách các sự kiện |
+| **GET** | `/events/recommendations` | Có (Cognito JWT) | **User** | Lấy danh sách sự kiện được cá nhân hóa |
 | **GET** | `/events/{id}` | Không | Tất cả mọi người | Xem chi tiết thông tin 1 sự kiện |
-| **POST** | `/events` | Có (Cognito JWT) | **Admin** | Tạo sự kiện mới |
-| **PUT** | `/events/{id}` | Có (Cognito JWT) | **Admin** | Cập nhật thông tin sự kiện |
-| **DELETE** | `/events/{id}` | Có (Cognito JWT) | **Admin** | Xóa sự kiện |
-| **POST** | `/events/{id}/register` | Có (Cognito JWT) | **User** / **Admin** | Đăng ký tham gia sự kiện |
-| **GET** | `/users/registrations`| Có (Cognito JWT) | **User** / **Admin** | Xem danh sách sự kiện đã đăng ký |
+| **GET** | `/events/{id}/export` | Không | Tất cả mọi người | Xuất file lịch .ics (Google Calendar) |
+| **POST** | `/events` | Có (Cognito JWT) | **Admin** / **Organizer** | Tạo sự kiện mới |
+| **PUT** | `/events/{id}` | Có (Cognito JWT) | **Admin** / **Organizer** | Cập nhật thông tin sự kiện |
+| **DELETE** | `/events/{id}` | Có (Cognito JWT) | **Admin** / **Organizer** | Xóa sự kiện |
+| **POST** | `/events/{id}/register` | Có (Cognito JWT) | **User** | Đăng ký tham gia sự kiện |
+| **POST** | `/events/{id}/waitlist` | Có (Cognito JWT) | **User** | Đăng ký vào danh sách chờ |
+| **POST** | `/events/{id}/checkin` | Có (Cognito JWT) | **Admin** / **Organizer** | Điểm danh (QR hoặc thủ công) |
+| **POST** | `/events/{id}/reviews` | Có (Cognito JWT) | **User** (đã check-in)| Viết đánh giá cho sự kiện |
+| **GET** | `/users/registrations`| Có (Cognito JWT) | **User** | Xem danh sách sự kiện đã đăng ký |
 
 ---
 
@@ -120,6 +125,30 @@ Tài liệu này định nghĩa chi tiết các cổng giao tiếp API (**API En
       "data": null,
       "error": "Rất tiếc! Sự kiện này đã hết vé trống tham gia.",
       "timestamp": "2026-05-26T10:44:05Z"
+    }
+    ```
+
+---
+
+### 2.4. Điểm danh / Quét QR Check-in (`POST /events/{id}/checkin`)
+*   **Headers:**
+    *   `Authorization`: `Bearer <Cognito_JWT_ID_Token>` (Role: Admin/Organizer)
+*   **Dữ liệu gửi lên (Request Body):**
+    ```json
+    {
+      "ticketCode": "TKT-AWS-9B1D-8888",
+      "manualOverride": false // Gửi true nếu điểm danh thủ công qua UI không cần quét QR
+    }
+    ```
+*   **Phản hồi thành công (`HTTP 200 OK`):**
+    ```json
+    {
+      "success": true,
+      "data": {
+        "status": "CHECKED_IN",
+        "message": "Hợp lệ. Đã cộng 10 Loyalty Points cho user."
+      },
+      "error": null
     }
     ```
 

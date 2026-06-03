@@ -63,15 +63,18 @@ Dự án bao gồm hai cấu phần độc lập nhưng tích hợp chặt chẽ
 
 ### Đối với Người Dùng Đăng Ký (Users)
 *   **Xác thực tài khoản bảo mật:** Đăng ký, đăng nhập và đăng xuất tài khoản thông qua cổng bảo mật **Amazon Cognito**.
-*   **Trang chủ sự kiện sống động:** Hiển thị danh sách các sự kiện đang diễn ra kèm theo bộ lọc nhanh theo danh mục và thanh tìm kiếm tức thời.
-*   **Chi tiết sự kiện cao cấp:** Cung cấp thông tin chi tiết về sự kiện (thời gian, địa điểm, mô tả, diễn giả) cùng tiến trình số lượng vé còn trống trực quan.
-*   **Đăng ký tham gia một chạm:** Người dùng có thể nhấn đăng ký sự kiện chỉ với một nút bấm sau khi đăng nhập, hệ thống tự động sinh vé điện tử mockup.
-*   **Trang cá nhân:** Quản lý danh sách các sự kiện mà người dùng đã đăng ký tham gia.
+*   **Trang chủ sự kiện & Gợi ý cá nhân hóa:** Hiển thị danh sách các sự kiện đang diễn ra kèm theo bộ lọc nhanh theo danh mục, thanh tìm kiếm tức thời và mục gợi ý sự kiện dựa trên lịch sử tham gia của người dùng.
+*   **Chi tiết sự kiện cao cấp:** Cung cấp thông tin chi tiết về sự kiện (thời gian, địa điểm, mô tả, diễn giả), điểm đánh giá (Rating) cùng tiến trình số lượng vé còn trống trực quan.
+*   **Đăng ký tham gia một chạm & Danh sách chờ (Waitlist):** Người dùng có thể đăng ký sự kiện dễ dàng. Nếu sự kiện hết vé, tự động đưa vào danh sách chờ và tự động đẩy vé khi có người hủy.
+*   **Hệ thống Check-in QR Code:** Mỗi vé điện tử được đính kèm một mã QR để check-in tại sự kiện.
+*   **Đánh giá sự kiện (Reviews):** Cho phép người dùng đánh giá và nhận xét sự kiện sau khi đã check-in thành công.
+*   **Trang cá nhân, Hạng thành viên & Lịch sự kiện:** Quản lý danh sách sự kiện đã đăng ký dưới dạng danh sách hoặc Lịch (Calendar View), tải file đồng bộ Google/Apple Calendar (.ics), theo dõi điểm thưởng (Loyalty Points) và hạng thành viên.
 
-### Đối với Quản Trị Viên (Admins)
-*   **Phân quyền chặt chẽ:** Chỉ các tài khoản thuộc nhóm Admin trên **Cognito** mới có quyền truy cập trang quản trị.
-*   **Quản lý sự kiện (CRUD):** Tạo mới sự kiện (kèm upload ảnh mockup), cập nhật thông tin sự kiện và xóa sự kiện.
-*   **Thống kê lượt đăng ký:** Xem danh sách người dùng đã đăng ký cho từng sự kiện cụ thể và xuất báo cáo thống kê trực quan.
+### Đối với Quản Trị Viên (Admins) & Ban Tổ Chức (Organizers)
+*   **Phân quyền đa cấp (Multi-Role):** Hỗ trợ vai trò Admin tối cao và vai trò Organizer (Ban tổ chức). Admin có toàn quyền, trong khi Organizer chỉ có quyền trên các sự kiện do chính họ tạo ra.
+*   **Quản lý sự kiện (CRUD):** Tạo mới sự kiện (kèm upload ảnh), cập nhật thông tin sự kiện và xóa sự kiện.
+*   **Điểm danh (Check-in) linh hoạt:** Hỗ trợ quét mã QR bằng thiết bị di động để check-in siêu tốc, hoặc điểm danh thủ công (đánh dấu trực tiếp trên danh sách) trên giao diện quản lý của Admin/Organizer.
+*   **Thống kê & Quản lý danh sách chờ:** Theo dõi danh sách đăng ký, danh sách chờ và quản lý các đánh giá sự kiện từ người dùng.
 
 ---
 
@@ -134,6 +137,7 @@ npm run start:local
 | v1.1 | 26/05/2026 | AI Architect | Bổ sung 4 tài liệu mới: error-handling-troubleshooting, infrastructure-as-code, testing-strategy, operations-backup-cicd. Cập nhật data-models (Access Patterns + Sample Layout). |
 | v1.2 | 26/05/2026 | AI Architect (BMAD Review) | Rà soát theo chuẩn BMAD-METHOD v6 checklist. Bổ sung project-parts.json, Version History, Dependency Map, State Management Deep-Dive, Environment Variables. |
 | v1.3 | 26/05/2026 | Senior Cloud Architect (Tổng biên tập) | Rà soát chéo đồng nhất dữ liệu (AP-8, DELETE/PUT SAM functions). Tạo mới team-alignment-matrix.md (RACI & offline kịch bản nghiệm thu). Chuẩn hóa toàn bộ relative paths để sẵn sàng deploy. |
+| v1.4 | 03/06/2026 | Antigravity AI | Bổ sung 6 tính năng nâng cao (QR Check-in, Waitlist, Ratings/Reviews, Recommendations, Organizer Role, Loyalty Points) sử dụng kiến trúc Serverless Event-driven để giữ vững giới hạn Free Tier. |
 
 ---
 

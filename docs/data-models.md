@@ -36,6 +36,9 @@ Bảng duy nhất `EventApp-Data` sử dụng cơ chế khóa generic để lưu
 | **15. NOTIFICATION** | `USER#<UserId>` | `NOTIF#<NotifId>` | - | - | - | - |
 | **16. AUDIT_LOG** | `LOG#<Component>` | `TIME#<Epoch>` | `AUDIT_TIMELINE` | `TIME#<Epoch>#LOG#<Id>`| - | - |
 | **17. MATERIALIZED_VIEW**| `CACHE#<ViewId>` | `VERSION#<Num>` | - | - | - | - |
+| **18. WAITLIST** | `EVENT#<EventId>` | `WAITLIST#<Time>` | - | - | `USER#<UserId>` | `EVENT#<EventId>` |
+| **19. REVIEW** | `EVENT#<EventId>` | `REVIEW#<UserId>` | `USER#<UserId>` | `REVIEW#<EventId>` | - | - |
+| **20. USER_PROFILE** | `USER#<UserId>` | `PROFILE` | - | - | - | - |
 
 ---
 
@@ -90,6 +93,10 @@ Trong buổi thẩm định thiết kế, đội ngũ kỹ sư trưởng (Princi
 | **AP-13**| Lấy dòng thời gian log hệ thống | `Query` | `GSI1PK = AUDIT_TIMELINE`, `GSI1SK begins_with TIME#` | Chỉ mục `GSI1` |
 | **AP-14**| Đọc cache trang chủ (Homepage) | `GetItem` | `PK = CACHE#HOMEPAGE`, `SK = TRENDING_EVENTS` | Bảng chính |
 | **AP-15**| Xem thông báo chưa đọc của User | `Query` | `PK = USER#<UserId>`, `SK begins_with NOTIF#` | Bảng chính |
+| **AP-16**| Lấy danh sách chờ của sự kiện | `Query` | `PK = EVENT#<EventId>`, `SK begins_with WAITLIST#` | Bảng chính |
+| **AP-17**| Đọc đánh giá của 1 sự kiện | `Query` | `PK = EVENT#<EventId>`, `SK begins_with REVIEW#` | Bảng chính |
+| **AP-18**| Đọc các đánh giá do 1 user viết | `Query` | `GSI1PK = USER#<UserId>`, `GSI1SK begins_with REVIEW#` | Chỉ mục `GSI1` |
+| **AP-19**| Lấy hồ sơ điểm thưởng của User | `GetItem` | `PK = USER#<UserId>`, `SK = PROFILE` | Bảng chính |
 
 ---
 
@@ -109,6 +116,10 @@ Dưới đây là mô phỏng dữ liệu thực tế lưu trữ trong bảng `E
 ├───────────────────────┼───────────────────────────┼─────────────────┼──────────────────────────────────┤
 │ USER#usr_c66f...      │ METADATA                  │ -               │ fullName="Nguyễn Văn A", role=Use│
 │ USER#usr_c66f...      │ EVENT#evt_9b1d...         │ -               │ ticketCode="TKT-AWS-9B1D-C66"    │
+│ USER#usr_c66f...      │ PROFILE                   │ -               │ points=25, tier="Silver"         │
+├───────────────────────┼───────────────────────────┼─────────────────┼──────────────────────────────────┤
+│ EVENT#evt_9b1d...     │ WAITLIST#1716710500       │ -               │ userId="usr_c66f...", autoEnroll=│
+│ EVENT#evt_9b1d...     │ REVIEW#usr_c66f...        │ USER#usr_c66f...│ rating=5, comment="Great event!" │
 ├───────────────────────┼───────────────────────────┼─────────────────┼──────────────────────────────────┤
 │ REG#reg_77f8...       │ PAYMENT#pay_44e1...       │ -               │ amount=100.0, state="SUCCESS"    │
 │ REG#reg_77f8...       │ CHECKIN#1716710400        │ -               │ deviceId="iPhone15Pro"           │

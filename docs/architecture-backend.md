@@ -17,11 +17,18 @@ backend/src/
  ├── handlers/                    # Thư mục chứa các hàm xử lý API
  │    ├── getEvents.ts            # GET /events (Xem danh sách sự kiện)
  │    ├── getEventById.ts         # GET /events/{id} (Xem chi tiết 1 sự kiện)
- │    ├── createEvent.ts          # POST /events [ADMIN] (Tạo sự kiện mới)
- │    ├── updateEvent.ts          # PUT /events/{id} [ADMIN] (Cập nhật sự kiện)
- │    ├── deleteEvent.ts          # DELETE /events/{id} [ADMIN] (Xóa sự kiện)
+ │    ├── createEvent.ts          # POST /events [ADMIN/ORG] (Tạo sự kiện mới)
+ │    ├── updateEvent.ts          # PUT /events/{id} [ADMIN/ORG] (Cập nhật sự kiện)
+ │    ├── deleteEvent.ts          # DELETE /events/{id} [ADMIN/ORG] (Xóa sự kiện)
  │    ├── registerEvent.ts        # POST /events/{id}/register (Đăng ký vé)
- │    └── getUserRegistrations.ts # GET /users/registrations (Lịch sử đăng ký)
+ │    ├── getUserRegistrations.ts # GET /users/registrations (Lịch sử đăng ký)
+ │    ├── qrCheckIn.ts            # POST /events/{id}/checkin (Quét QR Code)
+ │    ├── submitReview.ts         # POST /events/{id}/reviews (Viết đánh giá)
+ │    ├── getRecommendations.ts   # GET /events/recommendations (Gợi ý cá nhân hóa)
+ │    ├── exportEventICS.ts       # GET /events/{id}/export (Tạo file lịch .ics)
+ │    └── streams/                # Lambda trigger từ DynamoDB Streams
+ │         ├── waitlistProcessor.ts # Xử lý chuyển vé Waitlist
+ │         └── reviewAggregator.ts  # Tính toán Rating trung bình (CQRS)
  ├── services/                    # Tầng nghiệp vụ xử lý dữ liệu chung
  │    ├── dbService.ts            # Giao tiếp với Amazon DynamoDB SDK v3
  │    └── authService.ts          # Các tiện ích liên quan đến giải mã Token
@@ -105,10 +112,14 @@ export const handler = async (
 
     const userId = userClaims.sub; // Unique ID của User trên Cognito
     const userEmail = userClaims.email;
-    const userGroups = userClaims['cognito:groups'] || []; // Mảng chứa nhóm quyền (ví dụ: ["Admin"])
+    const userGroups = userClaims['cognito:groups'] || []; // Mảng chứa nhóm quyền: ["Admin", "Organizer"]
+
+    // Kiểm tra quyền Organizer hoặc Admin
+    const isAdmin = userGroups.includes("Admin");
+    const isOrganizer = userGroups.includes("Organizer");
 
     // 2. Xử lý logic...
-    return buildResponse(200, { message: "Xác thực thành công", userId });
+    return buildResponse(200, { message: "Xác thực thành công", userId, isAdmin, isOrganizer });
   } catch (error: any) {
     return buildResponse(500, null, error.message);
   }
