@@ -62,6 +62,7 @@ Hệ thống được đánh giá theo **5 trụ cột AWS Well-Architected Fram
 
 #### SEC-03: Cognito Không Có MFA
 - **Risk**: 🔴 HIGH
+- **Trạng thái**: ✅ Đã giải quyết (Cấu hình `MfaConfiguration: OPTIONAL` trong `template.yaml`)
 - **Tình trạng hiện tại**: Cognito User Pool không bật MFA. Password policy yếu (default settings).
 - **Tác động**: Tài khoản dễ bị brute force, credential stuffing, account takeover.
 - **Khuyến nghị**: Bật TOTP MFA (miễn phí), tăng cường password policy.
@@ -69,6 +70,7 @@ Hệ thống được đánh giá theo **5 trụ cột AWS Well-Architected Fram
 
 #### SEC-04: S3 Bucket Frontend Có Thể Bị Public Access
 - **Risk**: 🔴 HIGH
+- **Trạng thái**: ✅ Đã giải quyết (Cấu hình `PublicAccessBlockConfiguration` trong `template.yaml`)
 - **Tình trạng hiện tại**: S3 bucket frontend chưa chắc đã block public access hoàn toàn. Nếu ai đó accidentally set bucket policy public, toàn bộ assets sẽ accessible.
 - **Khuyến nghị**: Bật S3 Block Public Access ở account level và bucket level.
 - **Hướng dẫn**: [security-hardening.md](security/how-to/security-hardening.md)
@@ -224,6 +226,7 @@ GetEventsFunction:
 
 #### COST-01: Không Có Cost Monitoring
 - **Risk**: 🔴 HIGH
+- **Trạng thái**: ✅ Đã giải quyết (Thêm `AWS::CloudWatch::Alarm` vào `template.yaml`)
 - **Tình trạng**: Không có Billing Alarms. Không theo dõi chi phí theo service. Có thể bị "bill shock" nếu traffic tăng đột biến.
 - **Khuyến nghị**: Bật CloudWatch Billing Alarm, thiết lập AWS Budgets.
 - **Hướng dẫn**: [cost-optimization.md](operations/how-to/cost-optimization.md)
@@ -245,6 +248,7 @@ aws cloudwatch put-metric-alarm \
 
 #### COST-02: CloudWatch Log Retention Không Giới Hạn
 - **Risk**: 🔴 HIGH
+- **Trạng thái**: ✅ Đã giải quyết (Thêm `RetentionInDays: 7` vào các `LogGroup` trong `template.yaml`)
 - **Tình trạng**: Lambda Log Groups không có retention policy. Logs tích lũy vĩnh viễn → tốn tiền khi vượt 5 GB Free Tier.
 - **Khuyến nghị**: Set retention 7 ngày cho dev, 30 ngày cho prod.
 
@@ -284,6 +288,7 @@ done
 
 #### OPS-01: Thiếu Comprehensive Monitoring
 - **Risk**: 🔴 HIGH
+- **Trạng thái**: ✅ Đã giải quyết (Thêm Alarms cơ bản vào `template.yaml`)
 - **Tình trạng**: Chỉ dùng default Lambda metrics. Không có CloudWatch Alarms. Không có Dashboard. Không biết khi nào có vấn đề.
 - **Tác động**: Sự cố có thể kéo dài nhiều giờ trước khi phát hiện.
 - **Khuyến nghị**: Thiết lập 10 CloudWatch Alarms quan trọng, Dashboard, SNS notifications.
@@ -346,13 +351,13 @@ console.log(JSON.stringify({
 
 ### 🚨 Ưu Tiên 1 — Xử Lý Ngay (Tuần 1)
 
-| # | Vấn Đề | Effort | Impact | Lệnh/Action |
+| # | Vấn Đề | Effort | Impact | Trạng Thái / Lệnh |
 |---|---------|--------|--------|-------------|
-| 1 | Billing Alarm (COST-01) | 5 phút | Tránh bill shock | `aws cloudwatch put-metric-alarm` |
-| 2 | S3 Block Public Access (SEC-04) | 5 phút | Ngăn data breach | `aws s3api put-public-access-block` |
-| 3 | Log Retention (COST-02) | 10 phút | Tiết kiệm chi phí | `aws logs put-retention-policy` |
-| 4 | CloudWatch Alarms (OPS-01) | 1 giờ | Phát hiện sự cố sớm | Deploy monitoring-alarms.yaml |
-| 5 | Cognito MFA (SEC-03) | 2 giờ | Bảo mật tài khoản | Deploy cognito-advanced.yaml |
+| 1 | Billing Alarm (COST-01) | 5 phút | Tránh bill shock | ✅ Đã giải quyết (Trong `template.yaml`) |
+| 2 | S3 Block Public Access (SEC-04) | 5 phút | Ngăn data breach | ✅ Đã giải quyết (Trong `template.yaml`) |
+| 3 | Log Retention (COST-02) | 10 phút | Tiết kiệm chi phí | ✅ Đã giải quyết (Trong `template.yaml`) |
+| 4 | CloudWatch Alarms (OPS-01) | 1 giờ | Phát hiện sự cố sớm | ✅ Đã giải quyết (Trong `template.yaml`) |
+| 5 | Cognito MFA (SEC-03) | 2 giờ | Bảo mật tài khoản | ✅ Đã giải quyết (Trong `template.yaml`) |
 
 ### 🟠 Ưu Tiên 2 — Xử Lý Trong Tháng 1
 

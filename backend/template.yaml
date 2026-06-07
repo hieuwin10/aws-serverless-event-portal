@@ -1,0 +1,385 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  EventApp — Website Quản Lý và Đăng Ký Sự Kiện Online (AWS Free Tier) - Well-Architected Improved
+
+Parameters:
+  BillingAlertEmail:
+    Type: String
+    Description: Email address to receive billing and monitoring alerts
+    Default: "admin@example.com"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 15
+    MemorySize: 128
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: !Ref EventAppTable
+        COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+
+Resources:
+
+  # ----------------------------------------------------------
+  # 1. FRONTEND S3 BUCKET & SECURITY (SEC-04)
+  # ----------------------------------------------------------
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "eventapp-frontend-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+  # ----------------------------------------------------------
+  # 2. COGNITO USER POOL & MFA (SEC-03)
+  # ----------------------------------------------------------
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: EventApp-UserPool
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: EventApp-WebClient
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+
+  CognitoAdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: Admin
+      UserPoolId: !Ref CognitoUserPool
+      Description: Nhóm quản trị viên có quyền CRUD sự kiện
+
+  # ----------------------------------------------------------
+  # 3. DYNAMODB TABLE
+  # ----------------------------------------------------------
+  EventAppTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventApp-Data
+      BillingMode: PROVISIONED            
+      ProvisionedThroughput:
+        ReadCapacityUnits: 25             
+        WriteCapacityUnits: 25            
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+        - AttributeName: GSI2PK
+          AttributeType: S
+        - AttributeName: GSI2SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1Index
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 15
+            WriteCapacityUnits: 15
+        - IndexName: GSI2Index
+          KeySchema:
+            - AttributeName: GSI2PK
+              KeyType: HASH
+            - AttributeName: GSI2SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 10
+            WriteCapacityUnits: 10
+
+  # ----------------------------------------------------------
+  # 4. API GATEWAY
+  # ----------------------------------------------------------
+  EventAppApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  # ----------------------------------------------------------
+  # 5. LAMBDA FUNCTIONS
+  # ----------------------------------------------------------
+  GetEventsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEvents
+      Handler: handlers/getEvents.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetEventByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventById
+      Handler: handlers/getEventById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  CreateEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CreateEvent
+      Handler: handlers/createEvent.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events
+            Method: POST
+
+  RegisterEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-RegisterEvent
+      Handler: handlers/registerEvent.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        RegisterEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/register
+            Method: POST
+
+  GetUserRegistrationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUserRegistrations
+      Handler: handlers/getUserRegistrations.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUserRegistrations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/registrations
+            Method: GET
+
+  UpdateEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-UpdateEvent
+      Handler: handlers/updateEvent.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        UpdateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}
+            Method: PUT
+
+  DeleteEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-DeleteEvent
+      Handler: handlers/deleteEvent.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        DeleteEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}
+            Method: DELETE
+
+  # ----------------------------------------------------------
+  # 6. LOG RETENTION (COST-02)
+  # ----------------------------------------------------------
+  GetEventsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventsFunction}"
+      RetentionInDays: 7
+
+  GetEventByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventByIdFunction}"
+      RetentionInDays: 7
+
+  CreateEventLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CreateEventFunction}"
+      RetentionInDays: 7
+
+  RegisterEventLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${RegisterEventFunction}"
+      RetentionInDays: 7
+
+  GetUserRegistrationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUserRegistrationsFunction}"
+      RetentionInDays: 7
+
+  UpdateEventLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${UpdateEventFunction}"
+      RetentionInDays: 7
+
+  DeleteEventLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${DeleteEventFunction}"
+      RetentionInDays: 7
+
+  # ----------------------------------------------------------
+  # 7. NOTIFICATIONS & ALARMS (COST-01 & OPS-01)
+  # ----------------------------------------------------------
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: EventApp-Alerts
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref BillingAlertEmail
+
+  BillingAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: AWS-Billing-Alert
+      AlarmDescription: "Notify when estimated charges exceed $10"
+      Namespace: AWS/Billing
+      MetricName: EstimatedCharges
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      Statistic: Maximum
+      Period: 86400
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlertsTopic
+
+  ApiGateway5XXAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: EventApp-API-5XX-Errors
+      AlarmDescription: "Alert on API Gateway 5XX errors"
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref EventAppApi
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref AlertsTopic
+
+Outputs:
+  ApiUrl:
+    Description: URL gốc của API Gateway sau khi deploy
+    Value: !Sub "https://${EventAppApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  UserPoolId:
+    Description: ID của Cognito User Pool
+    Value: !Ref CognitoUserPool
+  UserPoolClientId:
+    Description: Client ID để tích hợp vào Frontend
+    Value: !Ref CognitoUserPoolClient
+  DynamoDBTableName:
+    Description: Tên bảng DynamoDB
+    Value: !Ref EventAppTable
+  FrontendBucketName:
+    Description: Tên S3 Bucket Frontend
+    Value: !Ref FrontendBucket
