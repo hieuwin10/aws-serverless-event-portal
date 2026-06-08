@@ -268,6 +268,60 @@ export const dbService = {
     }
   },
 
+  // List events without category filtering while keeping the current frontend DTO
+  listEvents: async (search?: string): Promise<any[]> => {
+    logger.info(`dbService.listEvents: search=${search}`);
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+
+      let eventItems = items.filter(item => item.entityType === 'EVENT');
+      if (eventItems.length === 0) {
+        eventItems = items.filter(
+          item =>
+            item.SK === 'METADATA' &&
+            typeof item.PK === 'string' &&
+            item.PK.startsWith('EVENT#')
+        );
+      }
+
+      if (search) {
+        const query = search.toLowerCase();
+        eventItems = eventItems.filter(item =>
+          item.title?.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query)
+        );
+      }
+
+      return eventItems
+        .map(item => mapEventItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    } else {
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression:
+          'entityType = :eventType OR (attribute_not_exists(entityType) AND SK = :sk AND begins_with(PK, :eventPkPrefix))',
+        ExpressionAttributeValues: {
+          ':eventType': 'EVENT',
+          ':sk': 'METADATA',
+          ':eventPkPrefix': 'EVENT#'
+        }
+      }));
+
+      let eventItems = result.Items || [];
+      if (search) {
+        const query = search.toLowerCase();
+        eventItems = eventItems.filter((item: any) =>
+          item.title?.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query)
+        );
+      }
+
+      return eventItems
+        .map((item: any) => mapEventItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    }
+  },
+
   // Query by PK begins_with USER# to get registrants of an event
   getEventRegistrations: async (eventId: string): Promise<any[]> => {
     const pk = `EVENT#${eventId}`;
