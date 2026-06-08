@@ -1,14 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { 
-  DynamoDBDocumentClient, 
-  GetCommand, 
-  PutCommand, 
-  ScanCommand, 
-  QueryCommand, 
-  UpdateCommand, 
-  DeleteCommand 
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  ScanCommand,
+  QueryCommand,
+  UpdateCommand,
+  DeleteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../utils/logger';
 
@@ -31,25 +31,48 @@ const INITIAL_EVENTS = [
   {
     PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     SK: 'METADATA',
-    id: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
-    title: 'Hội Thảo AWS Serverless Đột Phá 2026',
-    category: 'technology',
-    description: 'Chia sẻ kinh nghiệm thực tế về tối ưu hóa chi phí và xây dựng ứng dụng không máy chủ trên AWS.',
-    date: '2026-06-15T09:00:00Z',
-    location: 'Trực tuyến (Zoom)',
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+    entityType: 'EVENT',
+    eventId: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    organizerId: 'usr_admin_9999_9999_9999_9999',
+    categoryId: 'technology',
+    locationId: 'virtual-zoom',
+    title: 'Há»™i Tháº£o AWS Serverless Äá»™t PhÃ¡ 2026',
+    description: 'Chia sáº» kinh nghiá»‡m thá»±c táº¿ vá» tá»‘i Æ°u hÃ³a chi phÃ­ vÃ  xÃ¢y dá»±ng á»©ng dá»¥ng khÃ´ng mÃ¡y chá»§ trÃªn AWS.',
+    startTime: '2026-06-15T09:00:00Z',
+    endTime: '2026-06-15T12:00:00Z',
+    remainingSeats: 358,
     totalSeats: 500,
+    status: 'PUBLISHED',
+    GSI1PK: 'CAT#technology',
+    GSI1SK: 'START#2026-06-15T09:00:00Z#EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-26T10:44:00Z',
+    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+    // Compatibility fields for current frontend/local mock behavior
+    id: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    category: 'technology',
+    date: '2026-06-15T09:00:00Z',
+    location: 'Trá»±c tuyáº¿n (Zoom)',
     registeredCount: 142
   },
   {
-    PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
-    SK: 'USER#usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
+    PK: 'USER#usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
+    SK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    entityType: 'REGISTRATION',
     registrationId: 'reg_77f88a99-4c7b-4fff-9999-2b0d7b3d222d',
-    eventId: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     userId: 'usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
-    email: 'user@example.com',
+    eventId: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    ticketId: 'TKT-AWS-9B1D-8888',
+    ticketCode: 'TKT-AWS-9B1D-8888',
+    status: 'REGISTERED',
+    paymentState: 'FREE',
+    GSI2PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    GSI2SK: 'USER#usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
     registeredAt: '2026-05-26T10:44:00Z',
-    ticketCode: 'TKT-AWS-9B1D-8888'
+    createdAt: '2026-05-26T10:44:00Z',
+    updatedAt: '2026-05-26T10:44:00Z',
+    email: 'user@example.com',
+    requestId: 'reg_77f88a99-4c7b-4fff-9999-2b0d7b3d222d'
   }
 ];
 
@@ -395,8 +418,8 @@ export const dbService = {
       }
       if (search) {
         const query = search.toLowerCase();
-        events = events.filter(e => 
-          e.title.toLowerCase().includes(query) || 
+        events = events.filter(e =>
+          e.title.toLowerCase().includes(query) ||
           e.description.toLowerCase().includes(query)
         );
       }
@@ -419,8 +442,8 @@ export const dbService = {
       let events = result.Items || [];
       if (search) {
         const query = search.toLowerCase();
-        events = events.filter((e: any) => 
-          e.title?.toLowerCase().includes(query) || 
+        events = events.filter((e: any) =>
+          e.title?.toLowerCase().includes(query) ||
           e.description?.toLowerCase().includes(query)
         );
       }
@@ -855,7 +878,7 @@ export const dbService = {
         }
       }));
       const registrations = result.Items || [];
-      
+
       // Hydrate event metadata
       const enriched = [];
       for (const reg of registrations) {
