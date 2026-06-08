@@ -488,6 +488,83 @@ export const dbService = {
     }
   },
 
+  // Get a registration by the new REGISTRATION primary key
+  getRegistrationByUserAndEvent: async (userId: string, eventId: string): Promise<any | null> => {
+    const keys = buildRegistrationKeys(userId, eventId);
+    logger.info(`dbService.getRegistrationByUserAndEvent: userId=${userId}, eventId=${eventId}`);
+    return dbService.getItem(keys.PK, keys.SK);
+  },
+
+  // Create a registration item using the new REGISTRATION schema
+  createRegistrationItem: async (input: {
+    registrationId: string;
+    userId: string;
+    eventId: string;
+    email: string;
+    registeredAt: string;
+    ticketCode: string;
+    ticketId?: string;
+    requestId?: string;
+    status?: string;
+    paymentState?: string;
+  }): Promise<any> => {
+    const keys = buildRegistrationKeys(input.userId, input.eventId);
+    const now = new Date().toISOString();
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'REGISTRATION',
+      registrationId: input.registrationId,
+      userId: input.userId,
+      eventId: input.eventId,
+      email: input.email,
+      registeredAt: input.registeredAt,
+      ticketCode: input.ticketCode,
+      ticketId: input.ticketId || input.ticketCode,
+      requestId: input.requestId || input.registrationId,
+      status: input.status || 'REGISTERED',
+      paymentState: input.paymentState || 'FREE',
+      GSI2PK: keys.GSI2PK,
+      GSI2SK: keys.GSI2SK,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Decrement remaining seats while keeping compatibility counters updated
+  decrementRemainingSeats: async (eventId: string): Promise<any | null> => {
+    const keys = buildEventKeys(eventId);
+    logger.info(`dbService.decrementRemainingSeats: eventId=${eventId}`);
+
+    const existingItem = await dbService.getItem(keys.PK, keys.SK);
+    if (!existingItem) {
+      return null;
+    }
+
+    const totalSeats = Number(existingItem.totalSeats || 0);
+    const currentRegisteredCount = calculateRegisteredCount(existingItem);
+    const currentRemainingSeats =
+      existingItem.remainingSeats !== undefined
+        ? Number(existingItem.remainingSeats || 0)
+        : Math.max(0, totalSeats - currentRegisteredCount);
+    const nextRemainingSeats = Math.max(0, currentRemainingSeats - 1);
+    const nextRegisteredCount = Math.max(0, totalSeats - nextRemainingSeats);
+
+    const updatedItem = {
+      ...existingItem,
+      remainingSeats: nextRemainingSeats,
+      registeredCount: nextRegisteredCount,
+      updatedAt: new Date().toISOString()
+    };
+
+    await dbService.putItem(updatedItem);
+    return updatedItem;
+  },
+
   // Query GSI (UserRegistrationsIndex) to get all events registered by user
   getUserRegistrations: async (userId: string): Promise<any[]> => {
     logger.info(`dbService.getUserRegistrations: userId=${userId}`);

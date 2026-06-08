@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
-import { dbService } from '../services/dbService';
+import { buildEventKeys, dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
 
@@ -16,33 +16,42 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const email = claims?.email;
 
     if (!userId || !email) {
-      return buildResponse(401, null, 'Bạn cần đăng nhập để đăng ký tham gia sự kiện.');
+      return buildResponse(401, null, 'Báº¡n cáº§n Ä‘Äƒng nháº­p Ä‘á»ƒ Ä‘Äƒng kÃ½ tham gia sá»± kiá»‡n.');
     }
 
     const pathParams = event.pathParameters || {};
     const id = pathParams.id; // EventId
 
     if (!id) {
-      return buildResponse(400, null, 'Thiếu ID sự kiện trong yêu cầu.');
+      return buildResponse(400, null, 'Thiáº¿u ID sá»± kiá»‡n trong yÃªu cáº§u.');
     }
 
     // 1. Check if event exists
-    const eventMeta = await dbService.getItem(`EVENT#${id}`, 'METADATA');
+    const eventKeys = buildEventKeys(id);
+    const eventMeta = await dbService.getItem(eventKeys.PK, eventKeys.SK);
     if (!eventMeta) {
-      return buildResponse(404, null, 'Không tìm thấy sự kiện.');
+      return buildResponse(404, null, 'KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n.');
     }
 
     // 2. Check if already registered
-    const existingReg = await dbService.getItem(`EVENT#${id}`, `USER#${userId}`);
+    const existingReg = await dbService.getRegistrationByUserAndEvent(userId, id);
     if (existingReg) {
-      return buildResponse(400, null, 'Bạn đã đăng ký tham gia sự kiện này rồi.');
+      return buildResponse(400, null, 'Báº¡n Ä‘Ã£ Ä‘Äƒng kÃ½ tham gia sá»± kiá»‡n nÃ y rá»“i.');
     }
 
     // 3. Check seats
     const totalSeats = Number(eventMeta.totalSeats || 0);
-    const registeredCount = Number(eventMeta.registeredCount || 0);
-    if (registeredCount >= totalSeats) {
-      return buildResponse(400, null, 'Rất tiếc! Sự kiện này đã hết vé trống tham gia.');
+    const registeredCount =
+      eventMeta.registeredCount !== undefined
+        ? Number(eventMeta.registeredCount || 0)
+        : Math.max(0, totalSeats - Number(eventMeta.remainingSeats || 0));
+    const remainingSeats =
+      eventMeta.remainingSeats !== undefined
+        ? Number(eventMeta.remainingSeats || 0)
+        : Math.max(0, totalSeats - registeredCount);
+
+    if (remainingSeats <= 0 || registeredCount >= totalSeats) {
+      return buildResponse(400, null, 'Ráº¥t tiáº¿c! Sá»± kiá»‡n nÃ y Ä‘Ã£ háº¿t vÃ© trá»‘ng tham gia.');
     }
 
     // 4. Generate registration and ticketCode
@@ -50,26 +59,30 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const eventPrefix = id.slice(4, 8).toUpperCase();
     const userSuffix = userId.slice(-4).toUpperCase();
     const ticketCode = `TKT-AWS-${eventPrefix}-${userSuffix}`;
+    const registeredAt = new Date().toISOString();
 
-    const newRegistration = {
-      PK: `EVENT#${id}`,
-      SK: `USER#${userId}`,
+    const newRegistration = await dbService.createRegistrationItem({
       registrationId,
-      eventId: id,
       userId,
+      eventId: id,
       email,
-      registeredAt: new Date().toISOString(),
+      registeredAt,
       ticketCode
-    };
+    });
 
-    // Save registration
-    await dbService.putItem(newRegistration);
-    // Increment seat count
-    await dbService.updateEventSeats(id, 1);
+    // Decrement remaining seats and keep compatibility counters in sync
+    await dbService.decrementRemainingSeats(id);
 
-    return buildResponse(200, newRegistration);
+    return buildResponse(200, {
+      registrationId: newRegistration.registrationId,
+      eventId: newRegistration.eventId,
+      userId: newRegistration.userId,
+      email: newRegistration.email,
+      registeredAt: newRegistration.registeredAt,
+      ticketCode: newRegistration.ticketCode
+    });
   } catch (error: any) {
     logger.error('Error in registerEvent handler', error);
-    return buildResponse(500, null, 'Không thể hoàn tất đăng ký sự kiện. Vui lòng thử lại sau.');
+    return buildResponse(500, null, 'KhÃ´ng thá»ƒ hoÃ n táº¥t Ä‘Äƒng kÃ½ sá»± kiá»‡n. Vui lÃ²ng thá»­ láº¡i sau.');
   }
 };
