@@ -167,6 +167,23 @@ export const dbService = {
     }
   },
 
+  // Get event metadata by eventId and map to the current frontend DTO
+  getEventById: async (eventId: string): Promise<any | null> => {
+    const keys = buildEventKeys(eventId);
+    logger.info(`dbService.getEventById: eventId=${eventId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'EVENT') {
+      return null;
+    }
+
+    return mapEventItemToDto(item);
+  },
+
   // Put an item
   putItem: async (item: any): Promise<void> => {
     logger.info(`dbService.putItem: pk=${item.PK}, sk=${item.SK}`);
