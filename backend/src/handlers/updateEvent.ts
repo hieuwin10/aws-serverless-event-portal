@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { dbService } from '../services/dbService';
+import { dbService, mapEventItemToDto, normalizeCategory } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
 
@@ -16,41 +16,39 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const isAdmin = Array.isArray(userGroups) ? userGroups.includes('Admin') : userGroups === 'Admin';
 
     if (!isAdmin && !isMockAdmin) {
-      return buildResponse(403, null, 'Bạn không có quyền thực hiện hành động này. Yêu cầu nhóm quyền Admin.');
+      return buildResponse(403, null, 'Báº¡n khÃ´ng cÃ³ quyá»n thá»±c hiá»‡n hÃ nh Ä‘á»™ng nÃ y. YÃªu cáº§u nhÃ³m quyá»n Admin.');
     }
 
     const pathParams = event.pathParameters || {};
     const id = pathParams.id;
 
     if (!id) {
-      return buildResponse(400, null, 'Thiếu ID sự kiện trong yêu cầu.');
+      return buildResponse(400, null, 'Thiáº¿u ID sá»± kiá»‡n trong yÃªu cáº§u.');
     }
 
     if (!event.body) {
-      return buildResponse(400, null, 'Thiếu dữ liệu cập nhật.');
-    }
-
-    const pk = `EVENT#${id}`;
-    const sk = 'METADATA';
-    const existingEvent = await dbService.getItem(pk, sk);
-
-    if (!existingEvent) {
-      return buildResponse(404, null, `Không tìm thấy sự kiện với ID: ${id}`);
+      return buildResponse(400, null, 'Thiáº¿u dá»¯ liá»‡u cáº­p nháº­t.');
     }
 
     const body = JSON.parse(event.body);
-    const updatedEvent = {
-      ...existingEvent,
-      ...body,
-      PK: pk, // Ensure PK/SK and ID remain unchanged
-      SK: sk,
-      id
-    };
+    const updatedEvent = await dbService.updateEventItem(id, {
+      title: body.title,
+      description: body.description,
+      categoryId: body.category !== undefined ? normalizeCategory(body.category) : undefined,
+      locationId: body.location,
+      startTime: body.date,
+      endTime: body.date,
+      totalSeats: body.totalSeats !== undefined ? Number(body.totalSeats) : undefined,
+      imageUrl: body.imageUrl
+    });
 
-    await dbService.putItem(updatedEvent);
-    return buildResponse(200, updatedEvent);
+    if (!updatedEvent) {
+      return buildResponse(404, null, `KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n vá»›i ID: ${id}`);
+    }
+
+    return buildResponse(200, mapEventItemToDto(updatedEvent));
   } catch (error: any) {
     logger.error('Error in updateEvent handler', error);
-    return buildResponse(500, null, 'Không thể cập nhật sự kiện. Vui lòng thử lại sau.');
+    return buildResponse(500, null, 'KhÃ´ng thá»ƒ cáº­p nháº­t sá»± kiá»‡n. Vui lÃ²ng thá»­ láº¡i sau.');
   }
 };

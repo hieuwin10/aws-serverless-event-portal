@@ -146,6 +146,20 @@ const extractEventIdFromRegistration = (item: any): string => {
   return '';
 };
 
+const calculateRegisteredCount = (item: any): number => {
+  if (!item) {
+    return 0;
+  }
+
+  if (item.registeredCount !== undefined) {
+    return Number(item.registeredCount || 0);
+  }
+
+  const totalSeats = Number(item.totalSeats || 0);
+  const remainingSeats = Number(item.remainingSeats || 0);
+  return Math.max(0, totalSeats - remainingSeats);
+};
+
 // Helper to read Mock Database
 const readMockDb = (): any[] => {
   if (!fs.existsSync(MOCK_DB_FILE)) {
@@ -269,6 +283,83 @@ export const dbService = {
     return item;
   },
 
+  // Update an event item using the new EVENT schema while keeping compatibility fields
+  updateEventItem: async (
+    eventId: string,
+    patch: {
+      title?: string;
+      description?: string;
+      categoryId?: string;
+      locationId?: string;
+      startTime?: string;
+      endTime?: string;
+      totalSeats?: number;
+      remainingSeats?: number;
+      status?: string;
+      imageUrl?: string;
+    }
+  ): Promise<any | null> => {
+    const keys = buildEventKeys(eventId);
+    logger.info(`dbService.updateEventItem: eventId=${eventId}`);
+
+    const existingItem = await dbService.getItem(keys.PK, keys.SK);
+    if (!existingItem) {
+      return null;
+    }
+
+    if (existingItem.entityType && existingItem.entityType !== 'EVENT') {
+      return null;
+    }
+
+    const updatedItem = { ...existingItem };
+    const now = new Date().toISOString();
+    const nextCategoryId =
+      patch.categoryId !== undefined
+        ? normalizeCategory(patch.categoryId)
+        : normalizeCategory(existingItem.categoryId || existingItem.category);
+    const nextStartTime = patch.startTime ?? existingItem.startTime ?? existingItem.date ?? '';
+    const nextEndTime = patch.endTime ?? existingItem.endTime ?? nextStartTime;
+    const currentRegisteredCount = calculateRegisteredCount(existingItem);
+    const nextTotalSeats =
+      patch.totalSeats !== undefined
+        ? Number(patch.totalSeats)
+        : Number(existingItem.totalSeats || 0);
+    const nextRemainingSeats =
+      patch.remainingSeats !== undefined
+        ? Number(patch.remainingSeats)
+        : Math.max(0, nextTotalSeats - currentRegisteredCount);
+
+    updatedItem.PK = keys.PK;
+    updatedItem.SK = keys.SK;
+    updatedItem.entityType = 'EVENT';
+    updatedItem.eventId = existingItem.eventId || eventId;
+    updatedItem.id = existingItem.id || eventId;
+    updatedItem.organizerId = existingItem.organizerId || '';
+    updatedItem.categoryId = nextCategoryId;
+    updatedItem.locationId = patch.locationId ?? existingItem.locationId ?? existingItem.location ?? '';
+    updatedItem.title = patch.title ?? existingItem.title ?? '';
+    updatedItem.description = patch.description ?? existingItem.description ?? '';
+    updatedItem.startTime = nextStartTime;
+    updatedItem.endTime = nextEndTime;
+    updatedItem.totalSeats = nextTotalSeats;
+    updatedItem.remainingSeats = nextRemainingSeats;
+    updatedItem.status = patch.status ?? existingItem.status ?? 'PUBLISHED';
+    updatedItem.imageUrl = patch.imageUrl ?? existingItem.imageUrl ?? '';
+    updatedItem.updatedAt = now;
+    updatedItem.createdAt = existingItem.createdAt || now;
+    updatedItem.GSI1PK = `CAT#${nextCategoryId}`;
+    updatedItem.GSI1SK = `START#${nextStartTime}#EVENT#${eventId}`;
+
+    // Compatibility fields for current frontend DTO mapping during transition
+    updatedItem.category = nextCategoryId;
+    updatedItem.date = nextStartTime;
+    updatedItem.location = updatedItem.locationId;
+    updatedItem.registeredCount = currentRegisteredCount;
+
+    await dbService.putItem(updatedItem);
+    return updatedItem;
+  },
+
   // Scan for metadata (e.g. all events)
   scanEvents: async (category?: string, search?: string): Promise<any[]> => {
     logger.info(`dbService.scanEvents: category=${category}, search=${search}`);
@@ -319,15 +410,25 @@ export const dbService = {
     if (DB_MODE === 'mock') {
       const items = readMockDb();
 
-      let eventItems = items.filter(item => item.entityType === 'EVENT');
-      if (eventItems.length === 0) {
-        eventItems = items.filter(
-          item =>
-            item.SK === 'METADATA' &&
-            typeof item.PK === 'string' &&
-            item.PK.startsWith('EVENT#')
-        );
+      const newSchemaEvents = items.filter(item => item.entityType === 'EVENT');
+      const legacyEvents = items.filter(
+        item =>
+          item.SK === 'METADATA' &&
+          typeof item.PK === 'string' &&
+          item.PK.startsWith('EVENT#')
+      );
+
+      const eventMap = new Map<string, any>();
+      for (const item of legacyEvents) {
+        const key = item.eventId || item.id || item.PK;
+        eventMap.set(key, item);
       }
+      for (const item of newSchemaEvents) {
+        const key = item.eventId || item.id || item.PK;
+        eventMap.set(key, item);
+      }
+
+      let eventItems = Array.from(eventMap.values());
 
       if (search) {
         const query = search.toLowerCase();
