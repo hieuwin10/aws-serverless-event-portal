@@ -16,14 +16,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const isAdmin = Array.isArray(userGroups) ? userGroups.includes('Admin') : userGroups === 'Admin';
 
     if (!isAdmin && !isMockAdmin) {
-      return buildResponse(403, null, 'Bạn không có quyền thực hiện hành động này. Yêu cầu nhóm quyền Admin.');
+      return buildResponse(403, null, 'Báº¡n khÃ´ng cÃ³ quyá»n thá»±c hiá»‡n hÃ nh Ä‘á»™ng nÃ y. YÃªu cáº§u nhÃ³m quyá»n Admin.');
     }
 
     const pathParams = event.pathParameters || {};
     const id = pathParams.id;
 
     if (!id) {
-      return buildResponse(400, null, 'Thiếu ID sự kiện trong yêu cầu.');
+      return buildResponse(400, null, 'Thiáº¿u ID sá»± kiá»‡n trong yÃªu cáº§u.');
     }
 
     const pk = `EVENT#${id}`;
@@ -31,13 +31,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const existingEvent = await dbService.getItem(pk, sk);
 
     if (!existingEvent) {
-      return buildResponse(404, null, `Không tìm thấy sự kiện với ID: ${id}`);
+      return buildResponse(404, null, `KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n vá»›i ID: ${id}`);
     }
 
-    await dbService.deleteEvent(id);
-    return buildResponse(200, { message: `Đã xóa thành công sự kiện ${id} cùng tất cả lượt đăng ký.` });
+    await dbService.deleteEventCascade(id);
+    return buildResponse(200, { message: `ÄÃ£ xÃ³a thÃ nh cÃ´ng sá»± kiá»‡n ${id} cÃ¹ng táº¥t cáº£ lÆ°á»£t Ä‘Äƒng kÃ½.` });
   } catch (error: any) {
     logger.error('Error in deleteEvent handler', error);
-    return buildResponse(500, null, 'Không thể xóa sự kiện. Vui lòng thử lại sau.');
+    return buildResponse(500, null, 'KhÃ´ng thá»ƒ xÃ³a sá»± kiá»‡n. Vui lÃ²ng thá»­ láº¡i sau.');
   }
 };

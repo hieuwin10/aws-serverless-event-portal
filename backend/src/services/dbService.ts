@@ -146,6 +146,30 @@ const extractEventIdFromRegistration = (item: any): string => {
   return '';
 };
 
+const extractUserIdFromRegistration = (item: any): string => {
+  if (!item) {
+    return '';
+  }
+
+  if (typeof item.userId === 'string' && item.userId) {
+    return item.userId;
+  }
+
+  if (typeof item.GSI2SK === 'string' && item.GSI2SK.startsWith('USER#')) {
+    return item.GSI2SK.slice('USER#'.length);
+  }
+
+  if (typeof item.SK === 'string' && item.SK.startsWith('USER#')) {
+    return item.SK.slice('USER#'.length);
+  }
+
+  if (typeof item.PK === 'string' && item.PK.startsWith('USER#')) {
+    return item.PK.slice('USER#'.length);
+  }
+
+  return '';
+};
+
 const calculateRegisteredCount = (item: any): number => {
   if (!item) {
     return 0;
@@ -404,6 +428,101 @@ export const dbService = {
     }
   },
 
+  // List events by category while keeping the current frontend DTO
+  listEventsByCategory: async (category: string, search?: string): Promise<any[]> => {
+    const normalizedCategory = normalizeCategory(category);
+    logger.info(`dbService.listEventsByCategory: category=${normalizedCategory}, search=${search}`);
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+
+      const newSchemaEvents = items.filter(
+        item =>
+          item.entityType === 'EVENT' &&
+          normalizeCategory(item.categoryId || item.category) === normalizedCategory
+      );
+
+      const legacyEvents = items.filter(
+        item =>
+          item.SK === 'METADATA' &&
+          typeof item.PK === 'string' &&
+          item.PK.startsWith('EVENT#') &&
+          normalizeCategory(item.category || item.categoryId) === normalizedCategory
+      );
+
+      const eventMap = new Map<string, any>();
+      for (const item of legacyEvents) {
+        const key = item.eventId || item.id || item.PK;
+        eventMap.set(key, item);
+      }
+      for (const item of newSchemaEvents) {
+        const key = item.eventId || item.id || item.PK;
+        eventMap.set(key, item);
+      }
+
+      let eventItems = Array.from(eventMap.values());
+      if (search) {
+        const query = search.toLowerCase();
+        eventItems = eventItems.filter(item =>
+          item.title?.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query)
+        );
+      }
+
+      return eventItems
+        .map(item => mapEventItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    } else {
+      const eventMap = new Map<string, any>();
+
+      const gsiResult = await ddbDocClient!.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: 'GSI1Index',
+        KeyConditionExpression: 'GSI1PK = :gsiPk AND begins_with(GSI1SK, :gsiSkPrefix)',
+        ExpressionAttributeValues: {
+          ':gsiPk': `CAT#${normalizedCategory}`,
+          ':gsiSkPrefix': 'START#'
+        }
+      }));
+
+      for (const item of gsiResult.Items || []) {
+        const key = (item as any).eventId || (item as any).id || (item as any).PK;
+        eventMap.set(key, item);
+      }
+
+      const legacyScanResult = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression:
+          'attribute_not_exists(entityType) AND SK = :sk AND begins_with(PK, :eventPkPrefix) AND category = :category',
+        ExpressionAttributeValues: {
+          ':sk': 'METADATA',
+          ':eventPkPrefix': 'EVENT#',
+          ':category': normalizedCategory
+        }
+      }));
+
+      for (const item of legacyScanResult.Items || []) {
+        const key = (item as any).eventId || (item as any).id || (item as any).PK;
+        if (!eventMap.has(key)) {
+          eventMap.set(key, item);
+        }
+      }
+
+      let eventItems = Array.from(eventMap.values());
+      if (search) {
+        const query = search.toLowerCase();
+        eventItems = eventItems.filter((item: any) =>
+          item.title?.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query)
+        );
+      }
+
+      return eventItems
+        .map((item: any) => mapEventItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    }
+  },
+
   // List events without category filtering while keeping the current frontend DTO
   listEvents: async (search?: string): Promise<any[]> => {
     logger.info(`dbService.listEvents: search=${search}`);
@@ -563,6 +682,134 @@ export const dbService = {
 
     await dbService.putItem(updatedItem);
     return updatedItem;
+  },
+
+  // List registrations for an event using the new GSI2 access pattern, with mock fallback for legacy data
+  listRegistrationsByEventGSI2: async (eventId: string): Promise<any[]> => {
+    logger.info(`dbService.listRegistrationsByEventGSI2: eventId=${eventId}`);
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const gsiEventPk = `EVENT#${eventId}`;
+
+      const newSchemaRegistrations = items.filter(
+        item =>
+          item.GSI2PK === gsiEventPk &&
+          typeof item.GSI2SK === 'string' &&
+          item.GSI2SK.startsWith('USER#')
+      );
+
+      const legacyRegistrations = items.filter(
+        item =>
+          item.PK === gsiEventPk &&
+          typeof item.SK === 'string' &&
+          item.SK.startsWith('USER#')
+      );
+
+      const registrationMap = new Map<string, any>();
+      for (const item of legacyRegistrations) {
+        const key = item.registrationId || `${extractUserIdFromRegistration(item)}#${extractEventIdFromRegistration(item)}`;
+        registrationMap.set(key, item);
+      }
+      for (const item of newSchemaRegistrations) {
+        const key = item.registrationId || `${extractUserIdFromRegistration(item)}#${extractEventIdFromRegistration(item)}`;
+        registrationMap.set(key, item);
+      }
+
+      return Array.from(registrationMap.values());
+    } else {
+      const result = await ddbDocClient!.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: 'GSI2Index',
+        KeyConditionExpression: 'GSI2PK = :gsiPk AND begins_with(GSI2SK, :gsiSkPrefix)',
+        ExpressionAttributeValues: {
+          ':gsiPk': `EVENT#${eventId}`,
+          ':gsiSkPrefix': 'USER#'
+        }
+      }));
+
+      return result.Items || [];
+    }
+  },
+
+  // Delete a registration stored by the new REGISTRATION primary key
+  deleteRegistration: async (userId: string, eventId: string): Promise<void> => {
+    const keys = buildRegistrationKeys(userId, eventId);
+    logger.info(`dbService.deleteRegistration: userId=${userId}, eventId=${eventId}`);
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const remaining = items.filter(item => !(item.PK === keys.PK && item.SK === keys.SK));
+      writeMockDb(remaining);
+    } else {
+      await ddbDocClient!.send(new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: { PK: keys.PK, SK: keys.SK }
+      }));
+    }
+  },
+
+  // Delete an event and all related registrations across new and legacy schemas
+  deleteEventCascade: async (eventId: string): Promise<void> => {
+    logger.info(`dbService.deleteEventCascade: eventId=${eventId}`);
+    const eventKeys = buildEventKeys(eventId);
+
+    const registrations = await dbService.listRegistrationsByEventGSI2(eventId);
+    for (const registration of registrations) {
+      const userId = extractUserIdFromRegistration(registration);
+      const registrationEventId = extractEventIdFromRegistration(registration) || eventId;
+
+      if (userId) {
+        await dbService.deleteRegistration(userId, registrationEventId);
+      }
+    }
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const remaining = items.filter(item => {
+        if (item.PK === eventKeys.PK) {
+          return false;
+        }
+
+        if (item.GSI2PK === eventKeys.PK) {
+          return false;
+        }
+
+        if (item.PK === eventKeys.PK && item.SK === eventKeys.SK) {
+          return false;
+        }
+
+        return true;
+      });
+
+      writeMockDb(remaining);
+    } else {
+      const legacyPartitionItems = await ddbDocClient!.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: 'PK = :pk',
+        ExpressionAttributeValues: {
+          ':pk': eventKeys.PK
+        }
+      }));
+
+      const itemsToDelete = legacyPartitionItems.Items || [];
+      for (const item of itemsToDelete) {
+        await ddbDocClient!.send(new DeleteCommand({
+          TableName: TABLE_NAME,
+          Key: { PK: eventKeys.PK, SK: item.SK }
+        }));
+      }
+
+      const eventItem = itemsToDelete.find(item => item.SK === eventKeys.SK);
+      if (!eventItem) {
+        const existingEvent = await dbService.getItem(eventKeys.PK, eventKeys.SK);
+        if (existingEvent) {
+          await ddbDocClient!.send(new DeleteCommand({
+            TableName: TABLE_NAME,
+            Key: { PK: eventKeys.PK, SK: eventKeys.SK }
+          }));
+        }
+      }
+    }
   },
 
   // Query GSI (UserRegistrationsIndex) to get all events registered by user

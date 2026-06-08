@@ -11,7 +11,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const search = queryParams.search;
 
     const events = category
-      ? await dbService.scanEvents(category, search)
+      ? await dbService.listEventsByCategory(category, search)
       : await dbService.listEvents(search);
     return buildResponse(200, events);
   } catch (error: any) {
