@@ -53,6 +53,79 @@ const INITIAL_EVENTS = [
   }
 ];
 
+export const buildEventKeys = (eventId: string) => ({
+  PK: `EVENT#${eventId}`,
+  SK: 'METADATA'
+});
+
+export const buildRegistrationKeys = (userId: string, eventId: string) => ({
+  PK: `USER#${userId}`,
+  SK: `EVENT#${eventId}`,
+  GSI2PK: `EVENT#${eventId}`,
+  GSI2SK: `USER#${userId}`
+});
+
+export const normalizeCategory = (value: unknown): string => {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim().toLowerCase();
+};
+
+export const mapEventItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const eventIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('EVENT#')
+      ? item.PK.slice('EVENT#'.length)
+      : '';
+
+  const totalSeats = Number(item.totalSeats || 0);
+  const remainingSeats = Number(item.remainingSeats || 0);
+  const registeredCount =
+    item.registeredCount !== undefined
+      ? Number(item.registeredCount || 0)
+      : Math.max(0, totalSeats - remainingSeats);
+
+  return {
+    id: item.id || item.eventId || eventIdFromPk,
+    title: item.title || '',
+    category: normalizeCategory(item.category || item.categoryId),
+    description: item.description || '',
+    date: item.date || item.startTime || '',
+    location: item.location || item.locationName || item.venueName || item.locationId || '',
+    imageUrl: item.imageUrl || item.bannerUrl || '',
+    totalSeats,
+    registeredCount
+  };
+};
+
+export const mapRegistrationItemToDto = (item: any, eventItem?: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const mappedEvent =
+    eventItem !== undefined
+      ? mapEventItemToDto(eventItem)
+      : item.event
+        ? mapEventItemToDto(item.event)
+        : null;
+
+  return {
+    registrationId: item.registrationId || '',
+    eventId: item.eventId || '',
+    userId: item.userId || '',
+    email: item.email || '',
+    registeredAt: item.registeredAt || item.createdAt || '',
+    ticketCode: item.ticketCode || item.ticketId || '',
+    event: mappedEvent
+  };
+};
+
 // Helper to read Mock Database
 const readMockDb = (): any[] => {
   if (!fs.existsSync(MOCK_DB_FILE)) {
