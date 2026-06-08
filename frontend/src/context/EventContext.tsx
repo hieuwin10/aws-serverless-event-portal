@@ -111,9 +111,29 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       const resJson = await res.json();
       if (resJson.success) {
-        // Update user registrations
-        setRegistrations(prev => [...prev, resJson.data]);
-        return resJson.data;
+        const hydratedEvent =
+          events.find(event => event.id === eventId) ||
+          await getEventById(eventId);
+
+        const nextRegistration: Registration = {
+          ...resJson.data,
+          event: hydratedEvent
+        };
+
+        setRegistrations(prev => {
+          const alreadyExists = prev.some(reg => reg.registrationId === nextRegistration.registrationId);
+          if (alreadyExists) {
+            return prev;
+          }
+
+          return [...prev, nextRegistration];
+        });
+
+        if (user) {
+          void fetchUserRegistrations();
+        }
+
+        return nextRegistration;
       } else {
         // Rollback Optimistic UI
         setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: e.registeredCount - 1 } : e));
