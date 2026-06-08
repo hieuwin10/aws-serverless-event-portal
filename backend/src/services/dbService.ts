@@ -126,6 +126,26 @@ export const mapRegistrationItemToDto = (item: any, eventItem?: any): any | null
   };
 };
 
+const extractEventIdFromRegistration = (item: any): string => {
+  if (!item) {
+    return '';
+  }
+
+  if (typeof item.eventId === 'string' && item.eventId) {
+    return item.eventId;
+  }
+
+  if (typeof item.SK === 'string' && item.SK.startsWith('EVENT#')) {
+    return item.SK.slice('EVENT#'.length);
+  }
+
+  if (typeof item.PK === 'string' && item.PK.startsWith('EVENT#')) {
+    return item.PK.slice('EVENT#'.length);
+  }
+
+  return '';
+};
+
 // Helper to read Mock Database
 const readMockDb = (): any[] => {
   if (!fs.existsSync(MOCK_DB_FILE)) {
@@ -273,26 +293,41 @@ export const dbService = {
     logger.info(`dbService.getUserRegistrations: userId=${userId}`);
     if (DB_MODE === 'mock') {
       const items = readMockDb();
-      const skVal = `USER#${userId}`;
-      const registrations = items.filter(item => item.SK === skVal && item.PK.startsWith('EVENT#'));
-      
-      // Load event metadata for each registration
+      const userPk = `USER#${userId}`;
+      const legacySk = `USER#${userId}`;
+
+      let registrations = items.filter(
+        item => item.PK === userPk && typeof item.SK === 'string' && item.SK.startsWith('EVENT#')
+      );
+
+      if (registrations.length === 0) {
+        registrations = items.filter(
+          item => item.SK === legacySk && typeof item.PK === 'string' && item.PK.startsWith('EVENT#')
+        );
+      }
+
       const enriched = registrations.map(reg => {
-        const eventMeta = items.find(item => item.PK === reg.PK && item.SK === 'METADATA');
-        return {
-          ...reg,
-          event: eventMeta || null
-        };
+        const eventId = extractEventIdFromRegistration(reg);
+        if (!eventId) {
+          return mapRegistrationItemToDto(reg, null);
+        }
+
+        const eventKeys = buildEventKeys(eventId);
+        const eventMeta = items.find(
+          item => item.PK === eventKeys.PK && item.SK === eventKeys.SK
+        );
+
+        return mapRegistrationItemToDto(reg, eventMeta || null);
       });
+
       return enriched;
     } else {
       const result = await ddbDocClient!.send(new QueryCommand({
         TableName: TABLE_NAME,
-        IndexName: 'UserRegistrationsIndex',
-        KeyConditionExpression: 'SK = :gsiPk AND begins_with(PK, :gsiSkPrefix)',
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
         ExpressionAttributeValues: {
-          ':gsiPk': `USER#${userId}`,
-          ':gsiSkPrefix': 'EVENT#'
+          ':pk': `USER#${userId}`,
+          ':skPrefix': 'EVENT#'
         }
       }));
       const registrations = result.Items || [];
@@ -300,14 +335,13 @@ export const dbService = {
       // Hydrate event metadata
       const enriched = [];
       for (const reg of registrations) {
-        const eventRes = await ddbDocClient!.send(new GetCommand({
-          TableName: TABLE_NAME,
-          Key: { PK: reg.PK, SK: 'METADATA' }
-        }));
-        enriched.push({
-          ...reg,
-          event: eventRes.Item || null
-        });
+        const eventId = extractEventIdFromRegistration(reg);
+        const eventKeys = buildEventKeys(eventId);
+        const eventItem = eventId
+          ? await dbService.getItem(eventKeys.PK, eventKeys.SK)
+          : null;
+
+        enriched.push(mapRegistrationItemToDto(reg, eventItem));
       }
       return enriched;
     }
