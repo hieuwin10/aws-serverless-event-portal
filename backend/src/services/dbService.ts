@@ -224,6 +224,51 @@ export const dbService = {
     }
   },
 
+  // Create an event item using the new EVENT schema
+  createEventItem: async (input: {
+    eventId: string;
+    organizerId: string;
+    categoryId: string;
+    locationId: string;
+    title: string;
+    description?: string;
+    startTime: string;
+    endTime: string;
+    totalSeats: number;
+    remainingSeats: number;
+    status: string;
+    imageUrl?: string;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const keys = buildEventKeys(input.eventId);
+    const categoryId = normalizeCategory(input.categoryId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'EVENT',
+      eventId: input.eventId,
+      organizerId: input.organizerId,
+      categoryId,
+      locationId: input.locationId,
+      title: input.title,
+      description: input.description || '',
+      startTime: input.startTime,
+      endTime: input.endTime,
+      remainingSeats: Number(input.remainingSeats),
+      totalSeats: Number(input.totalSeats),
+      status: input.status,
+      GSI1PK: `CAT#${categoryId}`,
+      GSI1SK: `START#${input.startTime}#EVENT#${input.eventId}`,
+      createdAt: now,
+      updatedAt: now,
+      imageUrl: input.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87'
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
   // Scan for metadata (e.g. all events)
   scanEvents: async (category?: string, search?: string): Promise<any[]> => {
     logger.info(`dbService.scanEvents: category=${category}, search=${search}`);

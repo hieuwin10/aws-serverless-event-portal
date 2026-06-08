@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
-import { dbService } from '../services/dbService';
+import { dbService, mapEventItemToDto, normalizeCategory } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
 
@@ -32,22 +32,27 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     const eventId = `evt_${uuidv4()}`;
-    const newEvent = {
-      PK: `EVENT#${eventId}`,
-      SK: 'METADATA',
-      id: eventId,
-      title,
-      category,
-      description: description || '',
-      date,
-      location,
-      imageUrl: imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
-      totalSeats: Number(totalSeats),
-      registeredCount: 0
-    };
+    const organizerId = claims?.sub || claims?.userId || 'usr_admin_9999_9999_9999_9999';
+    const normalizedCategory = normalizeCategory(category);
+    const startTime = date;
+    const seatCount = Number(totalSeats);
 
-    await dbService.putItem(newEvent);
-    return buildResponse(201, newEvent);
+    const newEvent = await dbService.createEventItem({
+      eventId,
+      organizerId,
+      categoryId: normalizedCategory,
+      locationId: location,
+      title,
+      description: description || '',
+      startTime,
+      endTime: startTime,
+      totalSeats: seatCount,
+      remainingSeats: seatCount,
+      status: 'PUBLISHED',
+      imageUrl
+    });
+
+    return buildResponse(201, mapEventItemToDto(newEvent));
   } catch (error: any) {
     logger.error('Error in createEvent handler', error);
     return buildResponse(500, null, 'Không thể tạo sự kiện mới. Vui lòng thử lại sau.');
