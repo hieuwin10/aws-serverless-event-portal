@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import { handler as getEvents } from './handlers/getEvents';
 import { handler as getEventById } from './handlers/getEventById';
