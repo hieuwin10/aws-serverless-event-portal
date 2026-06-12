@@ -72,6 +72,8 @@ const DEFAULT_LOCATIONS = [
   }
 ];
 
+const DEFAULT_TICKET_ID = 'GENERAL';
+
 // Initialize AWS DynamoDB Client
 let ddbDocClient: DynamoDBDocumentClient | null = null;
 if (DB_MODE === 'dynamodb') {
@@ -94,6 +96,22 @@ const INITIAL_EVENTS = [
     role: 'Admin',
     createdAt: '2026-05-20T08:00:00Z',
     updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    SK: 'TICKET#GENERAL',
+    entityType: 'TICKET',
+    ticketId: 'GENERAL',
+    eventId: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    ticketName: 'General Admission',
+    price: 0,
+    currency: 'VND',
+    totalQuantity: 500,
+    remainingQuantity: 358,
+    salesStart: '2026-06-15T09:00:00Z',
+    salesEnd: '2026-06-15T12:00:00Z',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-26T10:44:00Z'
   },
   {
     PK: 'USER#usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
@@ -225,6 +243,11 @@ export const buildEventKeys = (eventId: string) => ({
   SK: 'METADATA'
 });
 
+export const buildTicketKeys = (eventId: string, ticketId: string) => ({
+  PK: `EVENT#${eventId}`,
+  SK: `TICKET#${ticketId}`
+});
+
 export const buildUserKeys = (userId: string) => ({
   PK: `USER#${userId}`,
   SK: 'METADATA'
@@ -282,6 +305,21 @@ export const mapEventItemToDto = (item: any): any | null => {
     imageUrl: item.imageUrl || item.bannerUrl || '',
     totalSeats,
     registeredCount
+  };
+};
+
+export const mapTicketItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  return {
+    ticketId: item.ticketId || '',
+    ticketName: item.ticketName || '',
+    price: Number(item.price || 0),
+    currency: item.currency || 'VND',
+    remainingQuantity: Number(item.remainingQuantity || 0),
+    totalQuantity: Number(item.totalQuantity || 0)
   };
 };
 
@@ -494,6 +532,146 @@ export const dbService = {
         Item: item
       }));
     }
+  },
+
+  // Create a ticket item using the TICKET schema
+  createTicketItem: async (input: {
+    eventId: string;
+    ticketId: string;
+    ticketName: string;
+    price: number;
+    currency: string;
+    totalQuantity: number;
+    remainingQuantity: number;
+    salesStart: string;
+    salesEnd: string;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const keys = buildTicketKeys(input.eventId, input.ticketId);
+    const existingTicket = await dbService.getItem(keys.PK, keys.SK);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'TICKET',
+      ticketId: input.ticketId,
+      eventId: input.eventId,
+      ticketName: input.ticketName,
+      price: Number(input.price),
+      currency: input.currency,
+      totalQuantity: Number(input.totalQuantity),
+      remainingQuantity: Number(input.remainingQuantity),
+      salesStart: input.salesStart,
+      salesEnd: input.salesEnd,
+      createdAt: existingTicket?.createdAt || now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Get ticket metadata by eventId and ticketId
+  getTicketById: async (eventId: string, ticketId: string): Promise<any | null> => {
+    const keys = buildTicketKeys(eventId, ticketId);
+    logger.info(`dbService.getTicketById: eventId=${eventId}, ticketId=${ticketId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'TICKET') {
+      return null;
+    }
+
+    return mapTicketItemToDto(item);
+  },
+
+  // List tickets for an event, creating the default GENERAL ticket for legacy events when missing
+  listTicketsByEvent: async (eventId: string): Promise<any[]> => {
+    logger.info(`dbService.listTicketsByEvent: eventId=${eventId}`);
+    const eventKeys = buildEventKeys(eventId);
+
+    const getTicketItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(
+          item =>
+            item.PK === eventKeys.PK &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('TICKET#') &&
+            item.entityType === 'TICKET'
+        );
+      }
+
+      const result = await ddbDocClient!.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': eventKeys.PK,
+          ':skPrefix': 'TICKET#'
+        }
+      }));
+
+      return (result.Items || []).filter((item: any) => item.entityType === 'TICKET');
+    };
+
+    let ticketItems = await getTicketItems();
+    const hasGeneralTicket = ticketItems.some(item => item.ticketId === DEFAULT_TICKET_ID);
+
+    if (!hasGeneralTicket) {
+      const eventItem = await dbService.getItem(eventKeys.PK, eventKeys.SK);
+      if (eventItem && (!eventItem.entityType || eventItem.entityType === 'EVENT')) {
+        const totalQuantity = Number(eventItem.totalSeats || 0);
+        const remainingQuantity =
+          eventItem.remainingSeats !== undefined
+            ? Number(eventItem.remainingSeats || 0)
+            : Math.max(0, totalQuantity - calculateRegisteredCount(eventItem));
+        const defaultTicket = await dbService.createTicketItem({
+          eventId,
+          ticketId: DEFAULT_TICKET_ID,
+          ticketName: 'General Admission',
+          price: 0,
+          currency: 'VND',
+          totalQuantity,
+          remainingQuantity,
+          salesStart: eventItem.startTime || eventItem.createdAt || new Date().toISOString(),
+          salesEnd: eventItem.endTime || eventItem.startTime || eventItem.createdAt || ''
+        });
+
+        ticketItems = [...ticketItems, defaultTicket];
+      }
+    }
+
+    return ticketItems
+      .map(item => mapTicketItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.ticketId));
+  },
+
+  // Decrement ticket remaining quantity while preserving existing registration behavior
+  decrementTicketRemainingQuantity: async (eventId: string, ticketId: string): Promise<any | null> => {
+    const keys = buildTicketKeys(eventId, ticketId);
+    logger.info(`dbService.decrementTicketRemainingQuantity: eventId=${eventId}, ticketId=${ticketId}`);
+
+    const existingTicket = await dbService.getItem(keys.PK, keys.SK);
+    if (!existingTicket) {
+      return null;
+    }
+
+    if (existingTicket.entityType && existingTicket.entityType !== 'TICKET') {
+      return null;
+    }
+
+    const currentRemainingQuantity = Number(existingTicket.remainingQuantity || 0);
+    const updatedTicket = {
+      ...existingTicket,
+      remainingQuantity: Math.max(0, currentRemainingQuantity - 1),
+      updatedAt: new Date().toISOString()
+    };
+
+    await dbService.putItem(updatedTicket);
+    return updatedTicket;
   },
 
   // List users and seed the default USER metadata items when they are missing
@@ -875,6 +1053,18 @@ export const dbService = {
     };
 
     await dbService.putItem(item);
+    await dbService.createTicketItem({
+      eventId: input.eventId,
+      ticketId: DEFAULT_TICKET_ID,
+      ticketName: 'General Admission',
+      price: 0,
+      currency: 'VND',
+      totalQuantity: Number(input.totalSeats),
+      remainingQuantity: Number(input.totalSeats),
+      salesStart: input.startTime || now,
+      salesEnd: input.endTime || input.startTime || now
+    });
+
     return item;
   },
 

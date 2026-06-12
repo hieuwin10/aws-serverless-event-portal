@@ -5,6 +5,7 @@ import { handler as getLocations } from './handlers/getLocations';
 import { handler as getUsers } from './handlers/getUsers';
 import { handler as getEvents } from './handlers/getEvents';
 import { handler as getEventById } from './handlers/getEventById';
+import { handler as getEventTickets } from './handlers/getEventTickets';
 import { handler as createEvent } from './handlers/createEvent';
 import { handler as updateEvent } from './handlers/updateEvent';
 import { handler as deleteEvent } from './handlers/deleteEvent';
@@ -100,6 +101,7 @@ const handleLambda = (handlerFn: any) => {
 app.get('/categories', handleLambda(getCategories));
 app.get('/locations', handleLambda(getLocations));
 app.get('/events', handleLambda(getEvents));
+app.get('/events/:id/tickets', handleLambda(getEventTickets));
 app.get('/events/:id', handleLambda(getEventById));
 app.post('/events', handleLambda(createEvent));
 app.put('/events/:id', handleLambda(updateEvent));

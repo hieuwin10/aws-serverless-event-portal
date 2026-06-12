@@ -64,6 +64,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return buildResponse(400, null, 'Ráº¥t tiáº¿c! Sá»± kiá»‡n nÃ y Ä‘Ã£ háº¿t vÃ© trá»‘ng tham gia.');
     }
 
+    const ticketId = 'GENERAL';
+    await dbService.listTicketsByEvent(id);
+
     // 4. Generate registration and ticketCode
     const registrationId = `reg_${uuidv4()}`;
     const eventPrefix = id.slice(4, 8).toUpperCase();
@@ -77,11 +80,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       eventId: id,
       email,
       registeredAt,
-      ticketCode
+      ticketCode,
+      ticketId
     });
 
     // Decrement remaining seats and keep compatibility counters in sync
     await dbService.decrementRemainingSeats(id);
+    await dbService.decrementTicketRemainingQuantity(id, ticketId);
 
     return buildResponse(200, {
       registrationId: newRegistration.registrationId,

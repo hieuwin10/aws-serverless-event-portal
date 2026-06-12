@@ -228,6 +228,25 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetEventTicketsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventTickets
+      Handler: handlers/getEventTickets.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventTickets:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/tickets
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   CreateEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -355,6 +374,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetEventByIdFunction}"
+      RetentionInDays: 7
+
+  GetEventTicketsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventTicketsFunction}"
       RetentionInDays: 7
 
   CreateEventLogGroup:
