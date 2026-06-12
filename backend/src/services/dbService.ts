@@ -248,6 +248,11 @@ export const buildTicketKeys = (eventId: string, ticketId: string) => ({
   SK: `TICKET#${ticketId}`
 });
 
+export const buildCheckinKeys = (eventId: string, userId: string) => ({
+  PK: `EVENT#${eventId}`,
+  SK: `CHECKIN#${userId}`
+});
+
 export const buildUserKeys = (userId: string) => ({
   PK: `USER#${userId}`,
   SK: 'METADATA'
@@ -320,6 +325,21 @@ export const mapTicketItemToDto = (item: any): any | null => {
     currency: item.currency || 'VND',
     remainingQuantity: Number(item.remainingQuantity || 0),
     totalQuantity: Number(item.totalQuantity || 0)
+  };
+};
+
+export const mapCheckinItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  return {
+    eventId: item.eventId || '',
+    userId: item.userId || '',
+    registrationId: item.registrationId || '',
+    ticketId: item.ticketId || '',
+    checkedInAt: item.checkedInAt || '',
+    checkedInBy: item.checkedInBy || ''
   };
 };
 
@@ -672,6 +692,86 @@ export const dbService = {
 
     await dbService.putItem(updatedTicket);
     return updatedTicket;
+  },
+
+  // Create a checkin item using the CHECKIN schema
+  createCheckinItem: async (input: {
+    eventId: string;
+    userId: string;
+    registrationId: string;
+    ticketId: string;
+    checkedInBy: string;
+    checkedInAt?: string;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const keys = buildCheckinKeys(input.eventId, input.userId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'CHECKIN',
+      eventId: input.eventId,
+      userId: input.userId,
+      registrationId: input.registrationId,
+      ticketId: input.ticketId,
+      checkedInAt: input.checkedInAt || now,
+      checkedInBy: input.checkedInBy,
+      createdAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Get a checkin by eventId and userId
+  getCheckin: async (eventId: string, userId: string): Promise<any | null> => {
+    const keys = buildCheckinKeys(eventId, userId);
+    logger.info(`dbService.getCheckin: eventId=${eventId}, userId=${userId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'CHECKIN') {
+      return null;
+    }
+
+    return mapCheckinItemToDto(item);
+  },
+
+  // List checkins for an event
+  listCheckinsByEvent: async (eventId: string): Promise<any[]> => {
+    logger.info(`dbService.listCheckinsByEvent: eventId=${eventId}`);
+    const eventPk = `EVENT#${eventId}`;
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      return items
+        .filter(
+          item =>
+            item.PK === eventPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('CHECKIN#') &&
+            item.entityType === 'CHECKIN'
+        )
+        .map(item => mapCheckinItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    }
+
+    const result = await ddbDocClient!.send(new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+      ExpressionAttributeValues: {
+        ':pk': eventPk,
+        ':skPrefix': 'CHECKIN#'
+      }
+    }));
+
+    return (result.Items || [])
+      .filter((item: any) => item.entityType === 'CHECKIN')
+      .map((item: any) => mapCheckinItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
   },
 
   // List users and seed the default USER metadata items when they are missing

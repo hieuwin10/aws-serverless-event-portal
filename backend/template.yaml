@@ -247,6 +247,40 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetEventCheckinsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventCheckins
+      Handler: handlers/getEventCheckins.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventCheckins:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/checkins
+            Method: GET
+
+  CheckinEventUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CheckinEventUser
+      Handler: handlers/checkinEventUser.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CheckinEventUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/checkin/{userId}
+            Method: POST
+
   CreateEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -380,6 +414,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetEventTicketsFunction}"
+      RetentionInDays: 7
+
+  GetEventCheckinsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventCheckinsFunction}"
+      RetentionInDays: 7
+
+  CheckinEventUserLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CheckinEventUserFunction}"
       RetentionInDays: 7
 
   CreateEventLogGroup:
