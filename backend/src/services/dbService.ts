@@ -33,6 +33,30 @@ const DEFAULT_CATEGORIES = [
   }
 ];
 
+const DEFAULT_LOCATIONS = [
+  {
+    locationId: 'online',
+    venueName: 'Online - Zoom',
+    address: '',
+    city: 'Online',
+    country: 'Vietnam'
+  },
+  {
+    locationId: 'hcm',
+    venueName: 'Ho Chi Minh City Campus',
+    address: '',
+    city: 'Ho Chi Minh City',
+    country: 'Vietnam'
+  },
+  {
+    locationId: 'hanoi',
+    venueName: 'Hanoi Event Hall',
+    address: '',
+    city: 'Hanoi',
+    country: 'Vietnam'
+  }
+];
+
 // Initialize AWS DynamoDB Client
 let ddbDocClient: DynamoDBDocumentClient | null = null;
 if (DB_MODE === 'dynamodb') {
@@ -72,6 +96,42 @@ const INITIAL_EVENTS = [
     categoryId: 'music',
     name: 'Music',
     description: 'Music and entertainment events',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'LOC#online',
+    SK: 'METADATA',
+    entityType: 'LOCATION',
+    locationId: 'online',
+    venueName: 'Online - Zoom',
+    address: '',
+    city: 'Online',
+    country: 'Vietnam',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'LOC#hcm',
+    SK: 'METADATA',
+    entityType: 'LOCATION',
+    locationId: 'hcm',
+    venueName: 'Ho Chi Minh City Campus',
+    address: '',
+    city: 'Ho Chi Minh City',
+    country: 'Vietnam',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'LOC#hanoi',
+    SK: 'METADATA',
+    entityType: 'LOCATION',
+    locationId: 'hanoi',
+    venueName: 'Hanoi Event Hall',
+    address: '',
+    city: 'Hanoi',
+    country: 'Vietnam',
     createdAt: '2026-05-20T08:00:00Z',
     updatedAt: '2026-05-20T08:00:00Z'
   },
@@ -133,6 +193,11 @@ export const buildCategoryKeys = (categoryId: string) => ({
   SK: 'METADATA'
 });
 
+export const buildLocationKeys = (locationId: string) => ({
+  PK: `LOC#${normalizeCategory(locationId)}`,
+  SK: 'METADATA'
+});
+
 export const buildRegistrationKeys = (userId: string, eventId: string) => ({
   PK: `USER#${userId}`,
   SK: `EVENT#${eventId}`,
@@ -191,6 +256,24 @@ export const mapCategoryItemToDto = (item: any): any | null => {
   return {
     id: normalizeCategory(item.categoryId || categoryIdFromPk),
     name: item.name || item.categoryName || ''
+  };
+};
+
+export const mapLocationItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const locationIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('LOC#')
+      ? item.PK.slice('LOC#'.length)
+      : '';
+
+  return {
+    id: normalizeCategory(item.locationId || locationIdFromPk),
+    venueName: item.venueName || '',
+    city: item.city || '',
+    country: item.country || ''
   };
 };
 
@@ -445,6 +528,110 @@ export const dbService = {
       categoryId,
       name: input.name,
       description: input.description || '',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // List locations and seed the default LOCATION items when they are missing
+  listLocations: async (): Promise<any[]> => {
+    logger.info('dbService.listLocations');
+
+    const getLocationItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(item => item.entityType === 'LOCATION');
+      }
+
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: 'entityType = :locationType AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':locationType': 'LOCATION',
+          ':sk': 'METADATA'
+        }
+      }));
+
+      return result.Items || [];
+    };
+
+    const locationItems = await getLocationItems();
+    const locationMap = new Map<string, any>();
+    for (const item of locationItems) {
+      const locationId = normalizeCategory(item.locationId || item.PK?.replace('LOC#', ''));
+      if (locationId) {
+        locationMap.set(locationId, item);
+      }
+    }
+
+    for (const location of DEFAULT_LOCATIONS) {
+      if (!locationMap.has(location.locationId)) {
+        const createdLocation = await dbService.createLocationItem(location);
+        locationMap.set(location.locationId, createdLocation);
+      }
+    }
+
+    const defaultLocationOrder = new Map(
+      DEFAULT_LOCATIONS.map((location, index) => [location.locationId, index])
+    );
+
+    return Array.from(locationMap.values())
+      .map(item => mapLocationItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.id))
+      .sort((a, b) => {
+        const orderA = defaultLocationOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const orderB = defaultLocationOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.venueName.localeCompare(b.venueName);
+      });
+  },
+
+  // Get location metadata by locationId
+  getLocationById: async (locationId: string): Promise<any | null> => {
+    const normalizedLocationId = normalizeCategory(locationId);
+    const keys = buildLocationKeys(normalizedLocationId);
+    logger.info(`dbService.getLocationById: locationId=${normalizedLocationId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'LOCATION') {
+      return null;
+    }
+
+    return mapLocationItemToDto(item);
+  },
+
+  // Create a location item using the LOCATION schema
+  createLocationItem: async (input: {
+    locationId: string;
+    venueName: string;
+    address?: string;
+    city: string;
+    country: string;
+  }): Promise<any> => {
+    const locationId = normalizeCategory(input.locationId);
+    const now = new Date().toISOString();
+    const keys = buildLocationKeys(locationId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'LOCATION',
+      locationId,
+      venueName: input.venueName,
+      address: input.address || '',
+      city: input.city,
+      country: input.country,
       createdAt: now,
       updatedAt: now
     };

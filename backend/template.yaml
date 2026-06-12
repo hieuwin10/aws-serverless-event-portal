@@ -171,6 +171,25 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetLocationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetLocations
+      Handler: handlers/getLocations.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetLocations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /locations
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -301,6 +320,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetCategoriesFunction}"
+      RetentionInDays: 7
+
+  GetLocationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetLocationsFunction}"
       RetentionInDays: 7
 
   GetEventsLogGroup:
