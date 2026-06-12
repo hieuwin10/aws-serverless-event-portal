@@ -152,6 +152,25 @@ Resources:
   # ----------------------------------------------------------
   # 5. LAMBDA FUNCTIONS
   # ----------------------------------------------------------
+  GetCategoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetCategories
+      Handler: handlers/getCategories.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetCategories:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /categories
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -278,6 +297,12 @@ Resources:
   # ----------------------------------------------------------
   # 6. LOG RETENTION (COST-02)
   # ----------------------------------------------------------
+  GetCategoriesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetCategoriesFunction}"
+      RetentionInDays: 7
+
   GetEventsLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:

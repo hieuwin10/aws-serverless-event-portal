@@ -15,6 +15,24 @@ const DB_MODE = process.env.DB_MODE || 'mock';
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'EventApp-Data';
 const MOCK_DB_FILE = path.join(__dirname, '../../mock-db.json');
 
+const DEFAULT_CATEGORIES = [
+  {
+    categoryId: 'technology',
+    name: 'Technology',
+    description: 'Technology and cloud events'
+  },
+  {
+    categoryId: 'education',
+    name: 'Education',
+    description: 'Education and learning events'
+  },
+  {
+    categoryId: 'music',
+    name: 'Music',
+    description: 'Music and entertainment events'
+  }
+];
+
 // Initialize AWS DynamoDB Client
 let ddbDocClient: DynamoDBDocumentClient | null = null;
 if (DB_MODE === 'dynamodb') {
@@ -27,6 +45,36 @@ if (DB_MODE === 'dynamodb') {
 
 // Initial Mock Database Seed
 const INITIAL_EVENTS = [
+  {
+    PK: 'CAT#technology',
+    SK: 'METADATA',
+    entityType: 'CATEGORY',
+    categoryId: 'technology',
+    name: 'Technology',
+    description: 'Technology and cloud events',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'CAT#education',
+    SK: 'METADATA',
+    entityType: 'CATEGORY',
+    categoryId: 'education',
+    name: 'Education',
+    description: 'Education and learning events',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'CAT#music',
+    SK: 'METADATA',
+    entityType: 'CATEGORY',
+    categoryId: 'music',
+    name: 'Music',
+    description: 'Music and entertainment events',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
   {
     PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     SK: 'METADATA',
@@ -80,6 +128,11 @@ export const buildEventKeys = (eventId: string) => ({
   SK: 'METADATA'
 });
 
+export const buildCategoryKeys = (categoryId: string) => ({
+  PK: `CAT#${normalizeCategory(categoryId)}`,
+  SK: 'METADATA'
+});
+
 export const buildRegistrationKeys = (userId: string, eventId: string) => ({
   PK: `USER#${userId}`,
   SK: `EVENT#${eventId}`,
@@ -122,6 +175,22 @@ export const mapEventItemToDto = (item: any): any | null => {
     imageUrl: item.imageUrl || item.bannerUrl || '',
     totalSeats,
     registeredCount
+  };
+};
+
+export const mapCategoryItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const categoryIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('CAT#')
+      ? item.PK.slice('CAT#'.length)
+      : '';
+
+  return {
+    id: normalizeCategory(item.categoryId || categoryIdFromPk),
+    name: item.name || item.categoryName || ''
   };
 };
 
@@ -282,6 +351,106 @@ export const dbService = {
         Item: item
       }));
     }
+  },
+
+  // List categories and seed the default CATEGORY items when they are missing
+  listCategories: async (): Promise<any[]> => {
+    logger.info('dbService.listCategories');
+
+    const getCategoryItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(item => item.entityType === 'CATEGORY');
+      }
+
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: 'entityType = :categoryType AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':categoryType': 'CATEGORY',
+          ':sk': 'METADATA'
+        }
+      }));
+
+      return result.Items || [];
+    };
+
+    const categoryItems = await getCategoryItems();
+    const categoryMap = new Map<string, any>();
+    for (const item of categoryItems) {
+      const categoryId = normalizeCategory(item.categoryId || item.PK?.replace('CAT#', ''));
+      if (categoryId) {
+        categoryMap.set(categoryId, item);
+      }
+    }
+
+    for (const category of DEFAULT_CATEGORIES) {
+      if (!categoryMap.has(category.categoryId)) {
+        const createdCategory = await dbService.createCategoryItem(category);
+        categoryMap.set(category.categoryId, createdCategory);
+      }
+    }
+
+    const defaultCategoryOrder = new Map(
+      DEFAULT_CATEGORIES.map((category, index) => [category.categoryId, index])
+    );
+
+    return Array.from(categoryMap.values())
+      .map(item => mapCategoryItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.id))
+      .sort((a, b) => {
+        const orderA = defaultCategoryOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const orderB = defaultCategoryOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.name.localeCompare(b.name);
+      });
+  },
+
+  // Get category metadata by categoryId
+  getCategoryById: async (categoryId: string): Promise<any | null> => {
+    const normalizedCategoryId = normalizeCategory(categoryId);
+    const keys = buildCategoryKeys(normalizedCategoryId);
+    logger.info(`dbService.getCategoryById: categoryId=${normalizedCategoryId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'CATEGORY') {
+      return null;
+    }
+
+    return mapCategoryItemToDto(item);
+  },
+
+  // Create a category item using the CATEGORY schema
+  createCategoryItem: async (input: {
+    categoryId: string;
+    name: string;
+    description?: string;
+  }): Promise<any> => {
+    const categoryId = normalizeCategory(input.categoryId);
+    const now = new Date().toISOString();
+    const keys = buildCategoryKeys(categoryId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'CATEGORY',
+      categoryId,
+      name: input.name,
+      description: input.description || '',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
   },
 
   // Create an event item using the new EVENT schema
