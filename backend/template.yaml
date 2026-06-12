@@ -279,6 +279,23 @@ Resources:
             Path: /users/registrations
             Method: GET
 
+  GetUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUsers
+      Handler: handlers/getUsers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users
+            Method: GET
+
   UpdateEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -356,6 +373,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetUserRegistrationsFunction}"
+      RetentionInDays: 7
+
+  GetUsersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUsersFunction}"
       RetentionInDays: 7
 
   UpdateEventLogGroup:

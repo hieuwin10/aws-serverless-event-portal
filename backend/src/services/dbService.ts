@@ -15,6 +15,21 @@ const DB_MODE = process.env.DB_MODE || 'mock';
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'EventApp-Data';
 const MOCK_DB_FILE = path.join(__dirname, '../../mock-db.json');
 
+const DEFAULT_USERS = [
+  {
+    userId: 'usr_admin_9999_9999_9999_9999',
+    email: 'admin@eventapp.com',
+    fullName: 'Admin User',
+    role: 'Admin'
+  },
+  {
+    userId: 'usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
+    email: 'user@example.com',
+    fullName: 'Sample User',
+    role: 'User'
+  }
+];
+
 const DEFAULT_CATEGORIES = [
   {
     categoryId: 'technology',
@@ -69,6 +84,28 @@ if (DB_MODE === 'dynamodb') {
 
 // Initial Mock Database Seed
 const INITIAL_EVENTS = [
+  {
+    PK: 'USER#usr_admin_9999_9999_9999_9999',
+    SK: 'METADATA',
+    entityType: 'USER',
+    userId: 'usr_admin_9999_9999_9999_9999',
+    email: 'admin@eventapp.com',
+    fullName: 'Admin User',
+    role: 'Admin',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'USER#usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
+    SK: 'METADATA',
+    entityType: 'USER',
+    userId: 'usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
+    email: 'user@example.com',
+    fullName: 'Sample User',
+    role: 'User',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
   {
     PK: 'CAT#technology',
     SK: 'METADATA',
@@ -188,6 +225,11 @@ export const buildEventKeys = (eventId: string) => ({
   SK: 'METADATA'
 });
 
+export const buildUserKeys = (userId: string) => ({
+  PK: `USER#${userId}`,
+  SK: 'METADATA'
+});
+
 export const buildCategoryKeys = (categoryId: string) => ({
   PK: `CAT#${normalizeCategory(categoryId)}`,
   SK: 'METADATA'
@@ -240,6 +282,24 @@ export const mapEventItemToDto = (item: any): any | null => {
     imageUrl: item.imageUrl || item.bannerUrl || '',
     totalSeats,
     registeredCount
+  };
+};
+
+export const mapUserItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const userIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('USER#')
+      ? item.PK.slice('USER#'.length)
+      : '';
+
+  return {
+    id: item.userId || userIdFromPk,
+    email: item.email || '',
+    fullName: item.fullName || item.name || '',
+    role: item.role || 'User'
   };
 };
 
@@ -434,6 +494,139 @@ export const dbService = {
         Item: item
       }));
     }
+  },
+
+  // List users and seed the default USER metadata items when they are missing
+  listUsers: async (): Promise<any[]> => {
+    logger.info('dbService.listUsers');
+
+    const getUserItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(item => item.entityType === 'USER');
+      }
+
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: 'entityType = :userType AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':userType': 'USER',
+          ':sk': 'METADATA'
+        }
+      }));
+
+      return result.Items || [];
+    };
+
+    const userItems = await getUserItems();
+    const userMap = new Map<string, any>();
+    for (const item of userItems) {
+      const userId = item.userId || item.PK?.replace('USER#', '');
+      if (userId) {
+        userMap.set(userId, item);
+      }
+    }
+
+    for (const user of DEFAULT_USERS) {
+      if (!userMap.has(user.userId)) {
+        const createdUser = await dbService.createUserItem(user);
+        userMap.set(user.userId, createdUser);
+      }
+    }
+
+    const defaultUserOrder = new Map(
+      DEFAULT_USERS.map((user, index) => [user.userId, index])
+    );
+
+    return Array.from(userMap.values())
+      .map(item => mapUserItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.id))
+      .sort((a, b) => {
+        const orderA = defaultUserOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const orderB = defaultUserOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.email.localeCompare(b.email);
+      });
+  },
+
+  // Create a user metadata item using the USER schema
+  createUserItem: async (input: {
+    userId: string;
+    email: string;
+    fullName?: string;
+    role?: string;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const keys = buildUserKeys(input.userId);
+    const email = input.email.trim().toLowerCase();
+
+    const existingUser = await dbService.getItem(keys.PK, keys.SK);
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'USER',
+      userId: input.userId,
+      email,
+      fullName: input.fullName || email,
+      role: input.role || 'User',
+      createdAt: existingUser?.createdAt || now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Get user metadata by userId
+  getUserById: async (userId: string): Promise<any | null> => {
+    const keys = buildUserKeys(userId);
+    logger.info(`dbService.getUserById: userId=${userId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'USER') {
+      return null;
+    }
+
+    return mapUserItemToDto(item);
+  },
+
+  // Get user metadata by email
+  getUserByEmail: async (email: string): Promise<any | null> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    logger.info(`dbService.getUserByEmail: email=${normalizedEmail}`);
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const item = items.find(
+        user =>
+          user.entityType === 'USER' &&
+          typeof user.email === 'string' &&
+          user.email.trim().toLowerCase() === normalizedEmail
+      );
+
+      return mapUserItemToDto(item || null);
+    }
+
+    const result = await ddbDocClient!.send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'entityType = :userType AND SK = :sk AND email = :email',
+      ExpressionAttributeValues: {
+        ':userType': 'USER',
+        ':sk': 'METADATA',
+        ':email': normalizedEmail
+      }
+    }));
+
+    const item = (result.Items || [])[0];
+    return mapUserItemToDto(item || null);
   },
 
   // List categories and seed the default CATEGORY items when they are missing

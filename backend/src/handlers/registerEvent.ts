@@ -33,6 +33,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return buildResponse(404, null, 'KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n.');
     }
 
+    const existingUser = await dbService.getUserById(userId);
+    if (!existingUser) {
+      await dbService.createUserItem({
+        userId,
+        email,
+        fullName: claims?.name || claims?.fullName || email,
+        role: claims?.role || 'User'
+      });
+    }
+
     // 2. Check if already registered
     const existingReg = await dbService.getRegistrationByUserAndEvent(userId, id);
     if (existingReg) {

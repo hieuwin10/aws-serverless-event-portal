@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import { handler as getCategories } from './handlers/getCategories';
 import { handler as getLocations } from './handlers/getLocations';
+import { handler as getUsers } from './handlers/getUsers';
 import { handler as getEvents } from './handlers/getEvents';
 import { handler as getEventById } from './handlers/getEventById';
 import { handler as createEvent } from './handlers/createEvent';
@@ -104,6 +105,7 @@ app.post('/events', handleLambda(createEvent));
 app.put('/events/:id', handleLambda(updateEvent));
 app.delete('/events/:id', handleLambda(deleteEvent));
 app.post('/events/:id/register', handleLambda(registerEvent));
+app.get('/users', handleLambda(getUsers));
 app.get('/users/registrations', handleLambda(getUserRegistrations));
 
 app.listen(PORT, () => {
