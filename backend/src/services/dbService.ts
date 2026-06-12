@@ -7,7 +7,6 @@ import {
   PutCommand,
   ScanCommand,
   QueryCommand,
-  UpdateCommand,
   DeleteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../utils/logger';
@@ -407,50 +406,6 @@ export const dbService = {
     return updatedItem;
   },
 
-  // Scan for metadata (e.g. all events)
-  scanEvents: async (category?: string, search?: string): Promise<any[]> => {
-    logger.info(`dbService.scanEvents: category=${category}, search=${search}`);
-    if (DB_MODE === 'mock') {
-      const items = readMockDb();
-      let events = items.filter(item => item.SK === 'METADATA');
-      if (category) {
-        events = events.filter(e => e.category === category);
-      }
-      if (search) {
-        const query = search.toLowerCase();
-        events = events.filter(e =>
-          e.title.toLowerCase().includes(query) ||
-          e.description.toLowerCase().includes(query)
-        );
-      }
-      return events;
-    } else {
-      // Production scanning
-      let filterExpression = 'SK = :sk';
-      const expressionAttributeValues: any = { ':sk': 'METADATA' };
-
-      if (category) {
-        filterExpression += ' AND category = :category';
-        expressionAttributeValues[':category'] = category;
-      }
-
-      const result = await ddbDocClient!.send(new ScanCommand({
-        TableName: TABLE_NAME,
-        FilterExpression: filterExpression,
-        ExpressionAttributeValues: expressionAttributeValues
-      }));
-      let events = result.Items || [];
-      if (search) {
-        const query = search.toLowerCase();
-        events = events.filter((e: any) =>
-          e.title?.toLowerCase().includes(query) ||
-          e.description?.toLowerCase().includes(query)
-        );
-      }
-      return events;
-    }
-  },
-
   // List events by category while keeping the current frontend DTO
   listEventsByCategory: async (category: string, search?: string): Promise<any[]> => {
     const normalizedCategory = normalizeCategory(category);
@@ -607,26 +562,6 @@ export const dbService = {
       return eventItems
         .map((item: any) => mapEventItemToDto(item))
         .filter((item): item is NonNullable<typeof item> => item !== null);
-    }
-  },
-
-  // Query by PK begins_with USER# to get registrants of an event
-  getEventRegistrations: async (eventId: string): Promise<any[]> => {
-    const pk = `EVENT#${eventId}`;
-    logger.info(`dbService.getEventRegistrations: eventId=${eventId}`);
-    if (DB_MODE === 'mock') {
-      const items = readMockDb();
-      return items.filter(item => item.PK === pk && item.SK.startsWith('USER#'));
-    } else {
-      const result = await ddbDocClient!.send(new QueryCommand({
-        TableName: TABLE_NAME,
-        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
-        ExpressionAttributeValues: {
-          ':pk': pk,
-          ':skPrefix': 'USER#'
-        }
-      }));
-      return result.Items || [];
     }
   },
 
@@ -835,7 +770,7 @@ export const dbService = {
     }
   },
 
-  // Query GSI (UserRegistrationsIndex) to get all events registered by user
+  // Query the user partition to get all events registered by user
   getUserRegistrations: async (userId: string): Promise<any[]> => {
     logger.info(`dbService.getUserRegistrations: userId=${userId}`);
     if (DB_MODE === 'mock') {
@@ -891,54 +826,6 @@ export const dbService = {
         enriched.push(mapRegistrationItemToDto(reg, eventItem));
       }
       return enriched;
-    }
-  },
-
-  // Update item (Update registration counts or metadata)
-  updateEventSeats: async (eventId: string, increment: number): Promise<void> => {
-    const pk = `EVENT#${eventId}`;
-    logger.info(`dbService.updateEventSeats: eventId=${eventId}, increment=${increment}`);
-    if (DB_MODE === 'mock') {
-      const items = readMockDb();
-      const idx = items.findIndex(item => item.PK === pk && item.SK === 'METADATA');
-      if (idx !== -1) {
-        items[idx].registeredCount = (items[idx].registeredCount || 0) + increment;
-        writeMockDb(items);
-      }
-    } else {
-      await ddbDocClient!.send(new UpdateCommand({
-        TableName: TABLE_NAME,
-        Key: { PK: pk, SK: 'METADATA' },
-        UpdateExpression: 'ADD registeredCount :inc',
-        ExpressionAttributeValues: {
-          ':inc': increment
-        }
-      }));
-    }
-  },
-
-  // Delete event and registrations
-  deleteEvent: async (eventId: string): Promise<void> => {
-    const pk = `EVENT#${eventId}`;
-    logger.info(`dbService.deleteEvent: eventId=${eventId}`);
-    if (DB_MODE === 'mock') {
-      const items = readMockDb();
-      const remaining = items.filter(item => item.PK !== pk);
-      writeMockDb(remaining);
-    } else {
-      // First, get all items belonging to the event partition
-      const result = await ddbDocClient!.send(new QueryCommand({
-        TableName: TABLE_NAME,
-        KeyConditionExpression: 'PK = :pk',
-        ExpressionAttributeValues: { ':pk': pk }
-      }));
-      const itemsToDelete = result.Items || [];
-      for (const item of itemsToDelete) {
-        await ddbDocClient!.send(new DeleteCommand({
-          TableName: TABLE_NAME,
-          Key: { PK: pk, SK: item.SK }
-        }));
-      }
     }
   }
 };
