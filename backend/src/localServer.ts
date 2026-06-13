@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import { handler as getCategories } from './handlers/getCategories';
 import { handler as getLocations } from './handlers/getLocations';
+import { handler as getOrganizers } from './handlers/getOrganizers';
+import { handler as getOrganizerById } from './handlers/getOrganizerById';
 import { handler as getUsers } from './handlers/getUsers';
 import { handler as getEvents } from './handlers/getEvents';
 import { handler as getEventById } from './handlers/getEventById';
@@ -106,6 +108,8 @@ const handleLambda = (handlerFn: any) => {
 // Map Endpoints to Handlers
 app.get('/categories', handleLambda(getCategories));
 app.get('/locations', handleLambda(getLocations));
+app.get('/organizers', handleLambda(getOrganizers));
+app.get('/organizers/:id', handleLambda(getOrganizerById));
 app.get('/events', handleLambda(getEvents));
 app.get('/events/:id/tickets', handleLambda(getEventTickets));
 app.get('/events/:id/checkins', handleLambda(getEventCheckins));

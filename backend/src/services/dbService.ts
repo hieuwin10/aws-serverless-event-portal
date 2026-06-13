@@ -72,6 +72,29 @@ const DEFAULT_LOCATIONS = [
   }
 ];
 
+const DEFAULT_ORGANIZER_ID = 'aws-vietnam';
+
+const DEFAULT_ORGANIZERS = [
+  {
+    organizerId: 'aws-vietnam',
+    name: 'AWS Vietnam',
+    email: 'aws-vietnam@example.com',
+    description: 'AWS community events in Vietnam'
+  },
+  {
+    organizerId: 'hutech',
+    name: 'HUTECH',
+    email: 'events@hutech.edu.vn',
+    description: 'HUTECH campus event organizer'
+  },
+  {
+    organizerId: 'tech-community',
+    name: 'Tech Community',
+    email: 'hello@techcommunity.vn',
+    description: 'Vietnam technology community events'
+  }
+];
+
 const DEFAULT_TICKET_ID = 'GENERAL';
 
 // Initialize AWS DynamoDB Client
@@ -191,6 +214,39 @@ const INITIAL_EVENTS = [
     updatedAt: '2026-05-20T08:00:00Z'
   },
   {
+    PK: 'ORG#aws-vietnam',
+    SK: 'METADATA',
+    entityType: 'ORGANIZER',
+    organizerId: 'aws-vietnam',
+    name: 'AWS Vietnam',
+    email: 'aws-vietnam@example.com',
+    description: 'AWS community events in Vietnam',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'ORG#hutech',
+    SK: 'METADATA',
+    entityType: 'ORGANIZER',
+    organizerId: 'hutech',
+    name: 'HUTECH',
+    email: 'events@hutech.edu.vn',
+    description: 'HUTECH campus event organizer',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'ORG#tech-community',
+    SK: 'METADATA',
+    entityType: 'ORGANIZER',
+    organizerId: 'tech-community',
+    name: 'Tech Community',
+    email: 'hello@techcommunity.vn',
+    description: 'Vietnam technology community events',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
     PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     SK: 'METADATA',
     entityType: 'EVENT',
@@ -270,6 +326,11 @@ export const buildCategoryKeys = (categoryId: string) => ({
 
 export const buildLocationKeys = (locationId: string) => ({
   PK: `LOC#${normalizeCategory(locationId)}`,
+  SK: 'METADATA'
+});
+
+export const buildOrganizerKeys = (organizerId: string) => ({
+  PK: `ORG#${normalizeCategory(organizerId)}`,
   SK: 'METADATA'
 });
 
@@ -418,6 +479,27 @@ export const mapLocationItemToDto = (item: any): any | null => {
     venueName: item.venueName || '',
     city: item.city || '',
     country: item.country || ''
+  };
+};
+
+export const mapOrganizerItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const organizerIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('ORG#')
+      ? item.PK.slice('ORG#'.length)
+      : '';
+
+  return {
+    id: normalizeCategory(item.organizerId || organizerIdFromPk),
+    organizerId: normalizeCategory(item.organizerId || organizerIdFromPk),
+    name: item.name || item.organizerName || '',
+    email: item.email || item.contactEmail || '',
+    description: item.description || '',
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || item.createdAt || ''
   };
 };
 
@@ -1244,6 +1326,108 @@ export const dbService = {
     return item;
   },
 
+  // List organizers and seed the default ORGANIZER items when they are missing
+  listOrganizers: async (): Promise<any[]> => {
+    logger.info('dbService.listOrganizers');
+
+    const getOrganizerItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(item => item.entityType === 'ORGANIZER');
+      }
+
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: 'entityType = :organizerType AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':organizerType': 'ORGANIZER',
+          ':sk': 'METADATA'
+        }
+      }));
+
+      return result.Items || [];
+    };
+
+    const organizerItems = await getOrganizerItems();
+    const organizerMap = new Map<string, any>();
+    for (const item of organizerItems) {
+      const organizerId = normalizeCategory(item.organizerId || item.PK?.replace('ORG#', ''));
+      if (organizerId) {
+        organizerMap.set(organizerId, item);
+      }
+    }
+
+    for (const organizer of DEFAULT_ORGANIZERS) {
+      if (!organizerMap.has(organizer.organizerId)) {
+        const createdOrganizer = await dbService.createOrganizerItem(organizer);
+        organizerMap.set(organizer.organizerId, createdOrganizer);
+      }
+    }
+
+    const defaultOrganizerOrder = new Map(
+      DEFAULT_ORGANIZERS.map((organizer, index) => [organizer.organizerId, index])
+    );
+
+    return Array.from(organizerMap.values())
+      .map(item => mapOrganizerItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.id))
+      .sort((a, b) => {
+        const orderA = defaultOrganizerOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const orderB = defaultOrganizerOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.name.localeCompare(b.name);
+      });
+  },
+
+  // Get organizer metadata by organizerId
+  getOrganizerById: async (organizerId: string): Promise<any | null> => {
+    const normalizedOrganizerId = normalizeCategory(organizerId);
+    const keys = buildOrganizerKeys(normalizedOrganizerId);
+    logger.info(`dbService.getOrganizerById: organizerId=${normalizedOrganizerId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'ORGANIZER') {
+      return null;
+    }
+
+    return mapOrganizerItemToDto(item);
+  },
+
+  // Create an organizer item using the ORGANIZER schema
+  createOrganizerItem: async (input: {
+    organizerId: string;
+    name: string;
+    email: string;
+    description?: string;
+  }): Promise<any> => {
+    const organizerId = normalizeCategory(input.organizerId);
+    const now = new Date().toISOString();
+    const keys = buildOrganizerKeys(organizerId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'ORGANIZER',
+      organizerId,
+      name: input.name,
+      email: input.email,
+      description: input.description || '',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
   // Create an event item using the new EVENT schema
   createEventItem: async (input: {
     eventId: string;
@@ -1262,13 +1446,23 @@ export const dbService = {
     const now = new Date().toISOString();
     const keys = buildEventKeys(input.eventId);
     const categoryId = normalizeCategory(input.categoryId);
+    let organizerId = normalizeCategory(input.organizerId);
+
+    if (!organizerId || !(await dbService.getOrganizerById(organizerId))) {
+      organizerId = DEFAULT_ORGANIZER_ID;
+
+      if (!(await dbService.getOrganizerById(organizerId))) {
+        const defaultOrganizer = DEFAULT_ORGANIZERS[0];
+        await dbService.createOrganizerItem(defaultOrganizer);
+      }
+    }
 
     const item = {
       PK: keys.PK,
       SK: keys.SK,
       entityType: 'EVENT',
       eventId: input.eventId,
-      organizerId: input.organizerId,
+      organizerId,
       categoryId,
       locationId: input.locationId,
       title: input.title,

@@ -190,6 +190,44 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetOrganizersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetOrganizers
+      Handler: handlers/getOrganizers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetOrganizers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /organizers
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetOrganizerByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetOrganizerById
+      Handler: handlers/getOrganizerById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetOrganizerById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /organizers/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -466,6 +504,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetLocationsFunction}"
+      RetentionInDays: 7
+
+  GetOrganizersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetOrganizersFunction}"
+      RetentionInDays: 7
+
+  GetOrganizerByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetOrganizerByIdFunction}"
       RetentionInDays: 7
 
   GetEventsLogGroup:
