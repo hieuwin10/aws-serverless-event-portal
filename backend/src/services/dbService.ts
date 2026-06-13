@@ -253,6 +253,11 @@ export const buildCheckinKeys = (eventId: string, userId: string) => ({
   SK: `CHECKIN#${userId}`
 });
 
+export const buildFeedbackKeys = (eventId: string, userId: string) => ({
+  PK: `EVENT#${eventId}`,
+  SK: `FEEDBACK#${userId}`
+});
+
 export const buildUserKeys = (userId: string) => ({
   PK: `USER#${userId}`,
   SK: 'METADATA'
@@ -340,6 +345,22 @@ export const mapCheckinItemToDto = (item: any): any | null => {
     ticketId: item.ticketId || '',
     checkedInAt: item.checkedInAt || '',
     checkedInBy: item.checkedInBy || ''
+  };
+};
+
+export const mapFeedbackItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  return {
+    feedbackId: item.feedbackId || '',
+    eventId: item.eventId || '',
+    userId: item.userId || '',
+    rating: Number(item.rating || 0),
+    comment: item.comment || '',
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || item.createdAt || ''
   };
 };
 
@@ -771,6 +792,93 @@ export const dbService = {
     return (result.Items || [])
       .filter((item: any) => item.entityType === 'CHECKIN')
       .map((item: any) => mapCheckinItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  },
+
+  // Create or update a feedback item using the FEEDBACK schema
+  createFeedbackItem: async (input: {
+    feedbackId?: string;
+    eventId: string;
+    userId: string;
+    rating: number;
+    comment?: string;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const keys = buildFeedbackKeys(input.eventId, input.userId);
+    const existingFeedback = await dbService.getItem(keys.PK, keys.SK);
+    const existingCreatedAt =
+      existingFeedback?.entityType === 'FEEDBACK'
+        ? existingFeedback.createdAt
+        : undefined;
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'FEEDBACK',
+      feedbackId:
+        existingFeedback?.entityType === 'FEEDBACK'
+          ? existingFeedback.feedbackId
+          : input.feedbackId || `fb_${input.eventId}_${input.userId}`,
+      eventId: input.eventId,
+      userId: input.userId,
+      rating: input.rating,
+      comment: input.comment || '',
+      createdAt: existingCreatedAt || now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Get a feedback item by eventId and userId
+  getFeedbackByUser: async (eventId: string, userId: string): Promise<any | null> => {
+    const keys = buildFeedbackKeys(eventId, userId);
+    logger.info(`dbService.getFeedbackByUser: eventId=${eventId}, userId=${userId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'FEEDBACK') {
+      return null;
+    }
+
+    return mapFeedbackItemToDto(item);
+  },
+
+  // List feedback entries for an event
+  listFeedbacksByEvent: async (eventId: string): Promise<any[]> => {
+    logger.info(`dbService.listFeedbacksByEvent: eventId=${eventId}`);
+    const eventPk = `EVENT#${eventId}`;
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      return items
+        .filter(
+          item =>
+            item.PK === eventPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('FEEDBACK#') &&
+            item.entityType === 'FEEDBACK'
+        )
+        .map(item => mapFeedbackItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    }
+
+    const result = await ddbDocClient!.send(new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+      ExpressionAttributeValues: {
+        ':pk': eventPk,
+        ':skPrefix': 'FEEDBACK#'
+      }
+    }));
+
+    return (result.Items || [])
+      .filter((item: any) => item.entityType === 'FEEDBACK')
+      .map((item: any) => mapFeedbackItemToDto(item))
       .filter((item): item is NonNullable<typeof item> => item !== null);
   },
 

@@ -281,6 +281,42 @@ Resources:
             Path: /events/{id}/checkin/{userId}
             Method: POST
 
+  GetEventFeedbacksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventFeedbacks
+      Handler: handlers/getEventFeedbacks.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventFeedbacks:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/feedbacks
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  CreateEventFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CreateEventFeedback
+      Handler: handlers/createEventFeedback.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CreateEventFeedback:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/feedback
+            Method: POST
+
   CreateEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -426,6 +462,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${CheckinEventUserFunction}"
+      RetentionInDays: 7
+
+  GetEventFeedbacksLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventFeedbacksFunction}"
+      RetentionInDays: 7
+
+  CreateEventFeedbackLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CreateEventFeedbackFunction}"
       RetentionInDays: 7
 
   CreateEventLogGroup:
