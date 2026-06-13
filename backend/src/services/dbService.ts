@@ -280,6 +280,11 @@ export const buildRegistrationKeys = (userId: string, eventId: string) => ({
   GSI2SK: `USER#${userId}`
 });
 
+export const buildPaymentKeys = (registrationId: string, paymentId: string) => ({
+  PK: `REG#${registrationId}`,
+  SK: `PAYMENT#${paymentId}`
+});
+
 export const normalizeCategory = (value: unknown): string => {
   if (typeof value !== 'string') {
     return '';
@@ -436,6 +441,26 @@ export const mapRegistrationItemToDto = (item: any, eventItem?: any): any | null
     registeredAt: item.registeredAt || item.createdAt || '',
     ticketCode: item.ticketCode || item.ticketId || '',
     event: mappedEvent
+  };
+};
+
+export const mapPaymentItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  return {
+    paymentId: item.paymentId || '',
+    registrationId: item.registrationId || '',
+    userId: item.userId || '',
+    eventId: item.eventId || '',
+    amount: Number(item.amount || 0),
+    currency: item.currency || 'VND',
+    provider: item.provider || 'MOCK',
+    state: item.state || 'SUCCESS',
+    transactionId: item.transactionId || '',
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || item.createdAt || ''
   };
 };
 
@@ -1510,6 +1535,129 @@ export const dbService = {
         .map((item: any) => mapEventItemToDto(item))
         .filter((item): item is NonNullable<typeof item> => item !== null);
     }
+  },
+
+  // Create a simulated payment item using the PAYMENT schema
+  createPaymentItem: async (input: {
+    paymentId: string;
+    registrationId: string;
+    userId: string;
+    eventId: string;
+    amount?: number;
+    currency?: string;
+    provider?: string;
+    state?: string;
+    transactionId: string;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const keys = buildPaymentKeys(input.registrationId, input.paymentId);
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'PAYMENT',
+      paymentId: input.paymentId,
+      registrationId: input.registrationId,
+      userId: input.userId,
+      eventId: input.eventId,
+      amount: Number(input.amount || 0),
+      currency: input.currency || 'VND',
+      provider: input.provider || 'MOCK',
+      state: input.state || 'SUCCESS',
+      transactionId: input.transactionId,
+      GSI2PK: `USER#${input.userId}`,
+      GSI2SK: `TXN#${input.transactionId}`,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Get payment metadata by registrationId and paymentId
+  getPaymentById: async (registrationId: string, paymentId: string): Promise<any | null> => {
+    const keys = buildPaymentKeys(registrationId, paymentId);
+    logger.info(`dbService.getPaymentById: registrationId=${registrationId}, paymentId=${paymentId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'PAYMENT') {
+      return null;
+    }
+
+    return mapPaymentItemToDto(item);
+  },
+
+  // List payments for a registration
+  listPaymentsByRegistration: async (registrationId: string): Promise<any[]> => {
+    logger.info(`dbService.listPaymentsByRegistration: registrationId=${registrationId}`);
+    const registrationPk = `REG#${registrationId}`;
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      return items
+        .filter(
+          item =>
+            item.PK === registrationPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('PAYMENT#') &&
+            item.entityType === 'PAYMENT'
+        )
+        .map(item => mapPaymentItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    }
+
+    const result = await ddbDocClient!.send(new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+      ExpressionAttributeValues: {
+        ':pk': registrationPk,
+        ':skPrefix': 'PAYMENT#'
+      }
+    }));
+
+    return (result.Items || [])
+      .filter((item: any) => item.entityType === 'PAYMENT')
+      .map((item: any) => mapPaymentItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  },
+
+  // List payments for a user through GSI2
+  listPaymentsByUser: async (userId: string): Promise<any[]> => {
+    logger.info(`dbService.listPaymentsByUser: userId=${userId}`);
+    const userPk = `USER#${userId}`;
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      return items
+        .filter(
+          item =>
+            item.GSI2PK === userPk &&
+            typeof item.GSI2SK === 'string' &&
+            item.GSI2SK.startsWith('TXN#') &&
+            item.entityType === 'PAYMENT'
+        )
+        .map(item => mapPaymentItemToDto(item))
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    }
+
+    const result = await ddbDocClient!.send(new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: 'GSI2Index',
+      KeyConditionExpression: 'GSI2PK = :gsiPk AND begins_with(GSI2SK, :gsiSkPrefix)',
+      ExpressionAttributeValues: {
+        ':gsiPk': userPk,
+        ':gsiSkPrefix': 'TXN#'
+      }
+    }));
+
+    return (result.Items || [])
+      .filter((item: any) => item.entityType === 'PAYMENT')
+      .map((item: any) => mapPaymentItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
   },
 
   // Get a registration by the new REGISTRATION primary key

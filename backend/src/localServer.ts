@@ -15,6 +15,8 @@ import { handler as updateEvent } from './handlers/updateEvent';
 import { handler as deleteEvent } from './handlers/deleteEvent';
 import { handler as registerEvent } from './handlers/registerEvent';
 import { handler as getUserRegistrations } from './handlers/getUserRegistrations';
+import { handler as createRegistrationPayment } from './handlers/createRegistrationPayment';
+import { handler as getUserPayments } from './handlers/getUserPayments';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -115,6 +117,8 @@ app.post('/events', handleLambda(createEvent));
 app.put('/events/:id', handleLambda(updateEvent));
 app.delete('/events/:id', handleLambda(deleteEvent));
 app.post('/events/:id/register', handleLambda(registerEvent));
+app.post('/registrations/:registrationId/payments', handleLambda(createRegistrationPayment));
+app.get('/users/payments', handleLambda(getUserPayments));
 app.get('/users', handleLambda(getUsers));
 app.get('/users/registrations', handleLambda(getUserRegistrations));
 

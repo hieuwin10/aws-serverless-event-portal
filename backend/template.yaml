@@ -351,6 +351,40 @@ Resources:
             Path: /events/{id}/register
             Method: POST
 
+  CreateRegistrationPaymentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CreateRegistrationPayment
+      Handler: handlers/createRegistrationPayment.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CreateRegistrationPayment:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /registrations/{registrationId}/payments
+            Method: POST
+
+  GetUserPaymentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUserPayments
+      Handler: handlers/getUserPayments.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUserPayments:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/payments
+            Method: GET
+
   GetUserRegistrationsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -486,6 +520,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${RegisterEventFunction}"
+      RetentionInDays: 7
+
+  CreateRegistrationPaymentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CreateRegistrationPaymentFunction}"
+      RetentionInDays: 7
+
+  GetUserPaymentsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUserPaymentsFunction}"
       RetentionInDays: 7
 
   GetUserRegistrationsLogGroup:
