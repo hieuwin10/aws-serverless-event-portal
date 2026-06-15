@@ -95,6 +95,33 @@ const DEFAULT_ORGANIZERS = [
   }
 ];
 
+const DEFAULT_SPEAKERS = [
+  {
+    speakerId: 'speaker-aws',
+    fullName: 'AWS Solutions Architect',
+    title: 'Solutions Architect',
+    company: 'AWS Vietnam',
+    bio: 'Cloud practitioner sharing serverless architecture and cost optimization experience.',
+    avatarUrl: ''
+  },
+  {
+    speakerId: 'speaker-hutech',
+    fullName: 'HUTECH Lecturer',
+    title: 'Lecturer',
+    company: 'HUTECH',
+    bio: 'Educator focused on practical software engineering and cloud adoption.',
+    avatarUrl: ''
+  },
+  {
+    speakerId: 'speaker-community',
+    fullName: 'Community Speaker',
+    title: 'Community Lead',
+    company: 'Tech Community',
+    bio: 'Community builder hosting talks and workshops for local developers.',
+    avatarUrl: ''
+  }
+];
+
 const DEFAULT_TICKET_ID = 'GENERAL';
 
 // Initialize AWS DynamoDB Client
@@ -247,6 +274,45 @@ const INITIAL_EVENTS = [
     updatedAt: '2026-05-20T08:00:00Z'
   },
   {
+    PK: 'SPEAKER#speaker-aws',
+    SK: 'METADATA',
+    entityType: 'SPEAKER',
+    speakerId: 'speaker-aws',
+    fullName: 'AWS Solutions Architect',
+    title: 'Solutions Architect',
+    company: 'AWS Vietnam',
+    bio: 'Cloud practitioner sharing serverless architecture and cost optimization experience.',
+    avatarUrl: '',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'SPEAKER#speaker-hutech',
+    SK: 'METADATA',
+    entityType: 'SPEAKER',
+    speakerId: 'speaker-hutech',
+    fullName: 'HUTECH Lecturer',
+    title: 'Lecturer',
+    company: 'HUTECH',
+    bio: 'Educator focused on practical software engineering and cloud adoption.',
+    avatarUrl: '',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'SPEAKER#speaker-community',
+    SK: 'METADATA',
+    entityType: 'SPEAKER',
+    speakerId: 'speaker-community',
+    fullName: 'Community Speaker',
+    title: 'Community Lead',
+    company: 'Tech Community',
+    bio: 'Community builder hosting talks and workshops for local developers.',
+    avatarUrl: '',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
     PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     SK: 'METADATA',
     entityType: 'EVENT',
@@ -331,6 +397,11 @@ export const buildLocationKeys = (locationId: string) => ({
 
 export const buildOrganizerKeys = (organizerId: string) => ({
   PK: `ORG#${normalizeCategory(organizerId)}`,
+  SK: 'METADATA'
+});
+
+export const buildSpeakerKeys = (speakerId: string) => ({
+  PK: `SPEAKER#${normalizeCategory(speakerId)}`,
   SK: 'METADATA'
 });
 
@@ -498,6 +569,29 @@ export const mapOrganizerItemToDto = (item: any): any | null => {
     name: item.name || item.organizerName || '',
     email: item.email || item.contactEmail || '',
     description: item.description || '',
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || item.createdAt || ''
+  };
+};
+
+export const mapSpeakerItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const speakerIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('SPEAKER#')
+      ? item.PK.slice('SPEAKER#'.length)
+      : '';
+
+  return {
+    id: normalizeCategory(item.speakerId || speakerIdFromPk),
+    speakerId: normalizeCategory(item.speakerId || speakerIdFromPk),
+    fullName: item.fullName || '',
+    title: item.title || '',
+    company: item.company || '',
+    bio: item.bio || '',
+    avatarUrl: item.avatarUrl || '',
     createdAt: item.createdAt || '',
     updatedAt: item.updatedAt || item.createdAt || ''
   };
@@ -1420,6 +1514,112 @@ export const dbService = {
       name: input.name,
       email: input.email,
       description: input.description || '',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // List speakers and seed the default SPEAKER items when they are missing
+  listSpeakers: async (): Promise<any[]> => {
+    logger.info('dbService.listSpeakers');
+
+    const getSpeakerItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(item => item.entityType === 'SPEAKER');
+      }
+
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: 'entityType = :speakerType AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':speakerType': 'SPEAKER',
+          ':sk': 'METADATA'
+        }
+      }));
+
+      return result.Items || [];
+    };
+
+    const speakerItems = await getSpeakerItems();
+    const speakerMap = new Map<string, any>();
+    for (const item of speakerItems) {
+      const speakerId = normalizeCategory(item.speakerId || item.PK?.replace('SPEAKER#', ''));
+      if (speakerId) {
+        speakerMap.set(speakerId, item);
+      }
+    }
+
+    for (const speaker of DEFAULT_SPEAKERS) {
+      if (!speakerMap.has(speaker.speakerId)) {
+        const createdSpeaker = await dbService.createSpeakerItem(speaker);
+        speakerMap.set(speaker.speakerId, createdSpeaker);
+      }
+    }
+
+    const defaultSpeakerOrder = new Map(
+      DEFAULT_SPEAKERS.map((speaker, index) => [speaker.speakerId, index])
+    );
+
+    return Array.from(speakerMap.values())
+      .map(item => mapSpeakerItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.id))
+      .sort((a, b) => {
+        const orderA = defaultSpeakerOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const orderB = defaultSpeakerOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.fullName.localeCompare(b.fullName);
+      });
+  },
+
+  // Get speaker metadata by speakerId
+  getSpeakerById: async (speakerId: string): Promise<any | null> => {
+    const normalizedSpeakerId = normalizeCategory(speakerId);
+    const keys = buildSpeakerKeys(normalizedSpeakerId);
+    logger.info(`dbService.getSpeakerById: speakerId=${normalizedSpeakerId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'SPEAKER') {
+      return null;
+    }
+
+    return mapSpeakerItemToDto(item);
+  },
+
+  // Create a speaker item using the SPEAKER schema
+  createSpeakerItem: async (input: {
+    speakerId: string;
+    fullName: string;
+    title?: string;
+    company?: string;
+    bio?: string;
+    avatarUrl?: string;
+  }): Promise<any> => {
+    const speakerId = normalizeCategory(input.speakerId);
+    const now = new Date().toISOString();
+    const keys = buildSpeakerKeys(speakerId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'SPEAKER',
+      speakerId,
+      fullName: input.fullName,
+      title: input.title || '',
+      company: input.company || '',
+      bio: input.bio || '',
+      avatarUrl: input.avatarUrl || '',
       createdAt: now,
       updatedAt: now
     };

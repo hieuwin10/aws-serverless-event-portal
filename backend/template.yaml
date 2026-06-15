@@ -228,6 +228,44 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetSpeakersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSpeakers
+      Handler: handlers/getSpeakers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSpeakers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /speakers
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetSpeakerByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSpeakerById
+      Handler: handlers/getSpeakerById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSpeakerById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /speakers/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -516,6 +554,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetOrganizerByIdFunction}"
+      RetentionInDays: 7
+
+  GetSpeakersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSpeakersFunction}"
+      RetentionInDays: 7
+
+  GetSpeakerByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSpeakerByIdFunction}"
       RetentionInDays: 7
 
   GetEventsLogGroup:
