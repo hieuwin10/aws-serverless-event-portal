@@ -486,6 +486,11 @@ export const buildPaymentKeys = (registrationId: string, paymentId: string) => (
   SK: `PAYMENT#${paymentId}`
 });
 
+export const buildNotificationKeys = (userId: string, notificationId: string) => ({
+  PK: `USER#${userId}`,
+  SK: `NOTIFICATION#${notificationId}`
+});
+
 export const buildAuditLogKeys = (createdAt: string, auditId: string) => {
   const date = createdAt.slice(0, 10);
   return {
@@ -755,6 +760,24 @@ export const mapAuditLogItemToDto = (item: any): any | null => {
   };
 };
 
+export const mapNotificationItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  return {
+    notificationId: item.notificationId || '',
+    userId: item.userId || '',
+    title: item.title || '',
+    message: item.message || item.content || '',
+    type: item.type || 'INFO',
+    isRead: Boolean(item.isRead),
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || item.createdAt || '',
+    ttl: Number(item.ttl || 0)
+  };
+};
+
 const extractEventIdFromRegistration = (item: any): string => {
   if (!item) {
     return '';
@@ -972,6 +995,90 @@ export const dbService = {
       .map(item => mapAuditLogItemToDto(item))
       .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.auditId))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  },
+
+  // Create a notification item using the NOTIFICATION schema
+  createNotificationItem: async (input: {
+    notificationId?: string;
+    userId: string;
+    title: string;
+    message: string;
+    type?: string;
+    isRead?: boolean;
+    ttl?: number;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const notificationId =
+      input.notificationId ||
+      `notif_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const keys = buildNotificationKeys(input.userId, notificationId);
+    const defaultTtl = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'NOTIFICATION',
+      notificationId,
+      userId: input.userId,
+      title: input.title,
+      message: input.message,
+      type: input.type || 'INFO',
+      isRead: input.isRead ?? false,
+      createdAt: now,
+      updatedAt: now,
+      ttl: input.ttl || defaultTtl
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // List notifications for a user
+  listNotificationsByUser: async (userId: string): Promise<any[]> => {
+    logger.info(`dbService.listNotificationsByUser: userId=${userId}`);
+    const userPk = `USER#${userId}`;
+
+    const items = DB_MODE === 'mock'
+      ? readMockDb().filter(
+          item =>
+            item.PK === userPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('NOTIFICATION#') &&
+            item.entityType === 'NOTIFICATION'
+        )
+      : (await ddbDocClient!.send(new QueryCommand({
+          TableName: TABLE_NAME,
+          KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+          ExpressionAttributeValues: {
+            ':pk': userPk,
+            ':skPrefix': 'NOTIFICATION#'
+          }
+        }))).Items || [];
+
+    return items
+      .map(item => mapNotificationItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.notificationId))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  },
+
+  // Mark a notification as read
+  markNotificationAsRead: async (userId: string, notificationId: string): Promise<any | null> => {
+    logger.info(`dbService.markNotificationAsRead: userId=${userId}, notificationId=${notificationId}`);
+    const keys = buildNotificationKeys(userId, notificationId);
+    const item = await dbService.getItem(keys.PK, keys.SK);
+
+    if (!item || (item.entityType && item.entityType !== 'NOTIFICATION')) {
+      return null;
+    }
+
+    const updatedItem = {
+      ...item,
+      isRead: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    await dbService.putItem(updatedItem);
+    return mapNotificationItemToDto(updatedItem);
   },
 
   // Create a ticket item using the TICKET schema

@@ -4,6 +4,7 @@ import { buildEventKeys, dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
 import { writeAuditLogSafely } from '../utils/auditLogger';
+import { createNotificationSafely } from '../utils/notificationWriter';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -99,6 +100,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         eventId: id,
         ticketId
       }
+    });
+
+    await createNotificationSafely({
+      userId,
+      title: 'Event registration confirmed',
+      message: `You have successfully registered for ${eventMeta.title || 'this event'}.`,
+      type: 'REGISTRATION'
     });
 
     return buildResponse(200, {

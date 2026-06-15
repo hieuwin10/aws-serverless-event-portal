@@ -588,6 +588,40 @@ Resources:
             Path: /users/payments
             Method: GET
 
+  GetUserNotificationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUserNotifications
+      Handler: handlers/getUserNotifications.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUserNotifications:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/notifications
+            Method: GET
+
+  MarkNotificationReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-MarkNotificationRead
+      Handler: handlers/markNotificationRead.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        MarkNotificationRead:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/notifications/{notificationId}/read
+            Method: PUT
+
   GetUserRegistrationsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -801,6 +835,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetUserPaymentsFunction}"
+      RetentionInDays: 7
+
+  GetUserNotificationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUserNotificationsFunction}"
+      RetentionInDays: 7
+
+  MarkNotificationReadLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${MarkNotificationReadFunction}"
       RetentionInDays: 7
 
   GetUserRegistrationsLogGroup:
