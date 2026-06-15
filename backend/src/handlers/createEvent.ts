@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { dbService, mapEventItemToDto, normalizeCategory } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
+import { writeAuditLogSafely } from '../utils/auditLogger';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -50,6 +51,20 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       remainingSeats: seatCount,
       status: 'PUBLISHED',
       imageUrl
+    });
+
+    await writeAuditLogSafely({
+      action: 'CREATE_EVENT',
+      actorId: claims?.sub || claims?.userId || '',
+      actorEmail: claims?.email || '',
+      resourceType: 'EVENT',
+      resourceId: eventId,
+      details: {
+        title,
+        category: normalizedCategory,
+        location,
+        totalSeats: seatCount
+      }
     });
 
     return buildResponse(201, mapEventItemToDto(newEvent));

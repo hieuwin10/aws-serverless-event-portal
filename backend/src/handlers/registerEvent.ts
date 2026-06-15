@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { buildEventKeys, dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
+import { writeAuditLogSafely } from '../utils/auditLogger';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -87,6 +88,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // Decrement remaining seats and keep compatibility counters in sync
     await dbService.decrementRemainingSeats(id);
     await dbService.decrementTicketRemainingQuantity(id, ticketId);
+
+    await writeAuditLogSafely({
+      action: 'REGISTER_EVENT',
+      actorId: userId,
+      actorEmail: email,
+      resourceType: 'REGISTRATION',
+      resourceId: registrationId,
+      details: {
+        eventId: id,
+        ticketId
+      }
+    });
 
     return buildResponse(200, {
       registrationId: newRegistration.registrationId,

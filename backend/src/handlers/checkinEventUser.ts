@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { buildEventKeys, dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
+import { writeAuditLogSafely } from '../utils/auditLogger';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -48,6 +49,19 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       registrationId: registration.registrationId || '',
       ticketId: registration.ticketId || 'GENERAL',
       checkedInBy
+    });
+
+    await writeAuditLogSafely({
+      action: 'CHECKIN_EVENT',
+      actorId: checkedInBy,
+      actorEmail: claims?.email || '',
+      resourceType: 'CHECKIN',
+      resourceId: `${eventId}#${userId}`,
+      details: {
+        eventId,
+        userId,
+        registrationId: registration.registrationId || ''
+      }
     });
 
     return buildResponse(200, {

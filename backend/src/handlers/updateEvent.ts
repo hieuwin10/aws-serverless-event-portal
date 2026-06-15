@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { dbService, mapEventItemToDto, normalizeCategory } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
+import { writeAuditLogSafely } from '../utils/auditLogger';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -45,6 +46,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (!updatedEvent) {
       return buildResponse(404, null, `KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n vá»›i ID: ${id}`);
     }
+
+    await writeAuditLogSafely({
+      action: 'UPDATE_EVENT',
+      actorId: claims?.sub || claims?.userId || '',
+      actorEmail: claims?.email || '',
+      resourceType: 'EVENT',
+      resourceId: id,
+      details: {
+        fields: Object.keys(body || {})
+      }
+    });
 
     return buildResponse(200, mapEventItemToDto(updatedEvent));
   } catch (error: any) {

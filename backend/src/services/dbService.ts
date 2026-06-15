@@ -486,6 +486,14 @@ export const buildPaymentKeys = (registrationId: string, paymentId: string) => (
   SK: `PAYMENT#${paymentId}`
 });
 
+export const buildAuditLogKeys = (createdAt: string, auditId: string) => {
+  const date = createdAt.slice(0, 10);
+  return {
+    PK: `AUDIT#${date}`,
+    SK: `LOG#${createdAt}#${auditId}`
+  };
+};
+
 export const normalizeCategory = (value: unknown): string => {
   if (typeof value !== 'string') {
     return '';
@@ -730,6 +738,23 @@ export const mapPaymentItemToDto = (item: any): any | null => {
   };
 };
 
+export const mapAuditLogItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  return {
+    auditId: item.auditId || '',
+    action: item.action || '',
+    actorId: item.actorId || '',
+    actorEmail: item.actorEmail || '',
+    resourceType: item.resourceType || '',
+    resourceId: item.resourceId || '',
+    details: item.details || {},
+    createdAt: item.createdAt || ''
+  };
+};
+
 const extractEventIdFromRegistration = (item: any): string => {
   if (!item) {
     return '';
@@ -864,6 +889,89 @@ export const dbService = {
         Item: item
       }));
     }
+  },
+
+  // Create an audit log item using the AUDIT_LOG schema
+  createAuditLog: async (input: {
+    auditId?: string;
+    action: string;
+    actorId?: string;
+    actorEmail?: string;
+    resourceType: string;
+    resourceId: string;
+    details?: any;
+    createdAt?: string;
+  }): Promise<any> => {
+    const createdAt = input.createdAt || new Date().toISOString();
+    const auditId =
+      input.auditId ||
+      `audit_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const keys = buildAuditLogKeys(createdAt, auditId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'AUDIT_LOG',
+      auditId,
+      action: input.action,
+      actorId: input.actorId || '',
+      actorEmail: input.actorEmail || '',
+      resourceType: input.resourceType,
+      resourceId: input.resourceId,
+      details: input.details || {},
+      createdAt
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // List newest audit logs across all dates
+  listAuditLogs: async (): Promise<any[]> => {
+    logger.info('dbService.listAuditLogs');
+
+    const items = DB_MODE === 'mock'
+      ? readMockDb().filter(item => item.entityType === 'AUDIT_LOG')
+      : (await ddbDocClient!.send(new ScanCommand({
+          TableName: TABLE_NAME,
+          FilterExpression: 'entityType = :auditType',
+          ExpressionAttributeValues: {
+            ':auditType': 'AUDIT_LOG'
+          }
+        }))).Items || [];
+
+    return items
+      .map(item => mapAuditLogItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.auditId))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  },
+
+  // List audit logs for a specific YYYY-MM-DD date
+  listAuditLogsByDate: async (date: string): Promise<any[]> => {
+    logger.info(`dbService.listAuditLogsByDate: date=${date}`);
+    const auditPk = `AUDIT#${date}`;
+
+    const items = DB_MODE === 'mock'
+      ? readMockDb().filter(
+          item =>
+            item.PK === auditPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('LOG#') &&
+            item.entityType === 'AUDIT_LOG'
+        )
+      : (await ddbDocClient!.send(new QueryCommand({
+          TableName: TABLE_NAME,
+          KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+          ExpressionAttributeValues: {
+            ':pk': auditPk,
+            ':skPrefix': 'LOG#'
+          }
+        }))).Items || [];
+
+    return items
+      .map(item => mapAuditLogItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.auditId))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   },
 
   // Create a ticket item using the TICKET schema

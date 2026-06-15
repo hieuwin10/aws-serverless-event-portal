@@ -304,6 +304,23 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetAuditLogsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetAuditLogs
+      Handler: handlers/getAuditLogs.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetAuditLogs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /audit-logs
+            Method: GET
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -688,6 +705,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetSponsorByIdFunction}"
+      RetentionInDays: 7
+
+  GetAuditLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetAuditLogsFunction}"
       RetentionInDays: 7
 
   GetEventsLogGroup:

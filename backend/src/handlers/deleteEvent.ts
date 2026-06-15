@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
+import { writeAuditLogSafely } from '../utils/auditLogger';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
@@ -35,6 +36,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     await dbService.deleteEventCascade(id);
+    await writeAuditLogSafely({
+      action: 'DELETE_EVENT',
+      actorId: claims?.sub || claims?.userId || '',
+      actorEmail: claims?.email || '',
+      resourceType: 'EVENT',
+      resourceId: id,
+      details: {
+        title: existingEvent.title || ''
+      }
+    });
+
     return buildResponse(200, { message: `ÄÃ£ xÃ³a thÃ nh cÃ´ng sá»± kiá»‡n ${id} cÃ¹ng táº¥t cáº£ lÆ°á»£t Ä‘Äƒng kÃ½.` });
   } catch (error: any) {
     logger.error('Error in deleteEvent handler', error);
