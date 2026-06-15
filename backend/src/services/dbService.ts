@@ -122,6 +122,27 @@ const DEFAULT_SPEAKERS = [
   }
 ];
 
+const DEFAULT_SPONSORS = [
+  {
+    sponsorId: 'aws',
+    sponsorName: 'AWS',
+    website: 'https://aws.amazon.com',
+    tier: 'Platinum'
+  },
+  {
+    sponsorId: 'hutech',
+    sponsorName: 'HUTECH',
+    website: 'https://www.hutech.edu.vn',
+    tier: 'Gold'
+  },
+  {
+    sponsorId: 'tech-community',
+    sponsorName: 'Tech Community',
+    website: 'https://techcommunity.vn',
+    tier: 'Community'
+  }
+];
+
 const DEFAULT_TICKET_ID = 'GENERAL';
 
 // Initialize AWS DynamoDB Client
@@ -313,6 +334,39 @@ const INITIAL_EVENTS = [
     updatedAt: '2026-05-20T08:00:00Z'
   },
   {
+    PK: 'SPONSOR#aws',
+    SK: 'METADATA',
+    entityType: 'SPONSOR',
+    sponsorId: 'aws',
+    sponsorName: 'AWS',
+    website: 'https://aws.amazon.com',
+    tier: 'Platinum',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'SPONSOR#hutech',
+    SK: 'METADATA',
+    entityType: 'SPONSOR',
+    sponsorId: 'hutech',
+    sponsorName: 'HUTECH',
+    website: 'https://www.hutech.edu.vn',
+    tier: 'Gold',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'SPONSOR#tech-community',
+    SK: 'METADATA',
+    entityType: 'SPONSOR',
+    sponsorId: 'tech-community',
+    sponsorName: 'Tech Community',
+    website: 'https://techcommunity.vn',
+    tier: 'Community',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
     PK: 'EVENT#evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     SK: 'METADATA',
     entityType: 'EVENT',
@@ -402,6 +456,11 @@ export const buildOrganizerKeys = (organizerId: string) => ({
 
 export const buildSpeakerKeys = (speakerId: string) => ({
   PK: `SPEAKER#${normalizeCategory(speakerId)}`,
+  SK: 'METADATA'
+});
+
+export const buildSponsorKeys = (sponsorId: string) => ({
+  PK: `SPONSOR#${normalizeCategory(sponsorId)}`,
   SK: 'METADATA'
 });
 
@@ -597,6 +656,27 @@ export const mapSpeakerItemToDto = (item: any): any | null => {
     company: item.company || '',
     bio: item.bio || '',
     avatarUrl: item.avatarUrl || '',
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || item.createdAt || ''
+  };
+};
+
+export const mapSponsorItemToDto = (item: any): any | null => {
+  if (!item) {
+    return null;
+  }
+
+  const sponsorIdFromPk =
+    typeof item.PK === 'string' && item.PK.startsWith('SPONSOR#')
+      ? item.PK.slice('SPONSOR#'.length)
+      : '';
+
+  return {
+    id: normalizeCategory(item.sponsorId || sponsorIdFromPk),
+    sponsorId: normalizeCategory(item.sponsorId || sponsorIdFromPk),
+    sponsorName: item.sponsorName || item.name || '',
+    website: item.website || '',
+    tier: item.tier || '',
     createdAt: item.createdAt || '',
     updatedAt: item.updatedAt || item.createdAt || ''
   };
@@ -1625,6 +1705,108 @@ export const dbService = {
       company: input.company || '',
       bio: input.bio || '',
       avatarUrl: input.avatarUrl || '',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // List sponsors and seed the default SPONSOR items when they are missing
+  listSponsors: async (): Promise<any[]> => {
+    logger.info('dbService.listSponsors');
+
+    const getSponsorItems = async (): Promise<any[]> => {
+      if (DB_MODE === 'mock') {
+        const items = readMockDb();
+        return items.filter(item => item.entityType === 'SPONSOR');
+      }
+
+      const result = await ddbDocClient!.send(new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: 'entityType = :sponsorType AND SK = :sk',
+        ExpressionAttributeValues: {
+          ':sponsorType': 'SPONSOR',
+          ':sk': 'METADATA'
+        }
+      }));
+
+      return result.Items || [];
+    };
+
+    const sponsorItems = await getSponsorItems();
+    const sponsorMap = new Map<string, any>();
+    for (const item of sponsorItems) {
+      const sponsorId = normalizeCategory(item.sponsorId || item.PK?.replace('SPONSOR#', ''));
+      if (sponsorId) {
+        sponsorMap.set(sponsorId, item);
+      }
+    }
+
+    for (const sponsor of DEFAULT_SPONSORS) {
+      if (!sponsorMap.has(sponsor.sponsorId)) {
+        const createdSponsor = await dbService.createSponsorItem(sponsor);
+        sponsorMap.set(sponsor.sponsorId, createdSponsor);
+      }
+    }
+
+    const defaultSponsorOrder = new Map(
+      DEFAULT_SPONSORS.map((sponsor, index) => [sponsor.sponsorId, index])
+    );
+
+    return Array.from(sponsorMap.values())
+      .map(item => mapSponsorItemToDto(item))
+      .filter((item): item is NonNullable<typeof item> => item !== null && Boolean(item.id))
+      .sort((a, b) => {
+        const orderA = defaultSponsorOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const orderB = defaultSponsorOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.sponsorName.localeCompare(b.sponsorName);
+      });
+  },
+
+  // Get sponsor metadata by sponsorId
+  getSponsorById: async (sponsorId: string): Promise<any | null> => {
+    const normalizedSponsorId = normalizeCategory(sponsorId);
+    const keys = buildSponsorKeys(normalizedSponsorId);
+    logger.info(`dbService.getSponsorById: sponsorId=${normalizedSponsorId}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item) {
+      return null;
+    }
+
+    if (item.entityType && item.entityType !== 'SPONSOR') {
+      return null;
+    }
+
+    return mapSponsorItemToDto(item);
+  },
+
+  // Create a sponsor item using the SPONSOR schema
+  createSponsorItem: async (input: {
+    sponsorId: string;
+    sponsorName: string;
+    website?: string;
+    tier?: string;
+  }): Promise<any> => {
+    const sponsorId = normalizeCategory(input.sponsorId);
+    const now = new Date().toISOString();
+    const keys = buildSponsorKeys(sponsorId);
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'SPONSOR',
+      sponsorId,
+      sponsorName: input.sponsorName,
+      website: input.website || '',
+      tier: input.tier || '',
       createdAt: now,
       updatedAt: now
     };

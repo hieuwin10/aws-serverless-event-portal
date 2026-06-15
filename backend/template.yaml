@@ -266,6 +266,44 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetSponsorsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSponsors
+      Handler: handlers/getSponsors.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSponsors:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /sponsors
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetSponsorByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSponsorById
+      Handler: handlers/getSponsorById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSponsorById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /sponsors/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -602,6 +640,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetSpeakerByIdFunction}"
+      RetentionInDays: 7
+
+  GetSponsorsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSponsorsFunction}"
+      RetentionInDays: 7
+
+  GetSponsorByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSponsorByIdFunction}"
       RetentionInDays: 7
 
   GetEventsLogGroup:
