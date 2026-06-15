@@ -1,78 +1,196 @@
-# Chỉ Mục Tài Liệu Dự Án (Documentation Index)
+---
+title: INDEX — Chỉ Mục Tài Liệu Well-Architected
+category: Index
+domain: Overview
+difficulty: Dễ
+reading_time: 10 phút
+last_updated: 2026-06-12
+tags: [index, navigation, bmad-method]
+---
+# INDEX — Chỉ Mục Tài Liệu Well-Architected
 
-Chào mừng bạn đến với tài liệu hướng dẫn kỹ thuật của dự án **Website Quản Lý và Đăng Ký Sự Kiện Online**. Hệ thống được thiết kế theo kiến trúc **Serverless** hiện đại, an toàn và tối ưu hóa chi phí hoàn toàn trên nền tảng **AWS Free Tier**.
+> Phân loại theo **BMAD-METHOD**: Tutorials · How-To Guides · Explanations · References  
+> Tổ chức theo **AWS Well-Architected pillars**: Security · Reliability · Performance · Cost · Operations
 
 ---
 
-## Thông Tin Chung (Quick Reference)
+<a id="security"></a>
 
-*   **Tên dự án:** Online Event Management and Registration Website
-*   **Kiến trúc:** Serverless (Không máy chủ)
-*   **Công nghệ Frontend:** React (Vite) + Vanilla CSS (Theme tối, Glassmorphism)
-*   **Công nghệ Backend:** Node.js (TypeScript) + AWS Lambda + AWS IAM Roles
-*   **Cơ sở dữ liệu:** Amazon DynamoDB (NoSQL)
-*   **Hệ thống xác thực:** Amazon Cognito User Pools
-*   **Giám sát & Debug:** Amazon CloudWatch Logs
-*   **Cổng phân phối & API:** Amazon CloudFront & Amazon API Gateway
-*   **Hạn mức vận hành:** Hoàn toàn miễn phí trong gói **AWS Free Tier**
+## 🔒 Security (Bảo Mật)
 
----
+### How-To Guides
 
-## Bản Đồ Tài Liệu (Documentation Map)
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [security-hardening.md](./security/how-to/security-hardening.md) | Hardening S3 public access, CloudFront security headers, Lambda least privilege | Khi cần tăng cường bảo mật tổng thể |
+| [waf-configuration.md](./security/how-to/waf-configuration.md) | Cấu hình AWS WAF với rate limiting, IP reputation, SQL injection rules | Khi API Gateway cần WAF protection |
+| [cognito-advanced.md](./security/how-to/cognito-advanced.md) | Bật MFA, custom password policy, Lambda triggers, advanced user management | Khi cần nâng cao bảo mật authentication |
 
-Để hiểu rõ hơn về từng cấu phần của dự án, vui lòng tham khảo các tài liệu chi tiết sau đây:
+### References
 
-### 1. Tài Liệu Cốt Lõi (Core Docs)
-*   [Tổng Quan Dự Án (Project Overview)](./project-overview.md)
-    *   Tóm tắt dự án, phân loại công nghệ, các tính năng cốt lõi và hướng dẫn khởi chạy nhanh.
-*   [Phân Tích Cấu Trúc Thư Mục (Source Tree Analysis)](./source-tree-analysis.md)
-    *   Cấu trúc thư mục của toàn bộ dự án (`frontend/`, `backend/`, `docs/`) cùng chức năng chi tiết của các file quan trọng.
-*   [Ma Trận Đồng Nhất Nhóm & Kịch Bản Nghiệm Thu (Team Alignment Matrix)](./team-alignment-matrix.md)
-    *   Ma trận phân nhiệm RACI cho các thành viên và kịch bản nghiệm thu giả lập offline chi tiết cho Milestone 1.
-
-### 2. Kiến Trúc Hệ Thống (Architecture Docs)
-*   [Kiến Trúc Tích Hợp AWS (Integration Architecture)](./integration-architecture.md)
-    *   Sơ đồ tương tác toàn hệ thống, chi tiết vai trò của 7 dịch vụ AWS, cấu hình IAM Roles bảo mật và cài đặt giám sát CloudWatch.
-*   [Kiến Trúc Giao Diện (Architecture Frontend)](./architecture-frontend.md)
-    *   Thiết kế kiến trúc React + Vite, hệ thống Design System với CSS Variables, Responsive Layout và cơ chế bảo vệ Route.
-*   [Kiến Trúc Nghiệp Vụ (Architecture Backend)](./architecture-backend.md)
-    *   Thiết kế các hàm AWS Lambda (Node.js + TS), cơ chế xử lý lỗi Serverless, tích hợp CORS và xác thực API Gateway JWT Authorizer.
-
-### 3. Cẩm Nang Phát Triển & Đặc Tả Kỹ Thuật (Development & Contracts)
-*   [Hướng Dẫn Phát Triển (Development Guide)](./development-guide.md)
-    *   Các công cụ cần cài đặt, hướng dẫn thiết lập môi trường giả lập (Local Mocking) offline và các câu lệnh hữu ích khi làm việc.
-*   [Thông Số Kỹ Thuật API (API Contracts)](./api-contracts.md)
-    *   Các endpoint của API Gateway, dữ liệu đầu vào (Payload), định dạng phản hồi (Response) và kiểm tra lỗi.
-*   [Mô Hình Dữ Liệu (Data Models)](./data-models.md)
-    *   Thiết kế cơ sở dữ liệu Amazon DynamoDB (Single-Table Design), bảng Access Patterns trực quan, mô phỏng dữ liệu mẫu và chỉ mục thứ cấp (GSI).
-
-### 4. Kiểm Thử & Xử Lý Lỗi (Testing & Error Handling)
-*   [Chiến Lược Kiểm Thử (Testing Strategy)](./testing-strategy.md)
-    *   Kim tự tháp kiểm thử: Unit Test (Vitest/Jest), Integration Test (Supertest + SAM Local), E2E Test (Playwright). Mẫu code test Lambda handler chi tiết.
-*   [Xử Lý Lỗi & Khắc Phục Sự Cố (Error Handling & Troubleshooting)](./error-handling-troubleshooting.md)
-    *   Danh mục toàn diện các lỗi Serverless thường gặp: Lambda Timeout/Cold Start, CORS, DynamoDB Throttling, Token Expired. Kèm mẫu code Exponential Backoff Retry.
-
-### 5. Vận Hành & Triển Khai Tự Động (Operations & Deployment)
-*   [Hạ Tầng Dưới Dạng Mã (Infrastructure as Code)](./infrastructure-as-code.md)
-    *   Tệp AWS SAM `template.yaml` hoàn chỉnh định nghĩa toàn bộ 7 tài nguyên AWS bằng code YAML. Hướng dẫn SAM CLI test cục bộ và deploy lên cloud.
-*   [Vận Hành, Sao Lưu & CI/CD Pipeline](./operations-backup-cicd.md)
-    *   Chiến lược Backup DynamoDB (On-Demand, PITR, Export S3). Tệp GitHub Actions workflow tự động build → test → deploy lên S3/Lambda/CloudFront khi push code.
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [iam-policies.md](./security/reference/iam-policies.md) | Least Privilege IAM policies cho Lambda, DynamoDB, S3, CloudWatch, API Gateway | Khi cần tham chiếu IAM policy syntax |
 
 ---
 
-## Hướng Dẫn Dành Cho AI-Assisted Development
+<a id="operations"></a>
 
-Tài liệu này được định dạng chuẩn hóa để hỗ trợ các trợ lý AI (như Claude Code, Cursor, Antigravity) hiểu rõ toàn bộ cấu trúc dự án trước khi lập trình:
+## ⚙️ Operations (Vận Hành)
 
-*   **Khi muốn sửa đổi/thêm giao diện (UI):** Tham khảo [architecture-frontend.md](./architecture-frontend.md).
-*   **Khi muốn viết thêm hàm API/Backend:** Tham khảo [architecture-backend.md](./architecture-backend.md) và [api-contracts.md](./api-contracts.md).
-*   **Khi muốn thay đổi cấu trúc bảng hoặc lưu trữ dữ liệu:** Tham khảo [data-models.md](./data-models.md).
-*   **Khi kiểm thử cục bộ hoặc triển khai AWS:** Tham khảo [development-guide.md](./development-guide.md) và [integration-architecture.md](./integration-architecture.md).
-*   **Khi cần debug lỗi production:** Tham khảo [error-handling-troubleshooting.md](./error-handling-troubleshooting.md).
-*   **Khi cần tạo hạ tầng AWS bằng code:** Tham khảo [infrastructure-as-code.md](./infrastructure-as-code.md).
-*   **Khi cần viết test hoặc thiết lập CI/CD:** Tham khảo [testing-strategy.md](./testing-strategy.md) và [operations-backup-cicd.md](./operations-backup-cicd.md).
-*   **Khi chuẩn bị họp team và duyệt kịch bản offline:** Tham khảo [team-alignment-matrix.md](./team-alignment-matrix.md).
+### How-To Guides
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [monitoring-alerting.md](./operations/how-to/monitoring-alerting.md) | 10 CloudWatch Alarms quan trọng, Dashboard JSON, SNS notifications, custom metrics | Khi cần thiết lập monitoring |
+| [backup-recovery.md](./operations/how-to/backup-recovery.md) | DynamoDB PITR, On-Demand Backup, S3 versioning, lifecycle policies, disaster recovery | Khi cần bảo vệ data |
+| [cost-optimization.md](./operations/how-to/cost-optimization.md) | Billing alerts, Lambda right-sizing, DynamoDB optimization, Free Tier monitoring | Khi cần giảm chi phí AWS |
+
+### References
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [runbooks.md](./operations/reference/runbooks.md) | Runbooks cho Lambda timeout, DynamoDB throttling, Cognito failures, API Gateway 5xx, CloudFront cache | Khi xảy ra incident |
 
 ---
-_Tài liệu được biên soạn dựa trên tiêu chuẩn kiến trúc BMAD Method v6 (Breakthrough Method for Agile AI-Driven Development)._
 
+<a id="architecture"></a>
+
+## 🏗️ Architecture (Kiến Trúc)
+
+### Tutorials
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [deploy-serverless-stack.md](./architecture/tutorials/deploy-serverless-stack.md) | Deploy SAM stack từ đầu: build, guided deploy, verify API | Khi mới bắt đầu triển khai lên AWS |
+
+### Explanations
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [scalability-design.md](./architecture/explanation/scalability-design.md) | DynamoDB auto-scaling, Lambda cold start optimization, API Gateway throttling config | Khi cần hiểu cách scale serverless |
+
+### References
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [architecture-decisions.md](./architecture/reference/architecture-decisions.md) | ADRs: DynamoDB vs RDS, Lambda vs EC2, Cognito vs custom auth, Single-Table Design | Khi cần hiểu lý do chọn kiến trúc |
+
+---
+
+<a id="infrastructure"></a>
+
+## 🔧 Infrastructure (Hạ Tầng)
+
+### How-To Guides
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [cicd-pipeline.md](./infrastructure/how-to/cicd-pipeline.md) | GitHub Actions workflows: security scan, automated testing, blue-green deployment | Khi cần thiết lập CI/CD |
+
+### References
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [cloudformation-templates.md](./infrastructure/reference/cloudformation-templates.md) | CloudFormation/SAM templates cho WAF, enhanced monitoring, DynamoDB scaling, Lambda config, IAM roles | Khi cần deploy infrastructure as code |
+
+---
+
+<a id="testing"></a>
+
+## 🧪 Testing (Kiểm Thử)
+
+### How-To Guides
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [load-testing.md](./testing/how-to/load-testing.md) | Artillery (YAML config) và k6 (JavaScript) load test scripts, baseline/stress/full scenarios | Khi cần test khả năng chịu tải |
+| [security-testing.md](./testing/how-to/security-testing.md) | OWASP ZAP scanning, IAM policy testing (Python), API penetration testing, AWS Security Hub | Khi cần kiểm tra bảo mật |
+| [chaos-engineering.md](./testing/how-to/chaos-engineering.md) | AWS FIS experiments: Lambda error injection, DynamoDB throttle, API Gateway 5xx, concurrency limits | Khi cần test resilience |
+
+---
+
+## 📋 Assessment & Overview
+
+| File | Mô Tả Ngắn | Use Case |
+|------|------------|----------|
+| [well-architected-assessment.md](./well-architected-assessment.md) | Đánh giá đầy đủ 5 pillars, 30 vấn đề, risk matrix, priority matrix, 90-day plan | Tổng quan về vấn đề cần giải quyết |
+| [README.md](./README.md) | Navigation guide, Mermaid diagrams, quick start cho từng use case | Entry point cho toàn bộ tài liệu |
+
+---
+
+## 🔍 Tìm Kiếm Theo Vấn Đề
+
+| Vấn Đề | Tài Liệu Liên Quan |
+|---------|-------------------|
+| IAM permissions quá rộng | [iam-policies.md](./security/reference/iam-policies.md) · [security-hardening.md](./security/how-to/security-hardening.md) |
+| API bị tấn công DDoS/brute force | [waf-configuration.md](./security/how-to/waf-configuration.md) |
+| Tài khoản bị brute force | [cognito-advanced.md](./security/how-to/cognito-advanced.md) |
+| DynamoDB throttling | [scalability-design.md](./architecture/explanation/scalability-design.md) · [runbooks.md](./operations/reference/runbooks.md) |
+| Lambda cold start chậm | [scalability-design.md](./architecture/explanation/scalability-design.md) · [cloudformation-templates.md](./infrastructure/reference/cloudformation-templates.md) |
+| Không biết khi nào hệ thống lỗi | [monitoring-alerting.md](./operations/how-to/monitoring-alerting.md) |
+| Mất data | [backup-recovery.md](./operations/how-to/backup-recovery.md) |
+| Chi phí AWS cao | [cost-optimization.md](./operations/how-to/cost-optimization.md) |
+| Deploy thủ công, dễ lỗi | [cicd-pipeline.md](./infrastructure/how-to/cicd-pipeline.md) |
+| Xử lý incident chậm | [runbooks.md](./operations/reference/runbooks.md) |
+| Kiểm tra performance | [load-testing.md](./testing/how-to/load-testing.md) |
+| Kiểm tra lỗ hổng bảo mật | [security-testing.md](./testing/how-to/security-testing.md) |
+| Test resilience hệ thống | [chaos-engineering.md](./testing/how-to/chaos-engineering.md) |
+
+---
+
+## 📂 Toàn Bộ File Theo BMAD Category
+
+### Tutorials (1 file)
+1. [architecture/tutorials/deploy-serverless-stack.md](./architecture/tutorials/deploy-serverless-stack.md) — Deploy SAM stack từ đầu
+
+### How-To Guides (10 files)
+1. [security/how-to/security-hardening.md](./security/how-to/security-hardening.md)
+2. [security/how-to/waf-configuration.md](./security/how-to/waf-configuration.md)
+3. [security/how-to/cognito-advanced.md](./security/how-to/cognito-advanced.md)
+4. [operations/how-to/monitoring-alerting.md](./operations/how-to/monitoring-alerting.md)
+5. [operations/how-to/backup-recovery.md](./operations/how-to/backup-recovery.md)
+6. [operations/how-to/cost-optimization.md](./operations/how-to/cost-optimization.md)
+7. [infrastructure/how-to/cicd-pipeline.md](./infrastructure/how-to/cicd-pipeline.md)
+8. [testing/how-to/load-testing.md](./testing/how-to/load-testing.md)
+9. [testing/how-to/security-testing.md](./testing/how-to/security-testing.md)
+10. [testing/how-to/chaos-engineering.md](./testing/how-to/chaos-engineering.md)
+
+### Explanations (1 file)
+1. [architecture/explanation/scalability-design.md](./architecture/explanation/scalability-design.md)
+
+### References (4 files)
+1. [security/reference/iam-policies.md](./security/reference/iam-policies.md)
+2. [operations/reference/runbooks.md](./operations/reference/runbooks.md)
+3. [architecture/reference/architecture-decisions.md](./architecture/reference/architecture-decisions.md)
+4. [infrastructure/reference/cloudformation-templates.md](./infrastructure/reference/cloudformation-templates.md)
+
+---
+
+## 📚 Tài Liệu Kỹ Thuật Cũ (Technical Reference Docs)
+
+> Đây là các tài liệu technical docs gốc của dự án, không theo BMAD-METHOD.
+
+| File | Mô Tả |
+|------|--------|
+| [index.md](./index.md) | Chỉ mục tài liệu kỹ thuật gốc |
+| [project-overview.md](./project-overview.md) | Tổng quan dự án |
+| [architecture-backend.md](./architecture-backend.md) | Kiến trúc Lambda/API |
+| [architecture-frontend.md](./architecture-frontend.md) | Kiến trúc React/S3 |
+| [data-models.md](./data-models.md) | DynamoDB Single-Table Design |
+| [api-contracts.md](./api-contracts.md) | API Gateway endpoints |
+| [infrastructure-as-code.md](./infrastructure-as-code.md) | SAM template.yaml |
+| [development-guide.md](./development-guide.md) | Setup guide |
+| [testing-strategy.md](./testing-strategy.md) | Test pyramid |
+| [integration-architecture.md](./integration-architecture.md) | AWS service integration |
+| [error-handling-troubleshooting.md](./error-handling-troubleshooting.md) | Error catalog |
+
+---
+
+*INDEX này bao gồm 16 tài liệu Well-Architected (15 guides + 1 tutorial) theo phương pháp BMAD-METHOD. Xem [README.md](./README.md) để có navigation guide đầy đủ.*
+
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 1, Requirement 15, Requirement 16

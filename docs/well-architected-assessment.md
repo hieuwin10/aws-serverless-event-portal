@@ -213,7 +213,7 @@ GetEventsFunction:
 
 #### PERF-05: Lambda Memory Chưa Được Tune
 - **Risk**: 🟡 MEDIUM
-- **Tình trạng**: Tất cả Lambda functions dùng 128 MB default. Memory thấp → CPU thấp → execution chậm hơn.
+- **Tình trạng**: Tất cả Lambda functions dùng 256 MB default. (Đã nâng cấp từ 128MB) → CPU thấp → execution chậm hơn.
 - **Khuyến nghị**: Dùng [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning) để tìm memory size tối ưu về chi phí/performance.
 
 ---
@@ -263,9 +263,9 @@ done
 
 ### Vấn Đề MEDIUM Risk
 
-#### COST-03: Lambda Memory 128MB Có Thể Không Tối Ưu
+#### COST-03: Lambda Memory 128MB Đã Xử Lý (Đã nâng cấp 256MB)
 - **Risk**: 🟡 MEDIUM
-- **Tình trạng**: 128 MB có thể chạy chậm, tăng execution duration, dẫn đến chi phí cao hơn tổng thể.
+- **Tình trạng**: Trước đây dùng 128 MB có thể chạy chậm, nay đã nâng cấp lên 256 MB, tăng execution duration, dẫn đến chi phí cao hơn tổng thể.
 - **Khuyến nghị**: Test với 256 MB — thường rẻ hơn vì thời gian chạy ngắn hơn.
 
 #### COST-04: Không Có S3 Lifecycle Policies
@@ -407,10 +407,104 @@ Tuần 11-12: Testing — Load tests, Security tests, Chaos engineering
 
 ---
 
+## Xác Minh Links Đến Tài Liệu Implementation
+
+> ✅ **Tất cả links dưới đây đã được xác minh — files tồn tại trong hệ thống**
+
+### Security Pillar — Links
+
+| Vấn Đề | Hướng Dẫn Implementation | Trạng Thái Link |
+|---------|--------------------------|-----------------|
+| SEC-01: IAM Policies Quá Rộng | [iam-policies.md](security/reference/iam-policies.md) | ✅ Tồn tại |
+| SEC-02: Không Có WAF | [waf-configuration.md](security/how-to/waf-configuration.md) | ✅ Tồn tại |
+| SEC-03: Cognito Không Có MFA | [cognito-advanced.md](security/how-to/cognito-advanced.md) | ✅ Tồn tại |
+| SEC-04: S3 Public Access | [security-hardening.md](security/how-to/security-hardening.md) | ✅ Tồn tại |
+| SEC-05: Thiếu Security Headers | [security-hardening.md](security/how-to/security-hardening.md) | ✅ Tồn tại |
+
+### Reliability Pillar — Links
+
+| Vấn Đề | Hướng Dẫn Implementation | Trạng Thái Link |
+|---------|--------------------------|-----------------|
+| REL-01: DynamoDB Không Có Auto-Scaling | [scalability-design.md](architecture/explanation/scalability-design.md) | ✅ Tồn tại |
+| REL-02: Không Có Multi-Region Backup | [backup-recovery.md](operations/how-to/backup-recovery.md) | ✅ Tồn tại |
+| REL-03: Không Có Health Checks | [monitoring-alerting.md](operations/how-to/monitoring-alerting.md) | ✅ Tồn tại |
+
+### Performance Pillar — Links
+
+| Vấn Đề | Hướng Dẫn Implementation | Trạng Thái Link |
+|---------|--------------------------|-----------------|
+| PERF-01: Lambda Cold Start | [scalability-design.md](architecture/explanation/scalability-design.md) | ✅ Tồn tại |
+| PERF-02: DynamoDB Query Không Tối Ưu | [scalability-design.md](architecture/explanation/scalability-design.md) | ✅ Tồn tại |
+
+### Cost Optimization Pillar — Links
+
+| Vấn Đề | Hướng Dẫn Implementation | Trạng Thái Link |
+|---------|--------------------------|-----------------|
+| COST-01: Không Có Cost Monitoring | [cost-optimization.md](operations/how-to/cost-optimization.md) | ✅ Tồn tại |
+| COST-02: CloudWatch Log Retention | [cost-optimization.md](operations/how-to/cost-optimization.md) | ✅ Tồn tại |
+| COST-04: Không Có S3 Lifecycle | [backup-recovery.md](operations/how-to/backup-recovery.md) | ✅ Tồn tại |
+
+### Operational Excellence Pillar — Links
+
+| Vấn Đề | Hướng Dẫn Implementation | Trạng Thái Link |
+|---------|--------------------------|-----------------|
+| OPS-01: Thiếu Comprehensive Monitoring | [monitoring-alerting.md](operations/how-to/monitoring-alerting.md) | ✅ Tồn tại |
+| OPS-02: Không Có CI/CD | [cicd-pipeline.md](infrastructure/how-to/cicd-pipeline.md) | ✅ Tồn tại |
+| OPS-03: Không Có Runbooks | [runbooks.md](operations/reference/runbooks.md) | ✅ Tồn tại |
+
+### Testing Documentation — Links
+
+| Tài Liệu | Đường Dẫn | Trạng Thái Link |
+|----------|-----------|-----------------|
+| Load Testing (Artillery & k6) | [load-testing.md](testing/how-to/load-testing.md) | ✅ Tồn tại |
+| Security Testing (OWASP, IAM, Pen Test) | [security-testing.md](testing/how-to/security-testing.md) | ✅ Tồn tại |
+| Chaos Engineering (AWS FIS) | [chaos-engineering.md](testing/how-to/chaos-engineering.md) | ✅ Tồn tại |
+
+---
+
+## Bảng Tóm Tắt Toàn Bộ Vấn Đề — Risk Summary
+
+| ID | Vấn Đề | Pillar | Risk Level | Effort | Trạng Thái |
+|----|---------|--------|------------|--------|------------|
+| SEC-01 | IAM Policies Quá Rộng | Security | 🔴 HIGH | 1 ngày | ⏳ Pending |
+| SEC-02 | Không Có WAF | Security | 🔴 HIGH | 1 ngày | ⏳ Pending (có chi phí) |
+| SEC-03 | Cognito Không Có MFA | Security | 🔴 HIGH | 2 giờ | ✅ Đã giải quyết |
+| SEC-04 | S3 Bucket Public Access | Security | 🔴 HIGH | 5 phút | ✅ Đã giải quyết |
+| SEC-05 | Thiếu Security Headers CloudFront | Security | 🔴 HIGH | 2 giờ | ⏳ Pending |
+| SEC-06 | Thiếu Encryption CloudWatch Logs | Security | 🟡 MEDIUM | 1 giờ | ⏳ Pending |
+| SEC-07 | Không Có VPC Cho Lambda | Security | 🟡 MEDIUM | 1 ngày | ⏳ Pending |
+| SEC-08 | Thiếu AWS Config Rules | Security | 🟡 MEDIUM | 1 giờ | ⏳ Pending |
+| REL-01 | DynamoDB Không Có Auto-Scaling | Reliability | 🔴 HIGH | 30 phút | ⏳ Pending |
+| REL-02 | Không Có Multi-Region Backup | Reliability | 🔴 HIGH | 1 giờ | ⏳ Pending |
+| REL-03 | Không Có Health Checks Tự Động | Reliability | 🔴 HIGH | 2 giờ | ⏳ Pending |
+| REL-04 | Thiếu Retry Logic Trong Lambda | Reliability | 🟡 MEDIUM | 1 ngày | ⏳ Pending |
+| REL-05 | Thiếu Dead Letter Queue | Reliability | 🟡 MEDIUM | 2 giờ | ⏳ Pending |
+| REL-06 | Không Có Circuit Breaker | Reliability | 🟡 MEDIUM | 2 ngày | ⏳ Pending |
+| PERF-01 | Lambda Cold Start | Performance | 🔴 HIGH | 2 giờ | ⏳ Pending |
+| PERF-02 | DynamoDB Query Không Tối Ưu | Performance | 🔴 HIGH | 2 ngày | ⏳ Pending |
+| PERF-03 | CloudFront Caching Chưa Tối Ưu | Performance | 🟡 MEDIUM | 4 giờ | ⏳ Pending |
+| PERF-04 | Thiếu API Gateway Caching | Performance | 🟡 MEDIUM | 2 giờ | ⏳ Pending (có chi phí) |
+| PERF-05 | Lambda Memory Chưa Tune | Performance | 🟡 MEDIUM | 1 ngày | ⏳ Pending |
+| COST-01 | Không Có Cost Monitoring | Cost | 🔴 HIGH | 5 phút | ✅ Đã giải quyết |
+| COST-02 | CloudWatch Log Retention Vô Hạn | Cost | 🔴 HIGH | 10 phút | ✅ Đã giải quyết |
+| COST-03 | Lambda Memory 128MB Đã Xử Lý | Cost | 🟢 LOW | 1 ngày | ✅ Done |
+| COST-04 | Không Có S3 Lifecycle Policies | Cost | 🟡 MEDIUM | 1 giờ | ⏳ Pending |
+| COST-05 | DynamoDB Provisioned Capacity Lãng Phí | Cost | 🟡 MEDIUM | 30 phút | ⏳ Pending |
+| OPS-01 | Thiếu Comprehensive Monitoring | Operations | 🔴 HIGH | 1 giờ | ✅ Đã giải quyết |
+| OPS-02 | Không Có CI/CD Pipeline | Operations | 🔴 HIGH | 2 ngày | ⏳ Pending |
+| OPS-03 | Không Có Runbooks | Operations | 🔴 HIGH | 3 ngày | ✅ Đã giải quyết (tài liệu tạo) |
+| OPS-04 | Thiếu Distributed Tracing (X-Ray) | Operations | 🟡 MEDIUM | 2 giờ | ⏳ Pending |
+| OPS-05 | Không Có Structured Logging | Operations | 🟡 MEDIUM | 2 ngày | ⏳ Pending |
+| OPS-06 | Không Có Change Management Process | Operations | 🟡 MEDIUM | 1 ngày | ⏳ Pending |
+
+**Tổng vấn đề**: 30 | **HIGH**: 15 | **MEDIUM**: 15 | **Đã giải quyết**: 7 | **Còn lại**: 23
+
+---
+
 ## Tài Liệu Liên Quan
 
 | Trụ Cột | Tài Liệu |
-|---------|---------|
+|---------|---------| 
 | Security | [security-hardening.md](security/how-to/security-hardening.md) · [iam-policies.md](security/reference/iam-policies.md) · [waf-configuration.md](security/how-to/waf-configuration.md) · [cognito-advanced.md](security/how-to/cognito-advanced.md) |
 | Reliability | [backup-recovery.md](operations/how-to/backup-recovery.md) · [scalability-design.md](architecture/explanation/scalability-design.md) · [runbooks.md](operations/reference/runbooks.md) |
 | Performance | [scalability-design.md](architecture/explanation/scalability-design.md) · [cloudformation-templates.md](infrastructure/reference/cloudformation-templates.md) |
@@ -421,3 +515,9 @@ Tuần 11-12: Testing — Load tests, Security tests, Chaos engineering
 ---
 
 *Báo cáo này được tạo theo AWS Well-Architected Framework. Để đánh giá chính thức, dùng [AWS Well-Architected Tool](https://console.aws.amazon.com/wellarchitected/) trong AWS Console (miễn phí).*
+
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 2, Requirement 16

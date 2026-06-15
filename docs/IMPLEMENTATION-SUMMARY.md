@@ -145,7 +145,7 @@
 3. Plan improvements dựa trên Well-Architected Assessment
 
 ### Cho Developers
-1. Đọc [README Well-Architected](./README-well-architected.md)
+1. Đọc [README Well-Architected](./README.md)
 2. Follow Quick Start guides
 3. Use code examples và templates
 

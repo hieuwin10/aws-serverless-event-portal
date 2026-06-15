@@ -1,3 +1,17 @@
+---
+title: "Scalability Design cho Serverless"
+category: Explanation
+domain: Architecture
+difficulty: Trung bình
+reading_time: 1 giờ
+last_updated: 2026-06-12
+tags: [scalability, dynamodb, lambda, api-gateway]
+requirements: [Requirement 4, Requirement 16, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Architecture](../../index.md#architecture) > Explanation*
+***
+
 # Thiết Kế Khả Năng Mở Rộng cho AWS Serverless
 
 ## Tổng quan
@@ -45,7 +59,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: EventsTable
-      BillingMode: PAY_PER_REQUEST  # Hoặc PROVISIONED với Auto Scaling
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S
@@ -60,8 +74,66 @@ Resources:
 
 **Cách áp dụng**:
 - Sử dụng PAY_PER_REQUEST cho unpredictable workloads
-- Sử dụng PROVISIONED với Auto Scaling cho predictable workloads (rẻ hơn)
+- Sử dụng PAY_PER_REQUEST để tối ưu chi phí (hoặc PROVISIONED với Auto Scaling)
 - Set min capacity = 1, max capacity = 10 (trong Free Tier)
+
+Nếu dùng Provisioned (không khuyến nghị cho Free Tier), cần thêm Application Auto Scaling:
+
+```yaml
+Resources:
+  TableReadScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: !Sub 'table/${EventsTable}'
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      MinCapacity: 1
+      MaxCapacity: 10
+      RoleARN: !GetAtt DynamoDBScalingRole.Arn
+
+  TableReadScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref TableReadScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
+
+  TableWriteScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      ServiceNamespace: dynamodb
+      ResourceId: !Sub 'table/${EventsTable}'
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      MinCapacity: 1
+      MaxCapacity: 10
+      RoleARN: !GetAtt DynamoDBScalingRole.Arn
+
+  TableWriteScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref TableWriteScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+
+  DynamoDBScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: application-autoscaling.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/DynamoDBAutoscalingRole
+```
 
 ### 2. Optimize Lambda Cold Starts
 
@@ -81,6 +153,46 @@ await lambda.send(new PutProvisionedConcurrencyConfigCommand({
 - Provisioned Concurrency cho critical functions (có phí)
 - Lambda warming với CloudWatch Events (miễn phí nhưng hacky)
 - Optimize code để giảm cold start time (minimize dependencies)
+
+Lambda warming strategy cho môi trường dev/staging:
+
+```typescript
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+
+const lambda = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
+
+const warmFunctions = ["getEvents", "createEvent", "registerEvent"];
+
+export const handler = async () => {
+  await Promise.all(
+    warmFunctions.map((functionName) =>
+      lambda.send(
+        new InvokeCommand({
+          FunctionName: functionName,
+          InvocationType: "Event",
+          Payload: Buffer.from(JSON.stringify({ source: "lambda-warmer" })),
+        })
+      )
+    )
+  );
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ warmed: warmFunctions.length }),
+  };
+};
+```
+
+```yaml
+Resources:
+  LambdaWarmerSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(5 minutes)
+      Targets:
+        - Arn: !GetAtt LambdaWarmerFunction.Arn
+          Id: LambdaWarmerTarget
+```
 
 ### 3. API Gateway Throttling
 
@@ -177,25 +289,26 @@ DefaultCacheBehavior:
 | API Gateway Caching | Giảm backend load | Có phí ($0.02/GB-hour) | Read-heavy APIs | Paid |
 | CloudFront Caching | Giảm latency, miễn phí | Stale data | Static/semi-static content | Free Tier |
 
+
+
+
+## Bước tiếp theo
+
+- [Deploy auto-scaling templates](../../infrastructure/reference/cloudformation-templates.md)
+- [Load test sau khi scale](../../testing/how-to/load-testing.md)
+
 ## Tài liệu liên quan
 
-### How-To Guides
-- [DynamoDB Auto Scaling Setup](../../operations/how-to/dynamodb-autoscaling.md)
-- [Lambda Performance Optimization](../../operations/how-to/lambda-optimization.md)
-
-### Reference
 - [Architecture Decisions](../reference/architecture-decisions.md)
-
-### AWS Documentation
-- [DynamoDB Auto Scaling](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/AutoScaling.html)
-- [Lambda Scaling](https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html)
+- [CloudFormation Templates](../../infrastructure/reference/cloudformation-templates.md)
+- [Runbooks (DynamoDB throttling)](../../operations/reference/runbooks.md)
 
 ---
 
-**Lưu ý về Free Tier**: 
-- DynamoDB Provisioned: 25 RCU/WCU miễn phí
-- Lambda: 1M requests/month miễn phí
-- API Gateway: 1M requests/month miễn phí (12 tháng đầu)
-- Provisioned Concurrency, API Gateway Caching có phí
-
-**Cập nhật lần cuối**: 2024-01-15
+**Metadata**:
+- **Requirements**: Requirement 4, Requirement 16, Requirement 17, Requirement 18
+- **Category**: Explanation
+- **Domain**: Architecture
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1 giờ
+- **Last Updated**: 2026-06-12

@@ -1,6 +1,20 @@
+---
+title: "Security Testing"
+category: How-To
+domain: Testing
+difficulty: Khó
+reading_time: 2.5 giờ
+last_updated: 2026-06-12
+tags: [security-testing, owasp, penetration, iam]
+requirements: [Requirement 12, Requirement 16, Requirement 17]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Testing](../../index.md#testing) > How-To*
+***
+
 # Kiểm Thử Bảo Mật
 
-## Vấn Đề
+## Vấn đề
 
 Kiến trúc hiện tại chưa được kiểm thử bảo mật chuyên sâu:
 - **Không có OWASP Top 10 testing** — không biết có lỗ hổng web phổ biến
@@ -9,7 +23,7 @@ Kiến trúc hiện tại chưa được kiểm thử bảo mật chuyên sâu:
 - **Chưa dùng AWS Security Hub** — không có cái nhìn tổng thể về security posture
 - **Không có automated security scan** trong CI/CD pipeline
 
-## Giải Pháp
+## Giải pháp
 
 Security testing theo 4 lớp:
 1. **OWASP Top 10** — kiểm tra các lỗ hổng web phổ biến nhất
@@ -17,7 +31,7 @@ Security testing theo 4 lớp:
 3. **API Penetration Testing** — tấn công thủ công/tự động vào API Gateway
 4. **AWS Security Hub** — giám sát security posture tổng thể
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 ```bash
 # Cài OWASP ZAP (Java-based)
@@ -675,15 +689,32 @@ python3 auto-remediate.py
 
 ---
 
-## Lưu Ý
+## Lưu ý
 
 > ⚠️ **AWS Penetration Testing Policy**: Được phép test API Gateway, Lambda, DynamoDB của chính mình. **KHÔNG** được test CloudFront, Route 53, WAF endpoint trực tiếp mà không xin phép AWS.
 
 > 💡 **Tip**: Tích hợp security scan vào CI/CD pipeline (xem `cicd-pipeline.md`) để tự động phát hiện vấn đề mỗi khi có code change.
 
-## Tài Liệu Liên Quan
 
-- [security-hardening.md](../../security/how-to/security-hardening.md) — Fix các vấn đề bảo mật
-- [iam-policies.md](../../security/reference/iam-policies.md) — Đúng IAM policies
-- [waf-configuration.md](../../security/how-to/waf-configuration.md) — Bảo vệ API Gateway
-- [cicd-pipeline.md](../../infrastructure/how-to/cicd-pipeline.md) — Tích hợp vào CI/CD
+
+
+## Bước tiếp theo
+
+- [Fix issues với security hardening](../../security/how-to/security-hardening.md)
+- [Tích hợp scan vào CI/CD](../../infrastructure/how-to/cicd-pipeline.md)
+
+## Tài liệu liên quan
+
+- [Security Hardening](../../security/how-to/security-hardening.md)
+- [WAF Configuration](../../security/how-to/waf-configuration.md)
+- [IAM Policies](../../security/reference/iam-policies.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 12, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Testing
+- **Difficulty**: Khó
+- **Estimated Reading/Implementation Time**: 2.5 giờ
+- **Last Updated**: 2026-06-12

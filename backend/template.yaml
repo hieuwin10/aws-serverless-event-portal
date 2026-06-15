@@ -13,7 +13,7 @@ Globals:
   Function:
     Runtime: nodejs20.x
     Timeout: 15
-    MemorySize: 128
+    MemorySize: 256
     Environment:
       Variables:
         DYNAMODB_TABLE_NAME: !Ref EventAppTable
@@ -86,10 +86,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: EventApp-Data
-      BillingMode: PROVISIONED            
-      ProvisionedThroughput:
-        ReadCapacityUnits: 25             
-        WriteCapacityUnits: 25            
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S
@@ -117,9 +114,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 15
-            WriteCapacityUnits: 15
         - IndexName: GSI2Index
           KeySchema:
             - AttributeName: GSI2PK
@@ -128,9 +122,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 10
-            WriteCapacityUnits: 10
 
   # ----------------------------------------------------------
   # 4. API GATEWAY
@@ -275,6 +266,93 @@ Resources:
             Path: /events/{id}
             Method: DELETE
 
+  GetRecommendationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetRecommendations
+      Handler: handlers/getRecommendations.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetRecommendations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/recommendations
+            Method: GET
+
+  ExportEventICSFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-ExportEventICS
+      Handler: handlers/exportEventICS.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        ExportEventICS:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/export
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  QRCheckInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-QRCheckIn
+      Handler: handlers/qrCheckIn.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        QRCheckIn:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/checkin
+            Method: POST
+
+  SubmitReviewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-SubmitReview
+      Handler: handlers/submitReview.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        SubmitReview:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/reviews
+            Method: POST
+
+  JoinWaitlistFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-JoinWaitlist
+      Handler: handlers/joinWaitlist.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        JoinWaitlist:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/waitlist
+            Method: POST
+
   # ----------------------------------------------------------
   # 6. LOG RETENTION (COST-02)
   # ----------------------------------------------------------
@@ -318,6 +396,36 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${DeleteEventFunction}"
+      RetentionInDays: 7
+
+  GetRecommendationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetRecommendationsFunction}"
+      RetentionInDays: 7
+
+  ExportEventICSLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ExportEventICSFunction}"
+      RetentionInDays: 7
+
+  QRCheckInLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${QRCheckInFunction}"
+      RetentionInDays: 7
+
+  SubmitReviewLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${SubmitReviewFunction}"
+      RetentionInDays: 7
+
+  JoinWaitlistLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${JoinWaitlistFunction}"
       RetentionInDays: 7
 
   # ----------------------------------------------------------

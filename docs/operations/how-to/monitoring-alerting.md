@@ -1,6 +1,20 @@
+---
+title: "Monitoring & Alerting với CloudWatch"
+category: How-To
+domain: Operations
+difficulty: Trung bình
+reading_time: 1.5 giờ
+last_updated: 2026-06-12
+tags: [cloudwatch, monitoring, alarms, sns]
+requirements: [Requirement 6, Requirement 16, Requirement 17, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Operations](../../index.md#operations) > How-To*
+***
+
 # Giám Sát và Cảnh Báo Toàn Diện
 
-## Vấn Đề
+## Vấn đề
 
 Kiến trúc hiện tại thiếu hệ thống giám sát đầy đủ:
 - **Không có CloudWatch Alarms** — không nhận được cảnh báo khi có lỗi
@@ -9,7 +23,7 @@ Kiến trúc hiện tại thiếu hệ thống giám sát đầy đủ:
 - **Log chưa được tổng hợp** — khó debug khi có sự cố liên quan đến nhiều services
 - **Không có SNS notifications** — ops team không được thông báo khi có incident
 
-## Giải Pháp
+## Giải pháp
 
 Thiết lập hệ thống giám sát 4 lớp:
 1. **CloudWatch Alarms** cho 10 metrics quan trọng nhất
@@ -17,7 +31,7 @@ Thiết lập hệ thống giám sát 4 lớp:
 3. **Custom Metrics** từ Lambda functions (business metrics)
 4. **Log Aggregation** với Lambda log processor
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 - AWS CLI đã cài đặt và cấu hình
 - Lambda functions, DynamoDB table, API Gateway đã triển khai
@@ -783,15 +797,32 @@ aws cloudwatch describe-alarm-history \
 
 ---
 
-## Lưu Ý
+## Lưu ý
 
 > ⚠️ **Free Tier**: Chỉ có 10 custom metrics và 10 alarms miễn phí. Template trên tạo 10 alarms — đúng giới hạn Free Tier. Khi thêm functions mới, cần cân nhắc hoặc nâng cấp.
 
 > 💡 **Tip**: Billing alarm chỉ hoạt động ở region `us-east-1`. Nếu deploy ở region khác, vẫn phải tạo billing alarm ở `us-east-1`.
 
-## Tài Liệu Liên Quan
 
-- [cost-optimization.md](./cost-optimization.md) — Giám sát chi phí
-- [runbooks.md](../reference/runbooks.md) — Xử lý khi có alarm
-- [cloudformation-templates.md](../../infrastructure/reference/cloudformation-templates.md) — Templates đầy đủ
-- [AWS CloudWatch Pricing](https://aws.amazon.com/cloudwatch/pricing/)
+
+
+## Bước tiếp theo
+
+- [Thiết lập runbooks cho incidents](../reference/runbooks.md)
+- [Tối ưu chi phí monitoring](cost-optimization.md)
+
+## Tài liệu liên quan
+
+- [Runbooks](../reference/runbooks.md)
+- [Cost Optimization](cost-optimization.md)
+- [CloudFormation Templates](../../infrastructure/reference/cloudformation-templates.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 6, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Operations
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1.5 giờ
+- **Last Updated**: 2026-06-12

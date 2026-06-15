@@ -1,6 +1,20 @@
+---
+title: "Cấu Hình Cognito Nâng Cao"
+category: How-To
+domain: Security
+difficulty: Trung bình
+reading_time: 1.5 giờ
+last_updated: 2026-06-12
+tags: [cognito, mfa, authentication, security]
+requirements: [Requirement 3, Requirement 16, Requirement 17]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Security](../../index.md#security) > How-To*
+***
+
 # Cấu Hình Cognito Nâng Cao
 
-## Vấn Đề
+## Vấn đề
 
 Cognito User Pool mặc định có nhiều điểm yếu bảo mật:
 - **Không có MFA** — tài khoản dễ bị brute-force hoặc credential stuffing
@@ -9,7 +23,7 @@ Cognito User Pool mặc định có nhiều điểm yếu bảo mật:
 - **Không bật advanced security** — không phát hiện được tấn công account takeover
 - **Thiếu app client restrictions** — token có thể bị lạm dụng
 
-## Giải Pháp
+## Giải pháp
 
 Cấu hình Cognito User Pool với:
 1. **MFA** (Multi-Factor Authentication) — bắt buộc hoặc tùy chọn
@@ -18,7 +32,7 @@ Cấu hình Cognito User Pool với:
 4. **Advanced Security** — risk-based authentication (AUDIT/ENFORCED mode)
 5. **App Client** — chỉ cho phép Auth Flows cần thiết
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 - AWS CLI đã cài đặt và cấu hình
 - Node.js 18+ và AWS SAM CLI
@@ -842,7 +856,7 @@ aws cognito-idp describe-user-pool \
 
 ---
 
-## Lưu Ý
+## Lưu ý
 
 | Tính năng | Free Tier | Chi phí |
 |-----------|-----------|---------|
@@ -850,14 +864,30 @@ aws cognito-idp describe-user-pool \
 | SMS MFA | ❌ Tốn phí | $0.00645/SMS |
 | Advanced Security (AUDIT) | ✅ Miễn phí | $0 |
 | Advanced Security (ENFORCED) | ❌ Tốn phí | $0.05/MAU |
-| Lambda Triggers | ✅ Free Tier Lambda | Xem [cost-optimization.md](../operations/how-to/cost-optimization.md) |
+| Lambda Triggers | ✅ Free Tier Lambda | Xem [cost-optimization.md](../../operations/how-to/cost-optimization.md) |
 
 > ⚠️ **Quan trọng**: Khi migrate từ User Pool cũ sang cấu hình mới, không thể thay đổi `UsernameAttributes` sau khi tạo. Cần tạo User Pool mới và migrate users.
 
-## Tài Liệu Liên Quan
 
-- [security-hardening.md](./security-hardening.md) — Hardening tổng thể
-- [iam-policies.md](../reference/iam-policies.md) — IAM policies cho Cognito
-- [waf-configuration.md](./waf-configuration.md) — WAF bảo vệ API Gateway
-- [monitoring-alerting.md](../../operations/how-to/monitoring-alerting.md) — Giám sát login events
-- [AWS Cognito Developer Guide](https://docs.aws.amazon.com/cognito/latest/developerguide/)
+
+
+## Bước tiếp theo
+
+- [Security hardening IAM](security-hardening.md)
+- [Runbook Cognito failures](../../operations/reference/runbooks.md)
+
+## Tài liệu liên quan
+
+- [IAM Policies](../reference/iam-policies.md)
+- [Security Testing](../../testing/how-to/security-testing.md)
+- [Architecture Decisions (Cognito ADR)](../../architecture/reference/architecture-decisions.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 3, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Security
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1.5 giờ
+- **Last Updated**: 2026-06-12

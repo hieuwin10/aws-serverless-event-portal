@@ -1,6 +1,20 @@
+---
+title: "CI/CD Pipeline với GitHub Actions"
+category: How-To
+domain: Infrastructure
+difficulty: Khó
+reading_time: 2.5 giờ
+last_updated: 2026-06-12
+tags: [cicd, github-actions, deployment, devops]
+requirements: [Requirement 10, Requirement 16, Requirement 17]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Infrastructure](../../index.md#infrastructure) > How-To*
+***
+
 # CI/CD Pipeline Nâng Cao
 
-## Vấn Đề
+## Vấn đề
 
 Quy trình triển khai hiện tại hoàn toàn thủ công:
 - **Không có automated testing** — lỗi chỉ phát hiện sau khi deploy lên production
@@ -9,14 +23,14 @@ Quy trình triển khai hiện tại hoàn toàn thủ công:
 - **Không có automatic rollback** — khi lỗi phải fix thủ công
 - **Không nhất quán** — mỗi lần deploy có thể khác nhau
 
-## Giải Pháp
+## Giải pháp
 
 Pipeline tự động với GitHub Actions gồm 3 stages:
 1. **Security Scan** — quét lỗ hổng bảo mật trong dependencies
 2. **Automated Testing** — unit tests + integration tests
 3. **Blue-Green Deploy** — deploy không downtime với auto-rollback
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 - GitHub repository đã thiết lập
 - AWS IAM User với quyền deploy (xem `iam-policies.md`)
@@ -813,8 +827,25 @@ gh workflow run deploy.yml -f environment=dev
 
 ---
 
-## Tài Liệu Liên Quan
 
-- [cloudformation-templates.md](../reference/cloudformation-templates.md) — Infrastructure templates
-- [iam-policies.md](../../security/reference/iam-policies.md) — IAM cho CI/CD
-- [monitoring-alerting.md](../../operations/how-to/monitoring-alerting.md) — Giám sát sau deploy
+
+
+## Bước tiếp theo
+
+- [Security testing trong pipeline](../../testing/how-to/security-testing.md)
+- [Load test sau deploy](../../testing/how-to/load-testing.md)
+
+## Tài liệu liên quan
+
+- [CloudFormation Templates](../reference/cloudformation-templates.md)
+- [Security Testing](../../testing/how-to/security-testing.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 10, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Infrastructure
+- **Difficulty**: Khó
+- **Estimated Reading/Implementation Time**: 2.5 giờ
+- **Last Updated**: 2026-06-12

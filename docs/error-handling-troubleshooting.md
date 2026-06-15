@@ -27,7 +27,7 @@ Tài liệu này cung cấp danh mục toàn diện các lỗi thường gặp t
 
 | Mục | Chi tiết |
 | :--- | :--- |
-| **Thông báo CloudWatch** | `Runtime exited with error: signal: killed` hoặc `REPORT ... Max Memory Used: 128 MB` |
+| **Thông báo CloudWatch** | `Runtime exited with error: signal: killed` hoặc `REPORT ... Max Memory Used: 256 MB` |
 | **Nguyên nhân** | Hàm cố gắng xử lý dữ liệu quá lớn trong bộ nhớ (ví dụ: load toàn bộ bảng DynamoDB vào RAM). |
 | **Cách khắc phục** | 1. Tăng bộ nhớ Lambda lên **256MB** (vẫn nằm trong Free Tier vì hạn mức tính theo GB-seconds). <br/> 2. Phân trang dữ liệu: Sử dụng `Limit` và `ExclusiveStartKey` khi truy vấn DynamoDB. |
 

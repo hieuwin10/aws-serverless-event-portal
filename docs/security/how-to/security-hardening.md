@@ -1,3 +1,17 @@
+---
+title: "Hướng Dẫn Hardening Bảo Mật Toàn Diện cho AWS Serverless"
+category: How-To
+domain: Security
+difficulty: Trung bình
+reading_time: 2 giờ
+last_updated: 2026-06-12
+tags: [security, iam, s3, cloudfront, hardening]
+requirements: [Requirement 3, Requirement 16, Requirement 17, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Security](../../index.md#security) > How-To*
+***
+
 # Hướng Dẫn Hardening Bảo Mật Toàn Diện cho AWS Serverless
 
 ## Vấn đề
@@ -225,6 +239,120 @@ aws s3api put-bucket-logging \
 - **AES256**: Mã hóa server-side miễn phí (không cần KMS)
 - **BucketKeyEnabled**: Giảm chi phí KMS requests (nếu sau này chuyển sang KMS)
 
+**S3 Bucket Policy JSON** (để chặn public access và chỉ cho phép CloudFront):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontServicePrincipal",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::event-app-frontend/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::ACCOUNT_ID:distribution/DISTRIBUTION_ID"
+        }
+      }
+    },
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::event-app-frontend",
+        "arn:aws:s3:::event-app-frontend/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnencryptedObjectUploads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::event-app-frontend/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "AES256"
+        }
+      }
+    }
+  ]
+}
+```
+
+**Apply bucket policy**:
+```bash
+# Save policy to file
+cat > s3-bucket-policy.json << 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontServicePrincipal",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::event-app-frontend/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::ACCOUNT_ID:distribution/DISTRIBUTION_ID"
+        }
+      }
+    },
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::event-app-frontend",
+        "arn:aws:s3:::event-app-frontend/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnencryptedObjectUploads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::event-app-frontend/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "AES256"
+        }
+      }
+    }
+  ]
+}
+EOF
+
+# Apply policy
+aws s3api put-bucket-policy \
+  --bucket event-app-frontend \
+  --policy file://s3-bucket-policy.json
+```
+
+**Giải thích S3 Bucket Policy**:
+- **AllowCloudFrontServicePrincipal**: Chỉ cho phép CloudFront distribution cụ thể đọc objects
+- **DenyInsecureTransport**: Bắt buộc HTTPS cho tất cả requests đến S3
+- **DenyUnencryptedObjectUploads**: Bắt buộc encryption (AES256) khi upload files
+
 **Kết quả mong đợi**: S3 bucket hoàn toàn private, dữ liệu được mã hóa at rest
 
 ### 4. Bật MFA cho Cognito User Pool
@@ -362,6 +490,444 @@ aws cloudfront update-distribution \
 - **Permissions-Policy**: Disable các APIs không cần thiết
 
 **Kết quả mong đợi**: Frontend đạt A+ trên securityheaders.com
+
+### 6. Triển khai Tất cả bằng CloudFormation/SAM Template
+
+**Mục đích**: Tự động hóa toàn bộ security hardening bằng Infrastructure as Code
+
+```yaml
+# template.yaml - SAM Template cho Security Hardening
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Security Hardening cho AWS Serverless Event Portal
+
+Parameters:
+  FrontendBucketName:
+    Type: String
+    Default: event-app-frontend
+    Description: Tên S3 bucket cho frontend
+  
+  LogsBucketName:
+    Type: String
+    Default: event-app-logs
+    Description: Tên S3 bucket cho logs
+  
+  CognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID hiện tại
+  
+  ApiGatewayId:
+    Type: String
+    Description: API Gateway REST API ID hiện tại
+  
+  ApiGatewayStageName:
+    Type: String
+    Default: prod
+    Description: API Gateway Stage name
+
+Resources:
+  # ============================================================================
+  # IAM Role cho Lambda với Least Privilege
+  # ============================================================================
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EventLambdaExecutionRole-Hardened
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBLeastPrivilege
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DynamoDBReadWrite
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventsTable'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/EventsTable/index/*'
+              - Sid: CloudWatchLogsWrite
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
+
+  # ============================================================================
+  # S3 Bucket cho Frontend với Security Hardening
+  # ============================================================================
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref FrontendBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+        LogFilePrefix: s3-access-logs/
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+          - Id: TransitionToIA
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: STANDARD_IA
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOAI
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                'AWS:SourceArn': !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt FrontendBucket.Arn
+              - !Sub '${FrontendBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+
+  LogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref LogsBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldLogs
+            Status: Enabled
+            ExpirationInDays: 90
+
+  # ============================================================================
+  # WAF Web ACL cho API Gateway
+  # ============================================================================
+  WAFWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: EventAPIProtection
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: RateLimitRule
+          Priority: 1
+          Statement:
+            RateBasedStatement:
+              Limit: 2000
+              AggregateKeyType: IP
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitRule
+        
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+        
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSet
+      
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: EventAPIProtection
+
+  WAFWebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${ApiGatewayId}/stages/${ApiGatewayStageName}'
+      WebACLArn: !GetAtt WAFWebACL.Arn
+
+  # ============================================================================
+  # Lambda@Edge cho CloudFront Security Headers
+  # ============================================================================
+  LambdaEdgeExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  SecurityHeadersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SecurityHeadersEdge
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt LambdaEdgeExecutionRole.Arn
+      AutoPublishAlias: live
+      InlineCode: |
+        exports.handler = async (event) => {
+          const response = event.Records[0].cf.response;
+          const headers = response.headers;
+          
+          headers['strict-transport-security'] = [{
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          }];
+          
+          headers['content-security-policy'] = [{
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cognito-idp.us-east-1.amazonaws.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://cognito-idp.us-east-1.amazonaws.com; frame-ancestors 'none';"
+          }];
+          
+          headers['x-content-type-options'] = [{
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          }];
+          
+          headers['x-frame-options'] = [{
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          }];
+          
+          headers['x-xss-protection'] = [{
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          }];
+          
+          headers['referrer-policy'] = [{
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          }];
+          
+          headers['permissions-policy'] = [{
+            key: 'Permissions-Policy',
+            value: 'geolocation=(), microphone=(), camera=()'
+          }];
+          
+          return response;
+        };
+
+  # ============================================================================
+  # CloudFront Distribution với Security Headers
+  # ============================================================================
+  CloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${FrontendBucketName}-OAC'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !Ref CloudFrontOriginAccessControl
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          LambdaFunctionAssociations:
+            - EventType: origin-response
+              LambdaFunctionARN: !Ref SecurityHeadersFunction.Version
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+        Logging:
+          Bucket: !GetAtt LogsBucket.DomainName
+          Prefix: cloudfront-logs/
+          IncludeCookies: false
+
+  # ============================================================================
+  # CloudWatch Alarms cho Security Monitoring
+  # ============================================================================
+  WAFBlockedRequestsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: WAF-HighBlockedRequests
+      AlarmDescription: Alert when WAF blocks more than 1000 requests in 5 minutes
+      MetricName: BlockedRequests
+      Namespace: AWS/WAFV2
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1000
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Rule
+          Value: ALL
+        - Name: WebACL
+          Value: EventAPIProtection
+
+Outputs:
+  LambdaExecutionRoleArn:
+    Description: ARN của Lambda Execution Role với Least Privilege
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaExecutionRoleArn'
+
+  FrontendBucketName:
+    Description: Tên S3 bucket cho frontend (đã hardened)
+    Value: !Ref FrontendBucket
+
+  WAFWebACLArn:
+    Description: ARN của WAF Web ACL
+    Value: !GetAtt WAFWebACL.Arn
+
+  CloudFrontDistributionId:
+    Description: CloudFront Distribution ID
+    Value: !Ref CloudFrontDistribution
+
+  CloudFrontDomainName:
+    Description: CloudFront Domain Name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+
+  SecurityHeadersFunctionArn:
+    Description: ARN của Lambda@Edge function cho security headers
+    Value: !GetAtt SecurityHeadersFunction.Arn
+```
+
+**Deployment Instructions**:
+
+```bash
+# 1. Validate template
+sam validate --template template.yaml
+
+# 2. Deploy stack
+sam deploy \
+  --template-file template.yaml \
+  --stack-name event-app-security-hardening \
+  --parameter-overrides \
+    FrontendBucketName=event-app-frontend \
+    LogsBucketName=event-app-logs \
+    CognitoUserPoolId=us-east-1_XXXXXXXXX \
+    ApiGatewayId=abcdef1234 \
+    ApiGatewayStageName=prod \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region us-east-1
+
+# 3. Get outputs
+aws cloudformation describe-stacks \
+  --stack-name event-app-security-hardening \
+  --query 'Stacks[0].Outputs'
+
+# 4. Update existing Lambda functions để sử dụng role mới
+aws lambda update-function-configuration \
+  --function-name YourExistingFunction \
+  --role $(aws cloudformation describe-stacks \
+    --stack-name event-app-security-hardening \
+    --query 'Stacks[0].Outputs[?OutputKey==`LambdaExecutionRoleArn`].OutputValue' \
+    --output text)
+```
+
+**Giải thích Template**:
+
+1. **LambdaExecutionRole**: IAM role với Least Privilege cho tất cả Lambda functions
+2. **FrontendBucket**: S3 bucket với:
+   - Public access block enabled
+   - AES256 encryption
+   - Versioning enabled
+   - Lifecycle policies để tối ưu chi phí
+3. **FrontendBucketPolicy**: Bucket policy cho phép CloudFront OAI, deny insecure transport
+4. **WAFWebACL**: Web ACL với 3 rules (rate limiting, common rule set, bad inputs)
+5. **SecurityHeadersFunction**: Lambda@Edge function inject security headers
+6. **CloudFrontDistribution**: Distribution với OAC, security headers, logging
+7. **CloudWatch Alarms**: Cảnh báo khi có anomalies
+
+**Dependencies**:
+- AWS SAM CLI: `pip install aws-sam-cli`
+- AWS CLI configured: `aws configure`
+
+**Cost Estimate** (sau khi deploy):
+- WAF: $5/month + $3/month (3 rules) = $8/month
+- CloudFront: Free Tier (50 GB/month)
+- Lambda@Edge: $0.60/1M requests (thường < $1/month)
+- S3: Free Tier (5 GB storage)
+- **Total**: ~$9-10/month
 
 ## Xác minh
 
@@ -516,26 +1082,29 @@ aws wafv2 get-sampled-requests \
 - Enable AWS Security Hub để centralize security findings
 - Sử dụng AWS Secrets Manager cho sensitive data ($0.40/secret/month)
 
+
+
+
+## Bước tiếp theo
+
+- [Triển khai WAF cho API Gateway](waf-configuration.md)
+- [Bật MFA và Cognito nâng cao](cognito-advanced.md)
+- [Kiểm tra bảo mật với OWASP ZAP](../../testing/how-to/security-testing.md)
+
 ## Tài liệu liên quan
 
-### How-To Guides
-- [Cấu hình WAF Chi tiết](./waf-configuration.md)
-- [Cấu hình Cognito Nâng cao](./cognito-advanced.md)
-
-### Reference
 - [IAM Policies Reference](../reference/iam-policies.md)
-
-### AWS Documentation
-- [AWS WAF Developer Guide](https://docs.aws.amazon.com/waf/)
-- [AWS Security Best Practices](https://docs.aws.amazon.com/security/)
-- [Cognito Security Best Practices](https://docs.aws.amazon.com/cognito/latest/developerguide/security.html)
+- [WAF Configuration](waf-configuration.md)
+- [Well-Architected Assessment](../../well-architected-assessment.md)
 
 ---
 
 **Metadata**:
-- **Category**: how-to
-- **Domain**: security
+- **Requirements**: Requirement 3, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Security
 - **Tags**: security, hardening, iam, waf, cognito, mfa, s3, cloudfront, encryption
-- **Last Updated**: 2024-01-15
+- **Last Updated**: 2026-06-12
 - **Free Tier Compatible**: Partial (WAF có phí)
-- **Estimated Cost**: $10-15/month (chủ yếu từ WAF)
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 2 giờ

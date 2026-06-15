@@ -1,6 +1,20 @@
+---
+title: "Chaos Engineering với AWS FIS"
+category: How-To
+domain: Testing
+difficulty: Khó
+reading_time: 2 giờ
+last_updated: 2026-06-12
+tags: [chaos-engineering, fis, resilience, testing]
+requirements: [Requirement 13, Requirement 16, Requirement 17, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Testing](../../index.md#testing) > How-To*
+***
+
 # Chaos Engineering với AWS Fault Injection Simulator
 
-## Vấn Đề
+## Vấn đề
 
 Không biết hệ thống có bền vững khi có failures thực tế:
 - **Chưa biết** Lambda xử lý thế nào khi bị lỗi 50% requests
@@ -9,7 +23,7 @@ Không biết hệ thống có bền vững khi có failures thực tế:
 - **Không có Game Days** — chưa từng diễn tập incident response
 - **Runbooks chưa được test** trong điều kiện thực tế
 
-## Giải Pháp
+## Giải pháp
 
 Chaos Engineering với 3 công cụ:
 1. **AWS Fault Injection Simulator (FIS)** — service chính thức của AWS
@@ -28,7 +42,7 @@ Quy trình chuẩn:
 5. **Conclude** — hệ thống có resilient không?
 6. **Fix** — cải thiện nếu không đạt kỳ vọng
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 ```bash
 # Verify AWS FIS permissions
@@ -511,7 +525,131 @@ echo "✅ Concurrency đã khôi phục"
 
 ---
 
-## Bước 5: Phân Tích Kết Quả Chaos Experiments
+## Bước 5: Scenario 4 — API Gateway 5xx Errors
+
+Scenario này mô phỏng API Gateway trả về 5xx bằng cách inject lỗi vào Lambda integration phía sau endpoint chính. Mục tiêu là kiểm tra API Gateway metrics, alarm, retry behavior ở client và runbook rollback.
+
+### 5.1 FIS Experiment Template cho API Gateway 5xx
+
+```json
+{
+  "description": "Mô phỏng API Gateway 5xx bằng Lambda integration error trong 5 phút",
+  "targets": {
+    "ApiLambdaFunctions": {
+      "resourceType": "aws:lambda:function",
+      "resourceArns": [
+        "arn:aws:lambda:us-east-1:ACCOUNT_ID:function:getEvents",
+        "arn:aws:lambda:us-east-1:ACCOUNT_ID:function:createEvent"
+      ],
+      "selectionMode": "ALL"
+    }
+  },
+  "actions": {
+    "InjectApiIntegrationErrors": {
+      "actionId": "aws:lambda:invocation-error",
+      "description": "Inject 5xx-like integration failures cho API Gateway",
+      "parameters": {
+        "errorType": "ServiceException",
+        "errorMessage": "FIS API Gateway 5xx simulation",
+        "percentage": "30",
+        "startupDelay": "PT0S"
+      },
+      "targets": {
+        "Functions": "ApiLambdaFunctions"
+      }
+    }
+  },
+  "stopConditions": [
+    {
+      "source": "aws:cloudwatch:alarm",
+      "value": "STOP_ALARM_ARN"
+    }
+  ],
+  "roleArn": "FIS_ROLE_ARN",
+  "tags": {
+    "Environment": "dev",
+    "Experiment": "api-gateway-5xx",
+    "SafeToRun": "true"
+  }
+}
+```
+
+### 5.2 FIS Experiment Template cho DynamoDB Throttling
+
+AWS FIS không luôn hỗ trợ direct throttling action cho mọi DynamoDB workload. Template dưới đây dùng SSM automation document nội bộ để giảm provisioned capacity tạm thời, sau đó rollback bằng script ở Scenario 2.
+
+```json
+{
+  "description": "Mô phỏng DynamoDB throttling bằng SSM automation giảm WCU/RCU tạm thời",
+  "targets": {
+    "DynamoDBControlInstance": {
+      "resourceType": "aws:ec2:instance",
+      "resourceTags": {
+        "Role": "chaos-runner",
+        "Environment": "dev"
+      },
+      "selectionMode": "COUNT(1)"
+    }
+  },
+  "actions": {
+    "ReduceDynamoDBCapacity": {
+      "actionId": "aws:ssm:send-command",
+      "description": "Chạy script giảm provisioned throughput để tạo throttling có kiểm soát",
+      "parameters": {
+        "documentArn": "arn:aws:ssm:us-east-1:ACCOUNT_ID:document/DynamoDBThrottleSimulation",
+        "documentParameters": "{\"TableName\":\"EventsTable\",\"ReadCapacityUnits\":\"1\",\"WriteCapacityUnits\":\"1\",\"DurationMinutes\":\"5\"}",
+        "duration": "PT5M"
+      },
+      "targets": {
+        "Instances": "DynamoDBControlInstance"
+      }
+    }
+  },
+  "stopConditions": [
+    {
+      "source": "aws:cloudwatch:alarm",
+      "value": "STOP_ALARM_ARN"
+    }
+  ],
+  "roleArn": "FIS_ROLE_ARN",
+  "tags": {
+    "Environment": "dev",
+    "Experiment": "dynamodb-throttling",
+    "SafeToRun": "true"
+  }
+}
+```
+
+### 5.3 Kiểm Tra API Gateway 5xx
+
+```bash
+#!/bin/bash
+API_NAME="EventAPI"
+START_TIME=$(date -u -d '10 minutes ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-10M +%Y-%m-%dT%H:%M:%SZ)
+END_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/ApiGateway \
+  --metric-name 5XXError \
+  --dimensions Name=ApiName,Value=$API_NAME \
+  --start-time $START_TIME \
+  --end-time $END_TIME \
+  --period 60 \
+  --statistics Sum \
+  --query 'Datapoints[*].{Time:Timestamp,Errors:Sum}' \
+  --output table
+```
+
+**Pass criteria**:
+
+- CloudWatch `5XXError` alarm trigger trong vòng 5 phút.
+- API trả về status nhất quán, ưu tiên 503 với response body rõ ràng.
+- Sau khi experiment dừng, 5xx trở về baseline trong 5 phút.
+- Runbook `API Gateway 5xx Errors` đủ thông tin để rollback hoặc disable alias lỗi.
+
+---
+
+## Bước 6: Phân Tích Kết Quả Chaos Experiments
 
 ### Checklist Đánh Giá Sau Experiment
 
@@ -609,11 +747,12 @@ echo "  ❓ Recovery time bao lâu? → Xem CloudWatch timeline"
 | Lambda 50% Error | FIS error injection | Error rate < 60%, alarm trigger | Retry logic, graceful degradation |
 | DynamoDB Throttle | Giảm WCU xuống 1 | Lambda retry, partial success | Exponential backoff |
 | Lambda Concurrency=1 | Reserved concurrency | 429 thay vì 500, queue requests | Async processing |
+| API Gateway 5xx | Lambda integration error injection | Alarm trigger, recover < 5 phút | Error mapping, rollback workflow |
 | Cold Start Burst | Giảm xuống 0 concurrency | First request < 5s | Provisioned concurrency |
 
 ---
 
-## Lưu Ý
+## Lưu ý
 
 > ⚠️ **Safety First**: Luôn có `stopConditions` trong FIS template. Experiment sẽ tự dừng nếu alarm trigger.
 
@@ -623,9 +762,26 @@ echo "  ❓ Recovery time bao lâu? → Xem CloudWatch timeline"
 
 > 💡 **Tip**: Sau mỗi experiment, cập nhật [runbooks.md](../../operations/reference/runbooks.md) với những gì học được.
 
-## Tài Liệu Liên Quan
 
-- [runbooks.md](../../operations/reference/runbooks.md) — Incident response
-- [monitoring-alerting.md](../../operations/how-to/monitoring-alerting.md) — Monitor trong experiments
-- [scalability-design.md](../../architecture/explanation/scalability-design.md) — Thiết kế resilient
-- [AWS FIS Documentation](https://docs.aws.amazon.com/fis/latest/userguide/)
+
+
+## Bước tiếp theo
+
+- [Cập nhật runbooks từ kết quả chaos test](../../operations/reference/runbooks.md)
+- [Thiết lập monitoring cho failures](../../operations/how-to/monitoring-alerting.md)
+
+## Tài liệu liên quan
+
+- [Runbooks](../../operations/reference/runbooks.md)
+- [Load Testing](load-testing.md)
+- [Backup & Recovery](../../operations/how-to/backup-recovery.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 13, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Testing
+- **Difficulty**: Khó
+- **Estimated Reading/Implementation Time**: 2 giờ
+- **Last Updated**: 2026-06-12

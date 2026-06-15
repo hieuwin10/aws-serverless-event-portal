@@ -1,6 +1,49 @@
+---
+title: "Operations Runbooks"
+category: Reference
+domain: Operations
+difficulty: Trung bình
+reading_time: 2 giờ
+last_updated: 2026-06-12
+tags: [runbooks, incident, troubleshooting, operations]
+requirements: [Requirement 7, Requirement 16, Requirement 17]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Operations](../../index.md#operations) > Reference*
+***
+
 # Runbooks — Cẩm Nang Vận Hành
 
 Tài liệu này cung cấp hướng dẫn xử lý sự cố từng bước cho 5 tình huống thường gặp nhất. Mỗi runbook bao gồm: triệu chứng, nguyên nhân, chẩn đoán, và các bước giải quyết với lệnh AWS CLI cụ thể.
+
+## Điều kiện tiên quyết
+
+Trước khi chạy các commands trong runbooks, đảm bảo:
+
+1. **AWS CLI đã được cài đặt và cấu hình**:
+   ```bash
+   aws --version  # Nên >= 2.0
+   aws configure list  # Kiểm tra credentials
+   ```
+
+2. **Có quyền IAM cần thiết**:
+   - `cloudwatch:GetMetricStatistics` - Đọc CloudWatch metrics
+   - `logs:FilterLogEvents`, `logs:DescribeLogStreams`, `logs:GetLogEvents` - Đọc logs
+   - `lambda:GetFunctionConfiguration`, `lambda:UpdateFunctionConfiguration` - Quản lý Lambda
+   - `dynamodb:DescribeTable`, `dynamodb:UpdateTable` - Quản lý DynamoDB
+   - `cognito-idp:Admin*` - Quản lý Cognito users
+   - `apigateway:GET` - Đọc API Gateway config
+   - `cloudfront:GetDistribution*`, `cloudfront:CreateInvalidation` - Quản lý CloudFront
+
+3. **Biến môi trường cần thiết** (tùy chọn - thay thế giá trị trong scripts):
+   ```bash
+   export AWS_REGION="us-east-1"
+   export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+   ```
+
+4. **Công cụ CLI bổ sung** (tùy chọn):
+   - `jq` - Parse JSON output dễ hơn
+   - `bc` - Tính toán trong bash (dùng cho một số scripts)
 
 ---
 
@@ -639,16 +682,151 @@ aws cloudfront list-invalidations \
 
 ## Bảng Tóm Tắt Quick Reference
 
-| Sự Cố | Lệnh Chẩn Đoán Nhanh | Lệnh Fix Nhanh |
-|-------|----------------------|----------------|
-| Lambda Timeout | `aws logs filter-log-events --filter-pattern "timed out"` | `aws lambda update-function-configuration --timeout 60` |
-| DynamoDB Throttle | `aws cloudwatch get-metric-statistics --metric-name ThrottledRequests` | `aws dynamodb update-table --billing-mode PAY_PER_REQUEST` |
-| Cognito Login Fail | `aws cognito-idp admin-get-user` | `aws cognito-idp admin-reset-user-password` |
-| API 5xx Error | `aws logs filter-log-events --filter-pattern "ERROR"` | Rollback deployment |
-| CloudFront Cache | `curl -I https://domain/index.html \| grep x-cache` | `aws cloudfront create-invalidation --paths "/*"` |
+| Sự Cố | Triệu Chứng | Lệnh Chẩn Đoán Nhanh | Lệnh Fix Nhanh | Thời Gian Fix |
+|-------|-------------|----------------------|----------------|---------------|
+| Lambda Timeout | `Task timed out after 30s` | `aws logs filter-log-events --filter-pattern "timed out"` | `aws lambda update-function-configuration --timeout 60 --memory-size 512` | ~30 giây |
+| DynamoDB Throttle | `ProvisionedThroughputExceededException` | `aws cloudwatch get-metric-statistics --metric-name ReadThrottleEvents` | `aws dynamodb update-table --billing-mode PAY_PER_REQUEST` | ~2-5 phút |
+| Cognito Login Fail | `NotAuthorizedException` | `aws cognito-idp admin-get-user --username <user>` | `aws cognito-idp admin-reset-user-password` | ~10 giây |
+| API 5xx Error | HTTP 500/502/503 | `aws logs filter-log-events --filter-pattern "ERROR"` | Rollback deployment hoặc fix Lambda | ~5-10 phút |
+| CloudFront Cache | Users thấy nội dung cũ | `curl -I https://domain/index.html \| grep x-cache` | `aws cloudfront create-invalidation --paths "/*"` | ~5-15 phút |
 
-## Tài Liệu Liên Quan
+### Lưu ý Chi Phí
 
-- [monitoring-alerting.md](../how-to/monitoring-alerting.md) — Thiết lập alarms để phát hiện sự cố sớm
-- [backup-recovery.md](../how-to/backup-recovery.md) — Khôi phục data khi cần
-- [cloudformation-templates.md](../../infrastructure/reference/cloudformation-templates.md) — Rollback infrastructure
+| Hành Động | Chi Phí | Trong Free Tier |
+|-----------|---------|-----------------|
+| CloudWatch Metrics queries | Miễn phí cho AWS metrics | ✅ Có |
+| CloudWatch Logs queries | $0.005/GB scanned | ✅ Trong 5 GB đầu |
+| DynamoDB On-Demand mode | $1.25/million write, $0.25/million read | ❌ Không - cần monitor |
+| CloudFront invalidation | Miễn phí 1000 paths/tháng, sau đó $0.005/path | ✅ Có (giới hạn 1000) |
+| Lambda updates | Miễn phí | ✅ Có |
+| Cognito operations | Miễn phí 50,000 MAU | ✅ Có |
+
+---
+
+## Xử Lý Sự Cố Chung
+
+### Lỗi AWS CLI Thường Gặp
+
+#### 1. `Unable to locate credentials`
+```bash
+# Kiểm tra credentials
+aws configure list
+
+# Nếu chưa có, cấu hình lại
+aws configure
+# Nhập: AWS Access Key ID, Secret Access Key, region (us-east-1), output format (json)
+```
+
+#### 2. `An error occurred (AccessDeniedException)`
+```bash
+# Kiểm tra IAM user/role hiện tại
+aws sts get-caller-identity
+
+# Xem policies được attach
+aws iam list-attached-user-policies --user-name $(aws iam get-user --query User.UserName --output text)
+
+# Liên hệ admin để được cấp quyền cần thiết
+```
+
+#### 3. `Parameter validation failed: Invalid type for parameter`
+```bash
+# Thường do thiếu --cli-binary-format raw-in-base64-out
+# Thêm vào mọi lệnh có --payload
+
+aws lambda invoke \
+  --function-name myFunction \
+  --payload '{"key":"value"}' \
+  --cli-binary-format raw-in-base64-out \
+  output.json
+```
+
+#### 4. `date: illegal option` (trên macOS)
+```bash
+# Scripts trong runbooks dùng GNU date (Linux)
+# Trên macOS, cài GNU coreutils:
+brew install coreutils
+
+# Hoặc thay thế trong scripts:
+# Linux:   $(date -d '1 hour ago' +%s000)
+# macOS:   $(date -v-1H +%s000)
+```
+
+### Workflow Xử Lý Sự Cố Tổng Quát
+
+```mermaid
+graph TD
+    A[Phát hiện sự cố] --> B{Đã có alarm?}
+    B -->|Có| C[Kiểm tra CloudWatch Dashboard]
+    B -->|Không| D[Kiểm tra logs thủ công]
+    C --> E[Xác định service bị ảnh hưởng]
+    D --> E
+    E --> F{Service nào?}
+    F -->|Lambda| G[Runbook 1: Lambda Timeout]
+    F -->|DynamoDB| H[Runbook 2: DynamoDB Throttle]
+    F -->|Cognito| I[Runbook 3: Cognito Auth]
+    F -->|API Gateway| J[Runbook 4: API 5xx]
+    F -->|CloudFront| K[Runbook 5: CloudFront Cache]
+    G --> L[Thực hiện fix]
+    H --> L
+    I --> L
+    J --> L
+    K --> L
+    L --> M[Theo dõi metrics 10-15 phút]
+    M --> N{Đã fix?}
+    N -->|Có| O[Tạo post-mortem report]
+    N -->|Không| P[Escalate hoặc thử giải pháp khác]
+    P --> L
+```
+
+### Tips Giám Sát Proactive
+
+Để giảm thiểu sự cố, thiết lập monitoring theo [monitoring-alerting.md](../how-to/monitoring-alerting.md):
+
+1. **Lambda**: Alarm cho `Errors`, `Duration > p99`, `Throttles`
+2. **DynamoDB**: Alarm cho `ReadThrottleEvents`, `WriteThrottleEvents`, `UserErrors`
+3. **API Gateway**: Alarm cho `5XXError`, `4XXError`, `Latency > p95`
+4. **Cognito**: Alarm cho `CompromisedCredentialsRisk` (nếu có Advanced Security)
+5. **CloudFront**: Alarm cho `TotalErrorRate`, `5xxErrorRate`
+
+### Khi Nào Cần Escalate
+
+🚨 **Escalate ngay lập tức nếu**:
+- Sự cố ảnh hưởng **> 50% users** trong **> 15 phút**
+- Mất dữ liệu hoặc data corruption
+- Security breach hoặc unauthorized access
+- Tất cả runbooks đã thử nhưng sự cố vẫn tiếp diễn
+- Multi-region outage (AWS có thể đang có incident)
+
+📋 **Thông tin cần chuẩn bị khi escalate**:
+- Thời điểm bắt đầu sự cố
+- Services bị ảnh hưởng
+- Số lượng users ảnh hưởng (ước tính)
+- Các bước đã thử (paste command outputs)
+- CloudWatch Dashboard screenshots
+- Error logs samples
+
+---
+
+
+
+
+## Bước tiếp theo
+
+- [Thiết lập CloudWatch alarms](../how-to/monitoring-alerting.md)
+- [Chaos engineering để test runbooks](../../testing/how-to/chaos-engineering.md)
+
+## Tài liệu liên quan
+
+- [Monitoring & Alerting](../how-to/monitoring-alerting.md)
+- [Backup & Recovery](../how-to/backup-recovery.md)
+- [Scalability Design](../../architecture/explanation/scalability-design.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 7, Requirement 16, Requirement 17, Requirement 18
+- **Category**: Reference
+- **Domain**: Operations
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 2 giờ
+- **Last Updated**: 2026-06-12

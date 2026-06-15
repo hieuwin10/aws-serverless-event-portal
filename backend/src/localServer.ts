@@ -6,6 +6,11 @@ import { handler as updateEvent } from './handlers/updateEvent';
 import { handler as deleteEvent } from './handlers/deleteEvent';
 import { handler as registerEvent } from './handlers/registerEvent';
 import { handler as getUserRegistrations } from './handlers/getUserRegistrations';
+import { handler as getRecommendations } from './handlers/getRecommendations';
+import { handler as exportEventICS } from './handlers/exportEventICS';
+import { handler as qrCheckIn } from './handlers/qrCheckIn';
+import { handler as submitReview } from './handlers/submitReview';
+import { handler as joinWaitlist } from './handlers/joinWaitlist';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -94,11 +99,16 @@ const handleLambda = (handlerFn: any) => {
 
 // Map Endpoints to Handlers
 app.get('/events', handleLambda(getEvents));
+app.get('/events/recommendations', handleLambda(getRecommendations)); // Must be before /events/:id
 app.get('/events/:id', handleLambda(getEventById));
+app.get('/events/:id/export', handleLambda(exportEventICS));
 app.post('/events', handleLambda(createEvent));
 app.put('/events/:id', handleLambda(updateEvent));
 app.delete('/events/:id', handleLambda(deleteEvent));
 app.post('/events/:id/register', handleLambda(registerEvent));
+app.post('/events/:id/waitlist', handleLambda(joinWaitlist));
+app.post('/events/:id/checkin', handleLambda(qrCheckIn));
+app.post('/events/:id/reviews', handleLambda(submitReview));
 app.get('/users/registrations', handleLambda(getUserRegistrations));
 
 app.listen(PORT, () => {

@@ -1,3 +1,17 @@
+---
+title: "Cấu Hình AWS WAF cho API Gateway"
+category: How-To
+domain: Security
+difficulty: Trung bình
+reading_time: 1.5 giờ
+last_updated: 2026-06-12
+tags: [waf, api-gateway, security, ddos]
+requirements: [Requirement 3, Requirement 16, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Security](../../index.md#security) > How-To*
+***
+
 # Hướng Dẫn Cấu Hình AWS WAF cho API Gateway và CloudFront
 
 ## Vấn đề
@@ -1224,36 +1238,29 @@ aws cloudwatch get-metric-statistics \
 - **Regular Rule Updates**: AWS Managed Rules tự động update, nhưng review release notes để biết changes
 
 
+
+
+
+## Bước tiếp theo
+
+- [Hardening bảo mật tổng thể](security-hardening.md)
+- [Deploy WAF template](../../infrastructure/reference/cloudformation-templates.md)
+- [Penetration testing API](../../testing/how-to/security-testing.md)
+
 ## Tài liệu liên quan
 
-### How-To Guides
-- [Security Hardening Toàn Diện](./security-hardening.md) - Hướng dẫn hardening tổng thể cho AWS Serverless
-- [Cấu Hình Cognito Nâng Cao](./cognito-advanced.md) - MFA và advanced authentication flows
-
-### Reference
-- [IAM Policies Reference](../reference/iam-policies.md) - IAM policies theo Least Privilege
-- [CloudFormation Templates](../../infrastructure/reference/cloudformation-templates.md) - Infrastructure as Code templates
-
-### Explanation
-- [Scalability Design](../../architecture/explanation/scalability-design.md) - Thiết kế khả năng mở rộng
-
-### AWS Documentation
-- [AWS WAF Developer Guide](https://docs.aws.amazon.com/waf/latest/developerguide/) - Official WAF documentation
-- [AWS Managed Rules for AWS WAF](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups.html) - Managed rules reference
-- [WAF Pricing](https://aws.amazon.com/waf/pricing/) - Chi tiết về pricing
-- [AWS Shield](https://docs.aws.amazon.com/waf/latest/developerguide/shield-chapter.html) - DDoS protection
-
-### External Resources
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Web application security risks
-- [AWS WAF Security Automations](https://aws.amazon.com/solutions/implementations/aws-waf-security-automations/) - Advanced WAF automation solution
-- [WAF Best Practices](https://d1.awsstatic.com/whitepapers/Security/aws-waf-owasp.pdf) - AWS WAF OWASP Top 10 whitepaper
+- [Security Hardening](security-hardening.md)
+- [CloudFormation Templates](../../infrastructure/reference/cloudformation-templates.md)
+- [Monitoring & Alerting](../../operations/how-to/monitoring-alerting.md)
 
 ---
 
 **Metadata**:
-- **Category**: how-to
-- **Domain**: security
+- **Requirements**: Requirement 3, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Security
 - **Tags**: waf, security, api-gateway, cloudfront, ddos, rate-limiting, sql-injection, xss, owasp
-- **Last Updated**: 2024-01-15
+- **Last Updated**: 2026-06-12
 - **Free Tier Compatible**: No
-- **Estimated Cost**: $10-15/month (Base $5 + 4 rules $4 + requests $0.60/1M)
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1.5 giờ

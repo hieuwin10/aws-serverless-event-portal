@@ -58,7 +58,7 @@ Globals:
   Function:
     Runtime: nodejs20.x
     Timeout: 15
-    MemorySize: 128
+    MemorySize: 256
     Environment:
       Variables:
         DYNAMODB_TABLE_NAME: !Ref EventAppTable
@@ -118,10 +118,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: EventApp-Data
-      BillingMode: PROVISIONED            # QUAN TRỌNG: Dùng Provisioned cho Free Tier
-      ProvisionedThroughput:
-        ReadCapacityUnits: 25             # Free Tier = 25 RCU
-        WriteCapacityUnits: 25            # Free Tier = 25 WCU
+      BillingMode: PAY_PER_REQUEST            # Đã cấu hình On-Demand để tránh phí
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S
@@ -149,9 +146,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 15
-            WriteCapacityUnits: 15
         - IndexName: GSI2Index
           KeySchema:
             - AttributeName: GSI2PK
@@ -160,9 +154,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 10
-            WriteCapacityUnits: 10
 
   # ----------------------------------------------------------
   # 3. API GATEWAY — Cổng tiếp nhận HTTP

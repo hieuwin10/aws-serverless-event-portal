@@ -1,3 +1,17 @@
+---
+title: "CloudFormation/SAM Templates Reference"
+category: Reference
+domain: Infrastructure
+difficulty: Khó
+reading_time: 2 giờ
+last_updated: 2026-06-12
+tags: [cloudformation, sam, iac, templates]
+requirements: [Requirement 9, Requirement 16, Requirement 17, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Infrastructure](../../index.md#infrastructure) > Reference*
+***
+
 # CloudFormation/SAM Templates Reference
 
 ## Mô tả
@@ -37,7 +51,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: !Ref TableName
-      BillingMode: PROVISIONED
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S
@@ -325,6 +339,192 @@ aws cloudformation create-stack \
   --parameters ParameterKey=SNSTopicArn,ParameterValue=arn:aws:sns:us-east-1:ACCOUNT_ID:alerts
 ```
 
+## Template 4: WAF cho API Gateway
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS WAF Web ACL cho API Gateway Regional endpoint'
+
+Parameters:
+  ApiGatewayStageArn:
+    Type: String
+    Description: ARN của API Gateway stage cần bảo vệ
+
+  RateLimit:
+    Type: Number
+    Default: 2000
+    Description: Số requests tối đa trong 5 phút cho mỗi IP
+
+Resources:
+  EventApiWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: event-api-web-acl
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: EventApiWebAcl
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: RateLimitRule
+          Priority: 0
+          Action:
+            Block: {}
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref RateLimit
+              AggregateKeyType: IP
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitRule
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: CommonRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: KnownBadInputs
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesSQLiRuleSet
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesSQLiRuleSet
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: SQLiRuleSet
+            SampledRequestsEnabled: true
+
+  WebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Ref ApiGatewayStageArn
+      WebACLArn: !GetAtt EventApiWebAcl.Arn
+
+Outputs:
+  WebAclArn:
+    Value: !GetAtt EventApiWebAcl.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-WebAclArn'
+```
+
+**Deployment**:
+```bash
+aws cloudformation create-stack \
+  --stack-name event-app-waf \
+  --template-body file://waf-api-gateway.yaml \
+  --parameters ParameterKey=ApiGatewayStageArn,ParameterValue=arn:aws:apigateway:us-east-1::/restapis/API_ID/stages/prod \
+  --region us-east-1
+```
+
+> ⚠️ **Chi phí**: AWS WAF không có Free Tier. Ước tính cơ bản: $5/month cho Web ACL + $1/month/rule + $0.60/1M requests.
+
+## Template 5: Lambda Optimized Configuration
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Lambda optimized config với tracing, concurrency, log retention và IAM least privilege'
+
+Parameters:
+  FunctionName:
+    Type: String
+    Default: getEvents
+
+  TableName:
+    Type: String
+    Default: EventsTable
+
+  ReservedConcurrency:
+    Type: Number
+    Default: 20
+
+  ProvisionedConcurrency:
+    Type: Number
+    Default: 1
+
+Resources:
+  OptimizedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Ref FunctionName
+      Runtime: nodejs18.x
+      Handler: index.handler
+      CodeUri: ./src/handlers/getEvents/
+      MemorySize: 512
+      Timeout: 15
+      Tracing: Active
+      ReservedConcurrentExecutions: !Ref ReservedConcurrency
+      AutoPublishAlias: live
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref ProvisionedConcurrency
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+          NODE_OPTIONS: '--enable-source-maps'
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+              Resource:
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}/index/*'
+            - Effect: Allow
+              Action:
+                - xray:PutTraceSegments
+                - xray:PutTelemetryRecords
+              Resource: '*'
+
+  OptimizedFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${FunctionName}'
+      RetentionInDays: 14
+
+Outputs:
+  FunctionArn:
+    Value: !GetAtt OptimizedFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-OptimizedFunctionArn'
+```
+
+**Deployment**:
+```bash
+sam build
+sam deploy \
+  --stack-name event-app-lambda-optimized \
+  --parameter-overrides FunctionName=getEvents TableName=EventsTable ReservedConcurrency=20 ProvisionedConcurrency=1 \
+  --capabilities CAPABILITY_IAM
+```
+
+> ⚠️ **Chi phí**: Provisioned Concurrency có phí. Đặt `ProvisionedConcurrency=0` cho dev nếu muốn tối ưu Free Tier.
+
 ## Lưu ý
 
 ### Best Practices
@@ -339,10 +539,28 @@ aws cloudformation create-stack \
 - Sử dụng `--debug` flag với AWS CLI
 - Validate template trước: `aws cloudformation validate-template`
 
+
+
+
+
+## Bước tiếp theo
+
+- [Tích hợp templates vào CI/CD](../how-to/cicd-pipeline.md)
+- [Validate với chaos engineering](../../testing/how-to/chaos-engineering.md)
+
+## Tài liệu liên quan
+
+- [CI/CD Pipeline](../how-to/cicd-pipeline.md)
+- [Scalability Design](../../architecture/explanation/scalability-design.md)
+- [WAF Configuration](../../security/how-to/waf-configuration.md)
+
 ---
 
 **Metadata**:
-- **Category**: reference
-- **Domain**: infrastructure
+- **Requirements**: Requirement 9, Requirement 16, Requirement 17, Requirement 18
+- **Category**: Reference
+- **Domain**: Infrastructure
 - **Tags**: cloudformation, sam, iac, templates
-- **Last Updated**: 2024-01-15
+- **Last Updated**: 2026-06-12
+- **Difficulty**: Khó
+- **Estimated Reading/Implementation Time**: 2 giờ

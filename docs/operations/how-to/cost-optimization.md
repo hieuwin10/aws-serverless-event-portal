@@ -1,3 +1,17 @@
+---
+title: "Cost Optimization"
+category: How-To
+domain: Operations
+difficulty: Dễ
+reading_time: 45 phút
+last_updated: 2026-06-12
+tags: [cost, free-tier, billing, optimization]
+requirements: [Requirement 5, Requirement 16, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Operations](../../index.md#operations) > How-To*
+***
+
 # Hướng Dẫn Tối Ưu Chi Phí AWS Serverless
 
 ## Vấn đề
@@ -277,17 +291,28 @@ aws freetier get-free-tier-usage
 aws budgets describe-budgets --account-id ACCOUNT_ID
 ```
 
+
+
+
+## Bước tiếp theo
+
+- [Right-size Lambda/DynamoDB](../../architecture/explanation/scalability-design.md)
+- [Thiết lập billing alarms](monitoring-alerting.md)
+
 ## Tài liệu liên quan
 
-- [Monitoring & Alerting Guide](./monitoring-alerting.md)
-- [AWS Pricing Calculator](https://calculator.aws/)
+- [Monitoring & Alerting](monitoring-alerting.md)
+- [Scalability Design](../../architecture/explanation/scalability-design.md)
+- [Well-Architected Assessment](../../well-architected-assessment.md)
 
 ---
 
 **Metadata**:
-- **Category**: how-to
-- **Domain**: operations
+- **Requirements**: Requirement 5, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Operations
 - **Tags**: cost, optimization, free-tier, budgets, right-sizing
-- **Last Updated**: 2024-01-15
+- **Last Updated**: 2026-06-12
 - **Free Tier Compatible**: Yes
-- **Estimated Cost**: $0/month
+- **Difficulty**: Dễ
+- **Estimated Reading/Implementation Time**: 45 phút

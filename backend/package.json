@@ -5,7 +5,12 @@
   "main": "dist/localServer.js",
   "scripts": {
     "build": "tsc",
+    "dev": "ts-node src/localServer.ts",
+    "start": "node dist/localServer.js",
     "start:local": "ts-node src/localServer.ts",
+    "deploy": "sam build && sam deploy",
+    "deploy:guided": "sam build && sam deploy --guided",
+    "logs": "sam logs -n GetEventsFunction --stack-name eventapp --tail",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "dependencies": {

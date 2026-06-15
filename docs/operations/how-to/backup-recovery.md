@@ -1,6 +1,20 @@
+---
+title: "Backup & Recovery"
+category: How-To
+domain: Operations
+difficulty: Trung bình
+reading_time: 1 giờ
+last_updated: 2026-06-12
+tags: [backup, pitr, dynamodb, s3, disaster-recovery]
+requirements: [Requirement 8, Requirement 16, Requirement 17]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Operations](../../index.md#operations) > How-To*
+***
+
 # Sao Lưu và Phục Hồi Dữ Liệu
 
-## Vấn Đề
+## Vấn đề
 
 Kiến trúc hiện tại không có chiến lược backup rõ ràng:
 - **DynamoDB không bật PITR** — mất dữ liệu khi có lỗi ứng dụng hoặc xóa nhầm
@@ -8,7 +22,7 @@ Kiến trúc hiện tại không có chiến lược backup rõ ràng:
 - **Không có Disaster Recovery Plan** — không biết phải làm gì khi có sự cố lớn
 - **Không test restoration** — backup có thể không dùng được khi thực sự cần
 
-## Giải Pháp
+## Giải pháp
 
 Chiến lược backup 3 lớp:
 1. **DynamoDB PITR** (Point-in-Time Recovery) — phục hồi đến bất kỳ thời điểm nào trong 35 ngày
@@ -16,7 +30,7 @@ Chiến lược backup 3 lớp:
 3. **S3 Versioning + Lifecycle** — bảo vệ frontend assets
 4. **Automated Backup** — tự động hóa quy trình backup
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 - AWS CLI đã cài đặt và cấu hình
 - DynamoDB table `EventsTable` đã tồn tại
@@ -666,7 +680,7 @@ aws events list-rules \
 
 ---
 
-## Lưu Ý
+## Lưu ý
 
 > ⚠️ **Không restore trực tiếp vào table đang production!** Luôn restore vào table mới, verify data, rồi mới switch traffic.
 
@@ -674,10 +688,25 @@ aws events list-rules \
 
 > 💡 **Tip**: Chạy `test-restore.sh` mỗi tháng để đảm bảo backup thực sự dùng được — "Backup chưa test là backup chưa tồn tại".
 
-## Tài Liệu Liên Quan
 
-- [monitoring-alerting.md](./monitoring-alerting.md) — Giám sát health check
-- [runbooks.md](../reference/runbooks.md) — Quy trình xử lý sự cố
-- [cloudformation-templates.md](../../infrastructure/reference/cloudformation-templates.md) — Templates đầy đủ
-- [cost-optimization.md](./cost-optimization.md) — Tối ưu chi phí backup
-- [AWS DynamoDB Backup](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/BackupRestore.html)
+
+
+## Bước tiếp theo
+
+- [Thiết lập monitoring sau recovery](monitoring-alerting.md)
+- [Chaos test resilience](../../testing/how-to/chaos-engineering.md)
+
+## Tài liệu liên quan
+
+- [Runbooks](../reference/runbooks.md)
+- [CloudFormation Templates](../../infrastructure/reference/cloudformation-templates.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 8, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Operations
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1 giờ
+- **Last Updated**: 2026-06-12

@@ -1,3 +1,17 @@
+---
+title: "Architecture Decision Records (ADR)"
+category: Reference
+domain: Architecture
+difficulty: Dễ
+reading_time: 45 phút
+last_updated: 2026-06-12
+tags: [adr, architecture, decisions]
+requirements: [Requirement 14, Requirement 16]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Architecture](../../index.md#architecture) > Reference*
+***
+
 # Architecture Decision Records (ADR)
 
 ## ADR-001: Sử dụng DynamoDB thay vì RDS
@@ -232,10 +246,28 @@ Sử dụng **CloudFront + S3** thay vì Amplify Hosting hoặc EC2
 - [Cách giảm thiểu drawbacks]
 ```
 
+
+
+
+
+## Bước tiếp theo
+
+- [Hiểu scalability patterns](../explanation/scalability-design.md)
+- [Deploy theo ADR với SAM](../../infrastructure/reference/cloudformation-templates.md)
+
+## Tài liệu liên quan
+
+- [Scalability Design](../explanation/scalability-design.md)
+- [CloudFormation Templates](../../infrastructure/reference/cloudformation-templates.md)
+- [Well-Architected Assessment](../../well-architected-assessment.md)
+
 ---
 
 **Metadata**:
-- **Category**: reference
-- **Domain**: architecture
+- **Requirements**: Requirement 14, Requirement 16
+- **Category**: Reference
+- **Domain**: Architecture
 - **Tags**: adr, decisions, architecture, design
-- **Last Updated**: 2024-01-15
+- **Last Updated**: 2026-06-12
+- **Difficulty**: Dễ
+- **Estimated Reading/Implementation Time**: 45 phút

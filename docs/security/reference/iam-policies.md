@@ -1,3 +1,17 @@
+---
+title: "IAM Policies Reference"
+category: Reference
+domain: Security
+difficulty: Trung bình
+reading_time: 1 giờ
+last_updated: 2026-06-12
+tags: [iam, policies, least-privilege, lambda]
+requirements: [Requirement 3, Requirement 16, Requirement 17]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Security](../../index.md#security) > Reference*
+***
+
 # IAM Policies Reference - Least Privilege cho AWS Serverless
 
 ## Mô tả
@@ -9,6 +23,31 @@ Bộ sưu tập IAM policies được thiết kế theo nguyên tắc Least Priv
 **Free Tier**: Có - IAM hoàn toàn miễn phí
 
 **Ước tính chi phí**: $0/tháng
+
+## Bảng Tổng Hợp Policies
+
+Bảng này liệt kê tất cả IAM policies được cung cấp trong tài liệu này, giúp bạn nhanh chóng tìm policy phù hợp với nhu cầu:
+
+| Số | Policy Name | AWS Services | Use Case | Ví dụ |
+|----|-------------|--------------|----------|-------|
+| 1 | Lambda DynamoDB Read/Write | Lambda, DynamoDB, CloudWatch Logs | Lambda function cần đọc/ghi DynamoDB | [Ví dụ 1](#ví-dụ-1-lambda-dynamodb-readwrite-policy) |
+| 2 | Lambda S3 Read-Only | Lambda, S3 | Lambda function chỉ cần đọc S3 objects | [Ví dụ 2](#ví-dụ-2-lambda-s3-read-only-policy) |
+| 3 | API Gateway CloudWatch Logs | API Gateway, CloudWatch Logs | API Gateway ghi logs vào CloudWatch | [Ví dụ 3](#ví-dụ-3-api-gateway-cloudwatch-logs-policy) |
+| 3.1 | API Gateway Lambda Invocation | API Gateway, Lambda | API Gateway invoke Lambda functions | [Ví dụ 3.1](#ví-dụ-31-api-gateway-lambda-invocation-policy) |
+| 4 | Lambda Secrets Manager | Lambda, Secrets Manager, KMS | Lambda đọc secrets từ Secrets Manager | [Ví dụ 4](#ví-dụ-4-lambda-secrets-manager-policy) |
+| 5 | Lambda SNS/SES Notification | Lambda, SNS, SES | Lambda gửi notifications qua SNS và email qua SES | [Ví dụ 5](#ví-dụ-5-lambda-snsses-notification-policy) |
+
+### Coverage theo AWS Services
+
+✅ **Lambda** - Covered (Examples 1, 2, 4, 5)  
+✅ **DynamoDB** - Covered (Example 1)  
+✅ **S3** - Covered (Example 2)  
+✅ **CloudWatch Logs** - Covered (Examples 1, 3)  
+✅ **API Gateway** - Covered (Examples 3, 3.1)  
+✅ **Secrets Manager** - Covered (Example 4)  
+✅ **KMS** - Covered (Example 4)  
+✅ **SNS** - Covered (Example 5)  
+✅ **SES** - Covered (Example 5)
 
 ## Cú pháp
 
@@ -110,15 +149,28 @@ Policy cho Lambda function cần đọc/ghi DynamoDB table cụ thể.
 ```
 
 **Giải thích**:
-- Chỉ cho phép 6 operations cần thiết (không có DeleteItem, Scan)
-- Giới hạn resource đến table cụ thể và indexes
-- CloudWatch Logs chỉ write, không read/delete
-- Sử dụng variables để tái sử dụng across regions/accounts
+- **DynamoDB Actions**:
+  - `dynamodb:GetItem`: Đọc một item theo primary key
+  - `dynamodb:PutItem`: Tạo mới hoặc thay thế item hoàn toàn
+  - `dynamodb:UpdateItem`: Cập nhật một số attributes của item (không thay thế toàn bộ)
+  - `dynamodb:Query`: Truy vấn items theo partition key và sort key (efficient cho queries phức tạp)
+  - `dynamodb:BatchGetItem`: Đọc nhiều items cùng lúc (tối đa 100 items)
+  - `dynamodb:BatchWriteItem`: Ghi nhiều items cùng lúc (tối đa 25 items)
+  - **Không có**: `DeleteItem` (không cho phép xóa), `Scan` (operation tốn kém, nên tránh)
+- **Resource scope**: 
+  - Base table: `table/EventsTable` - cho tất cả operations trên main table
+  - Indexes: `table/EventsTable/index/*` - cho Query operations trên Global/Local Secondary Indexes
+- **CloudWatch Logs**: 
+  - Chỉ có 3 permissions cần thiết để ghi logs: CreateLogGroup, CreateLogStream, PutLogEvents
+  - Không có Read/Delete permissions (không cần thiết cho Lambda)
+  - Resource giới hạn trong `/aws/lambda/*` namespace
+- **Variables**: Sử dụng `${AWS::Region}` và `${AWS::AccountId}` để policy có thể reuse across environments
 
-**Kết quả**: Lambda có quyền tối thiểu để hoạt động
+**Kết quả**: Lambda có quyền tối thiểu để hoạt động với DynamoDB và ghi logs, không thể xóa data hoặc scan toàn bộ table
 
-**Dependencies**: AWS SDK v3
-**Environment Variables**: Không cần
+**Dependencies**: AWS SDK v3 (@aws-sdk/client-dynamodb, @aws-sdk/lib-dynamodb)
+**Environment Variables**: 
+- `DYNAMODB_TABLE_NAME`: Tên DynamoDB table (ví dụ: EventsTable)
 
 ### Ví dụ 2: Lambda S3 Read-Only Policy
 
@@ -151,9 +203,19 @@ Policy cho Lambda function chỉ cần đọc objects từ S3 bucket.
 ```
 
 **Giải thích**:
-- Chỉ GetObject và ListBucket (không có PutObject, DeleteObject)
-- Condition: Chỉ access objects có tag Environment=production
-- Bao gồm cả bucket và objects (/* suffix)
+- **Action permissions**: Chỉ GetObject và ListBucket (không có PutObject, DeleteObject) để đảm bảo read-only access
+  - `s3:GetObject`: Đọc nội dung object
+  - `s3:GetObjectVersion`: Đọc các phiên bản cũ nếu S3 versioning được bật
+  - `s3:ListBucket`: Liệt kê objects trong bucket (cần cho pagination và search)
+- **Resource scope**: Bao gồm cả bucket (`arn:aws:s3:::event-app-uploads`) và objects (`/*` suffix)
+- **Condition**: Chỉ access objects có tag Environment=production để tránh đọc nhầm test/staging data
+- **Security**: Không có write/delete permissions, giảm thiểu rủi ro nếu Lambda bị compromise
+
+**Kết quả**: Lambda chỉ có thể đọc S3 objects, không thể modify hoặc delete
+
+**Dependencies**: AWS SDK v3 (@aws-sdk/client-s3)
+**Environment Variables**: 
+- `S3_BUCKET_NAME`: Tên S3 bucket (ví dụ: event-app-uploads)
 
 ### Ví dụ 3: API Gateway CloudWatch Logs Policy
 
@@ -182,8 +244,71 @@ Policy cho API Gateway để ghi logs vào CloudWatch.
 ```
 
 **Giải thích**:
-- API Gateway cần nhiều permissions hơn Lambda
-- Resource wildcard vì API Gateway tạo log groups động
+- API Gateway cần nhiều permissions hơn Lambda để quản lý logging
+- Resource wildcard vì API Gateway tạo log groups động cho từng stage
+- DescribeLogGroups và DescribeLogStreams cần thiết để API Gateway kiểm tra existing logs
+- FilterLogEvents cho phép API Gateway query logs khi cần troubleshoot
+
+**Kết quả**: API Gateway có quyền đầy đủ để ghi và quản lý logs
+
+**Dependencies**: Không cần
+**Environment Variables**: Không cần
+
+### Ví dụ 3.1: API Gateway Lambda Invocation Policy
+
+Trust policy và permissions cho phép API Gateway invoke Lambda functions.
+
+**Trust Policy (cho Lambda Execution Role)**:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "apigateway.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+**Permission Policy (Lambda Resource-based Policy)**:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAPIGatewayInvoke",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "apigateway.amazonaws.com"
+      },
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:event-*",
+      "Condition": {
+        "ArnLike": {
+          "AWS:SourceArn": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${API_ID}/*/*"
+        }
+      }
+    }
+  ]
+}
+```
+
+**Giải thích**:
+- Trust policy cho phép API Gateway service assume role để invoke Lambda
+- Resource-based policy gắn trực tiếp vào Lambda function
+- Condition ArnLike giới hạn chỉ API Gateway instance cụ thể (${API_ID}) có thể invoke
+- Wildcard `event-*` cho phép invoke tất cả Lambda functions có prefix "event-"
+- Pattern `/*/*` trong SourceArn cover tất cả stages và methods
+
+**Kết quả**: API Gateway có quyền invoke Lambda một cách an toàn với giới hạn rõ ràng
+
+**Dependencies**: API Gateway REST API đã được tạo
+**Environment Variables**: 
+- `API_ID`: ID của API Gateway (ví dụ: abc123def4)
 
 ### Ví dụ 4: Lambda Secrets Manager Policy
 
@@ -226,10 +351,27 @@ Policy cho Lambda đọc secrets từ AWS Secrets Manager.
 ```
 
 **Giải thích**:
-- GetSecretValue để đọc secret value
-- Condition: Chỉ đọc version AWSCURRENT (không phải old versions)
-- KMS Decrypt cần thiết nếu secrets được encrypt bằng KMS
-- Condition: KMS chỉ qua Secrets Manager service
+- **Secrets Manager Actions**:
+  - `secretsmanager:GetSecretValue`: Đọc giá trị secret (chuỗi text hoặc JSON)
+  - `secretsmanager:DescribeSecret`: Lấy metadata về secret (creation date, rotation config, v.v.) nhưng không lấy giá trị
+  - **Không có**: CreateSecret, UpdateSecret, DeleteSecret (Lambda không nên có quyền modify secrets)
+- **Resource scope**: Giới hạn trong prefix `event-app/*` để chỉ access secrets của application này
+- **Condition - VersionStage**: 
+  - Chỉ đọc version `AWSCURRENT` (version hiện tại đang active)
+  - Không đọc `AWSPENDING` (version đang rotation) hoặc `AWSPREVIOUS` (version cũ)
+  - Đảm bảo Lambda luôn dùng secret mới nhất và stable
+- **KMS Actions** (cần thiết khi secrets được encrypt bằng customer-managed KMS key):
+  - `kms:Decrypt`: Giải mã secret value
+  - `kms:DescribeKey`: Lấy thông tin về KMS key
+- **KMS Condition**: 
+  - `kms:ViaService`: Chỉ cho phép KMS decrypt thông qua Secrets Manager service
+  - Ngăn chặn Lambda dùng KMS key để decrypt arbitrary data
+
+**Kết quả**: Lambda có thể đọc secrets một cách an toàn, không thể modify hoặc delete secrets
+
+**Dependencies**: AWS SDK v3 (@aws-sdk/client-secrets-manager)
+**Environment Variables**: 
+- `SECRET_NAME`: Tên secret trong Secrets Manager (ví dụ: event-app/database-credentials)
 
 ### Ví dụ 5: Lambda SNS/SES Notification Policy
 
@@ -266,9 +408,28 @@ Policy cho Lambda gửi notifications qua SNS và SES.
 ```
 
 **Giải thích**:
-- SNS: Chỉ Publish đến topic cụ thể
-- SES: Chỉ gửi từ địa chỉ verified
-- Condition: Giới hạn FromAddress để tránh abuse
+- **SNS Actions**:
+  - `sns:Publish`: Gửi message đến SNS topic
+  - **Resource**: Giới hạn đến topic cụ thể `event-notifications` (không phải wildcard)
+  - **Security**: Lambda không thể tạo/xóa topics, chỉ publish messages
+- **SES Actions**:
+  - `ses:SendEmail`: Gửi email với định dạng đơn giản (subject, body, recipients)
+  - `ses:SendRawEmail`: Gửi email với MIME format (cho attachments, HTML phức tạp)
+  - **Resource**: `"*"` vì SES không support resource-level permissions
+- **SES Condition - FromAddress**:
+  - Giới hạn chỉ gửi từ địa chỉ `noreply@event-app.com` (phải được verify trong SES)
+  - Ngăn chặn Lambda abuse email system để gửi spam từ địa chỉ khác
+  - Nếu cần nhiều sender addresses, dùng array: `["noreply@event-app.com", "support@event-app.com"]`
+- **Free Tier**: 
+  - SNS: 1M publishes/tháng miễn phí
+  - SES: 62,000 emails/tháng miễn phí khi gửi từ EC2/Lambda
+
+**Kết quả**: Lambda có thể gửi notifications qua SNS và emails qua SES một cách an toàn với giới hạn rõ ràng
+
+**Dependencies**: AWS SDK v3 (@aws-sdk/client-sns, @aws-sdk/client-ses)
+**Environment Variables**: 
+- `SNS_TOPIC_ARN`: ARN của SNS topic (ví dụ: arn:aws:sns:us-east-1:123456789012:event-notifications)
+- `SES_FROM_EMAIL`: Email address đã verify (ví dụ: noreply@event-app.com)
 
 ## Lưu ý
 
@@ -352,30 +513,28 @@ aws logs filter-log-events \
 }
 ```
 
-## Xem thêm
 
-### How-To Guides
+
+
+## Bước tiếp theo
+
+- [Áp dụng policies vào hệ thống](../how-to/security-hardening.md)
+- [Test IAM policies](../../testing/how-to/security-testing.md)
+
+## Tài liệu liên quan
+
 - [Security Hardening Guide](../how-to/security-hardening.md)
-- [IAM Policy Testing](../how-to/iam-policy-testing.md)
-
-### AWS Documentation
-- [IAM Policy Reference](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html)
-- [IAM Policy Examples](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_examples.html)
-- [IAM Condition Keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html)
-
-### Tools
-- [IAM Policy Simulator](https://policysim.aws.amazon.com/)
-- [IAM Access Analyzer](https://console.aws.amazon.com/access-analyzer/)
+- [Security Testing](../../testing/how-to/security-testing.md)
 
 ---
 
 **Metadata**:
-- **Category**: reference
-- **Domain**: security
+- **Requirements**: Requirement 3, Requirement 16, Requirement 17, Requirement 18
+- **Category**: Reference
+- **Domain**: Security
 - **Tags**: iam, security, least-privilege, policies, lambda, dynamodb, s3
-- **Last Updated**: 2024-01-15
+- **Last Updated**: 2026-06-12
 - **Free Tier Compatible**: Yes
-- **Estimated Cost**: Free
 - **AWS Services**: IAM, Lambda, DynamoDB, S3, CloudWatch, Secrets Manager, SNS, SES
-- **Complexity**: Intermediate
-- **Estimated Implementation Time**: 2-4 hours
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1 giờ

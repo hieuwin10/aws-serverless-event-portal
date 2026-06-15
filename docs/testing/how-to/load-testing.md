@@ -1,6 +1,20 @@
+---
+title: "Kiểm Thử Tải với Artillery và k6"
+category: How-To
+domain: Testing
+difficulty: Trung bình
+reading_time: 1.5 giờ
+last_updated: 2026-06-12
+tags: [load-testing, artillery, k6, performance]
+requirements: [Requirement 11, Requirement 16, Requirement 18]
+---
+***
+*Breadcrumbs: [Trang chủ Well-Architected](../../README.md) > [Chỉ mục](../../index.md) > [Testing](../../index.md#testing) > How-To*
+***
+
 # Kiểm Thử Tải với Artillery và k6
 
-## Vấn Đề
+## Vấn đề
 
 Không biết hệ thống chịu được bao nhiêu concurrent users:
 - **Không có baseline performance** — không biết đâu là điểm giới hạn
@@ -9,13 +23,13 @@ Không biết hệ thống chịu được bao nhiêu concurrent users:
 - **API Gateway throttling** chưa được cấu hình phù hợp
 - **Không có test scenarios** cho các API endpoints thực tế
 
-## Giải Pháp
+## Giải pháp
 
 Load testing với 2 công cụ:
 - **Artillery** — dễ cấu hình bằng YAML, phù hợp cho API testing
 - **k6** — scripting mạnh hơn, metrics chi tiết, có thể tích hợp CI/CD
 
-## Điều Kiện Tiên Quyết
+## Điều kiện tiên quyết
 
 ```bash
 # Cài Artillery
@@ -682,7 +696,7 @@ aws dynamodb update-table \
 
 ---
 
-## Lưu Ý Free Tier
+## Lưu ý Free Tier
 
 > ⚠️ **Lambda**: 1M requests/tháng và 400,000 GB-seconds miễn phí. Load test 100 RPS × 60 giây = 6,000 requests — rất nhỏ so với Free Tier.
 
@@ -690,8 +704,26 @@ aws dynamodb update-table \
 
 > 💡 **Tip**: Chạy load test trong thời gian ngắn (< 5 phút) và monitor CloudWatch dashboard đồng thời.
 
-## Tài Liệu Liên Quan
 
-- [monitoring-alerting.md](../../operations/how-to/monitoring-alerting.md) — Giám sát trong khi test
-- [scalability-design.md](../../architecture/explanation/scalability-design.md) — Chiến lược scale
-- [runbooks.md](../../operations/reference/runbooks.md) — Xử lý throttling
+
+
+## Bước tiếp theo
+
+- [Chaos test sau load test](chaos-engineering.md)
+- [Tối ưu scale dựa trên kết quả](../../architecture/explanation/scalability-design.md)
+
+## Tài liệu liên quan
+
+- [Scalability Design](../../architecture/explanation/scalability-design.md)
+- [Monitoring & Alerting](../../operations/how-to/monitoring-alerting.md)
+- [Chaos Engineering](chaos-engineering.md)
+
+---
+
+**Metadata**:
+- **Requirements**: Requirement 11, Requirement 16, Requirement 17, Requirement 18
+- **Category**: How-To
+- **Domain**: Testing
+- **Difficulty**: Trung bình
+- **Estimated Reading/Implementation Time**: 1.5 giờ
+- **Last Updated**: 2026-06-12
