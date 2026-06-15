@@ -357,6 +357,42 @@ Resources:
             Path: /events/{id}/checkin/{userId}
             Method: POST
 
+  GetEventSpeakersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventSpeakers
+      Handler: handlers/getEventSpeakers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventSpeakers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/speakers
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  LinkEventSpeakerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-LinkEventSpeaker
+      Handler: handlers/linkEventSpeaker.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        LinkEventSpeaker:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/speakers/{speakerId}
+            Method: POST
+
   GetEventFeedbacksFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -596,6 +632,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${CheckinEventUserFunction}"
+      RetentionInDays: 7
+
+  GetEventSpeakersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventSpeakersFunction}"
+      RetentionInDays: 7
+
+  LinkEventSpeakerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LinkEventSpeakerFunction}"
       RetentionInDays: 7
 
   GetEventFeedbacksLogGroup:

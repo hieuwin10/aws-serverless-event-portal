@@ -405,6 +405,11 @@ export const buildSpeakerKeys = (speakerId: string) => ({
   SK: 'METADATA'
 });
 
+export const buildEventSpeakerKeys = (eventId: string, speakerId: string) => ({
+  PK: `EVENT#${eventId}`,
+  SK: `SPEAKER#${normalizeCategory(speakerId)}`
+});
+
 export const buildRegistrationKeys = (userId: string, eventId: string) => ({
   PK: `USER#${userId}`,
   SK: `EVENT#${eventId}`,
@@ -1626,6 +1631,91 @@ export const dbService = {
 
     await dbService.putItem(item);
     return item;
+  },
+
+  // Link a speaker to an event using the EVENT_SPEAKER relationship schema
+  linkSpeakerToEvent: async (eventId: string, speakerId: string): Promise<any> => {
+    const normalizedSpeakerId = normalizeCategory(speakerId);
+    const keys = buildEventSpeakerKeys(eventId, normalizedSpeakerId);
+    logger.info(`dbService.linkSpeakerToEvent: eventId=${eventId}, speakerId=${normalizedSpeakerId}`);
+
+    const existingRelationship = await dbService.getItem(keys.PK, keys.SK);
+    if (existingRelationship?.entityType === 'EVENT_SPEAKER') {
+      return existingRelationship;
+    }
+
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'EVENT_SPEAKER',
+      eventId,
+      speakerId: normalizedSpeakerId,
+      createdAt: new Date().toISOString()
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Remove a speaker-event relationship
+  unlinkSpeakerFromEvent: async (eventId: string, speakerId: string): Promise<void> => {
+    const normalizedSpeakerId = normalizeCategory(speakerId);
+    const keys = buildEventSpeakerKeys(eventId, normalizedSpeakerId);
+    logger.info(`dbService.unlinkSpeakerFromEvent: eventId=${eventId}, speakerId=${normalizedSpeakerId}`);
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const remaining = items.filter(item => !(item.PK === keys.PK && item.SK === keys.SK));
+      writeMockDb(remaining);
+      return;
+    }
+
+    await ddbDocClient!.send(new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: keys.PK, SK: keys.SK }
+    }));
+  },
+
+  // List speaker metadata linked to an event
+  listSpeakersByEvent: async (eventId: string): Promise<any[]> => {
+    logger.info(`dbService.listSpeakersByEvent: eventId=${eventId}`);
+    const eventPk = `EVENT#${eventId}`;
+
+    const relationshipItems = DB_MODE === 'mock'
+      ? readMockDb().filter(
+          item =>
+            item.PK === eventPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('SPEAKER#') &&
+            item.entityType === 'EVENT_SPEAKER'
+        )
+      : (await ddbDocClient!.send(new QueryCommand({
+          TableName: TABLE_NAME,
+          KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+          ExpressionAttributeValues: {
+            ':pk': eventPk,
+            ':skPrefix': 'SPEAKER#'
+          }
+        }))).Items || [];
+
+    const speakers = [];
+    for (const relationship of relationshipItems) {
+      if (relationship.entityType !== 'EVENT_SPEAKER') {
+        continue;
+      }
+
+      const speakerId = relationship.speakerId || relationship.SK?.replace('SPEAKER#', '');
+      if (!speakerId) {
+        continue;
+      }
+
+      const speaker = await dbService.getSpeakerById(speakerId);
+      if (speaker) {
+        speakers.push(speaker);
+      }
+    }
+
+    return speakers;
   },
 
   // Create an event item using the new EVENT schema
