@@ -469,6 +469,11 @@ export const buildEventSpeakerKeys = (eventId: string, speakerId: string) => ({
   SK: `SPEAKER#${normalizeCategory(speakerId)}`
 });
 
+export const buildEventSponsorKeys = (eventId: string, sponsorId: string) => ({
+  PK: `EVENT#${eventId}`,
+  SK: `SPONSOR#${normalizeCategory(sponsorId)}`
+});
+
 export const buildRegistrationKeys = (userId: string, eventId: string) => ({
   PK: `USER#${userId}`,
   SK: `EVENT#${eventId}`,
@@ -1898,6 +1903,100 @@ export const dbService = {
     }
 
     return speakers;
+  },
+
+  // Link a sponsor to an event using the EVENT_SPONSOR relationship schema
+  linkSponsorToEvent: async (eventId: string, sponsorId: string, tier?: string): Promise<any> => {
+    const normalizedSponsorId = normalizeCategory(sponsorId);
+    const keys = buildEventSponsorKeys(eventId, normalizedSponsorId);
+    logger.info(`dbService.linkSponsorToEvent: eventId=${eventId}, sponsorId=${normalizedSponsorId}`);
+
+    const existingRelationship = await dbService.getItem(keys.PK, keys.SK);
+    if (existingRelationship?.entityType === 'EVENT_SPONSOR' && tier === undefined) {
+      return existingRelationship;
+    }
+
+    const now = new Date().toISOString();
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'EVENT_SPONSOR',
+      eventId,
+      sponsorId: normalizedSponsorId,
+      tier: tier !== undefined ? tier : existingRelationship?.tier || '',
+      createdAt:
+        existingRelationship?.entityType === 'EVENT_SPONSOR'
+          ? existingRelationship.createdAt
+          : now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Remove a sponsor-event relationship
+  unlinkSponsorFromEvent: async (eventId: string, sponsorId: string): Promise<void> => {
+    const normalizedSponsorId = normalizeCategory(sponsorId);
+    const keys = buildEventSponsorKeys(eventId, normalizedSponsorId);
+    logger.info(`dbService.unlinkSponsorFromEvent: eventId=${eventId}, sponsorId=${normalizedSponsorId}`);
+
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const remaining = items.filter(item => !(item.PK === keys.PK && item.SK === keys.SK));
+      writeMockDb(remaining);
+      return;
+    }
+
+    await ddbDocClient!.send(new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: keys.PK, SK: keys.SK }
+    }));
+  },
+
+  // List sponsor metadata linked to an event
+  listSponsorsByEvent: async (eventId: string): Promise<any[]> => {
+    logger.info(`dbService.listSponsorsByEvent: eventId=${eventId}`);
+    const eventPk = `EVENT#${eventId}`;
+
+    const relationshipItems = DB_MODE === 'mock'
+      ? readMockDb().filter(
+          item =>
+            item.PK === eventPk &&
+            typeof item.SK === 'string' &&
+            item.SK.startsWith('SPONSOR#') &&
+            item.entityType === 'EVENT_SPONSOR'
+        )
+      : (await ddbDocClient!.send(new QueryCommand({
+          TableName: TABLE_NAME,
+          KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+          ExpressionAttributeValues: {
+            ':pk': eventPk,
+            ':skPrefix': 'SPONSOR#'
+          }
+        }))).Items || [];
+
+    const sponsors = [];
+    for (const relationship of relationshipItems) {
+      if (relationship.entityType !== 'EVENT_SPONSOR') {
+        continue;
+      }
+
+      const sponsorId = relationship.sponsorId || relationship.SK?.replace('SPONSOR#', '');
+      if (!sponsorId) {
+        continue;
+      }
+
+      const sponsor = await dbService.getSponsorById(sponsorId);
+      if (sponsor) {
+        sponsors.push({
+          ...sponsor,
+          tier: relationship.tier || sponsor.tier || ''
+        });
+      }
+    }
+
+    return sponsors;
   },
 
   // Create an event item using the new EVENT schema

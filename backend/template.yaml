@@ -431,6 +431,42 @@ Resources:
             Path: /events/{id}/speakers/{speakerId}
             Method: POST
 
+  GetEventSponsorsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventSponsors
+      Handler: handlers/getEventSponsors.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventSponsors:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/sponsors
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  LinkEventSponsorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-LinkEventSponsor
+      Handler: handlers/linkEventSponsor.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        LinkEventSponsor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/sponsors/{sponsorId}
+            Method: POST
+
   GetEventFeedbacksFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -694,6 +730,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${LinkEventSpeakerFunction}"
+      RetentionInDays: 7
+
+  GetEventSponsorsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventSponsorsFunction}"
+      RetentionInDays: 7
+
+  LinkEventSponsorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LinkEventSponsorFunction}"
       RetentionInDays: 7
 
   GetEventFeedbacksLogGroup:
