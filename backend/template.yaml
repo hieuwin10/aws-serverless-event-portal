@@ -321,6 +321,25 @@ Resources:
             Path: /audit-logs
             Method: GET
 
+  GetHomepageEventsViewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetHomepageEventsView
+      Handler: handlers/getHomepageEventsView.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetHomepageEventsView:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /views/homepage-events
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -745,6 +764,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetAuditLogsFunction}"
+      RetentionInDays: 7
+
+  GetHomepageEventsViewLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetHomepageEventsViewFunction}"
       RetentionInDays: 7
 
   GetEventsLogGroup:

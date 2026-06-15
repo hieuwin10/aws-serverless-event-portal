@@ -491,6 +491,11 @@ export const buildNotificationKeys = (userId: string, notificationId: string) =>
   SK: `NOTIFICATION#${notificationId}`
 });
 
+export const buildMaterializedViewKeys = (viewName: string) => ({
+  PK: `VIEW#${viewName}`,
+  SK: 'METADATA'
+});
+
 export const buildAuditLogKeys = (createdAt: string, auditId: string) => {
   const date = createdAt.slice(0, 10);
   return {
@@ -2515,6 +2520,67 @@ export const dbService = {
         .map((item: any) => mapEventItemToDto(item))
         .filter((item): item is NonNullable<typeof item> => item !== null);
     }
+  },
+
+  // Create or replace a materialized view item
+  createMaterializedViewItem: async (input: {
+    viewName: string;
+    data: any;
+    generatedAt?: string;
+    ttl?: number;
+  }): Promise<any> => {
+    const now = new Date().toISOString();
+    const generatedAt = input.generatedAt || now;
+    const keys = buildMaterializedViewKeys(input.viewName);
+    const existingView = await dbService.getItem(keys.PK, keys.SK);
+    const item = {
+      PK: keys.PK,
+      SK: keys.SK,
+      entityType: 'MATERIALIZED_VIEW',
+      viewName: input.viewName,
+      data: input.data,
+      generatedAt,
+      ttl: input.ttl || Math.floor(Date.now() / 1000) + 5 * 60,
+      createdAt:
+        existingView?.entityType === 'MATERIALIZED_VIEW'
+          ? existingView.createdAt
+          : now,
+      updatedAt: now
+    };
+
+    await dbService.putItem(item);
+    return item;
+  },
+
+  // Get a materialized view by name
+  getMaterializedView: async (viewName: string): Promise<any | null> => {
+    const keys = buildMaterializedViewKeys(viewName);
+    logger.info(`dbService.getMaterializedView: viewName=${viewName}`);
+
+    const item = await dbService.getItem(keys.PK, keys.SK);
+    if (!item || (item.entityType && item.entityType !== 'MATERIALIZED_VIEW')) {
+      return null;
+    }
+
+    return {
+      viewName: item.viewName || viewName,
+      data: item.data || [],
+      generatedAt: item.generatedAt || '',
+      ttl: Number(item.ttl || 0),
+      createdAt: item.createdAt || '',
+      updatedAt: item.updatedAt || item.createdAt || ''
+    };
+  },
+
+  // Refresh the HOMEPAGE_EVENTS materialized view
+  refreshHomepageView: async (): Promise<any> => {
+    logger.info('dbService.refreshHomepageView');
+    const events = await dbService.listEvents();
+    return dbService.createMaterializedViewItem({
+      viewName: 'HOMEPAGE_EVENTS',
+      data: events,
+      ttl: Math.floor(Date.now() / 1000) + 5 * 60
+    });
   },
 
   // Create a simulated payment item using the PAYMENT schema
