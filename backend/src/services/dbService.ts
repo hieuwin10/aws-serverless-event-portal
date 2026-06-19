@@ -178,6 +178,50 @@ export const dbService = {
     }
   },
 
+  // Query waitlist entries for an event
+  getEventWaitlist: async (eventId: string): Promise<any[]> => {
+    const pk = `EVENT#${eventId}`;
+    logger.info(`dbService.getEventWaitlist: eventId=${eventId}`);
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      return items
+        .filter(item => item.PK === pk && item.SK?.startsWith('WAITLIST#'))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    } else {
+      const result = await ddbDocClient!.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': pk,
+          ':skPrefix': 'WAITLIST#'
+        }
+      }));
+      return result.Items || [];
+    }
+  },
+
+  // Query reviews for an event
+  getEventReviews: async (eventId: string): Promise<any[]> => {
+    const pk = `EVENT#${eventId}`;
+    logger.info(`dbService.getEventReviews: eventId=${eventId}`);
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      return items
+        .filter(item => item.PK === pk && item.SK?.startsWith('REVIEW#'))
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    } else {
+      const result = await ddbDocClient!.send(new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': pk,
+          ':skPrefix': 'REVIEW#'
+        }
+      }));
+      return result.Items || [];
+    }
+  },
+
   // Query GSI (UserRegistrationsIndex) to get all events registered by user
   getUserRegistrations: async (userId: string): Promise<any[]> => {
     logger.info(`dbService.getUserRegistrations: userId=${userId}`);
