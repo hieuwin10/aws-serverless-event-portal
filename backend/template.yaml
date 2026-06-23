@@ -1,7 +1,7 @@
-﻿AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  EventApp — Website Quản Lý và Đăng Ký Sự Kiện Online (AWS Free Tier) - Well-Architected Improved
+  EventApp - Serverless Event Management System
 
 Parameters:
   BillingAlertEmail:
@@ -78,7 +78,7 @@ Resources:
     Properties:
       GroupName: Admin
       UserPoolId: !Ref CognitoUserPool
-      Description: Nhóm quản trị viên có quyền CRUD sự kiện
+      Description: Nhm qun tr vin c quyn CRUD s kin
 
   # ----------------------------------------------------------
   # 3. DYNAMODB TABLE
@@ -479,17 +479,17 @@ Resources:
 
 Outputs:
   ApiUrl:
-    Description: URL gốc của API Gateway sau khi deploy
+    Description: URL gc ca API Gateway sau khi deploy
     Value: !Sub "https://${EventAppApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
   UserPoolId:
-    Description: ID của Cognito User Pool
+    Description: ID ca Cognito User Pool
     Value: !Ref CognitoUserPool
   UserPoolClientId:
-    Description: Client ID để tích hợp vào Frontend
+    Description: Client ID  tch hp vo Frontend
     Value: !Ref CognitoUserPoolClient
   DynamoDBTableName:
-    Description: Tên bảng DynamoDB
+    Description: Tn bng DynamoDB
     Value: !Ref EventAppTable
   FrontendBucketName:
-    Description: Tên S3 Bucket Frontend
+    Description: Tn S3 Bucket Frontend
     Value: !Ref FrontendBucket
