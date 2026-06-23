@@ -39,7 +39,7 @@ interface EventContextType {
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT;
 
 export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token, user } = useAuth();
@@ -120,6 +120,8 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         throw new Error(resJson.error || 'Đăng ký sự kiện thất bại.');
       }
     } catch (err: any) {
+      // Rollback Optimistic UI on network error
+      setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: Math.max(0, e.registeredCount - 1) } : e));
       setError(err.message);
       throw err;
     }

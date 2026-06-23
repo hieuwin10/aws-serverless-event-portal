@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
@@ -14,7 +14,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
     const userGroups = claims?.['cognito:groups'] || [];
     const isMockAdmin = claims?.role === 'Admin' || claims?.email === 'admin@eventapp.com';
-    const isAdmin = Array.isArray(userGroups) ? userGroups.includes('Admin') : userGroups === 'Admin';
+    const isAdmin = typeof userGroups === 'string' ? userGroups.includes('Admin') : (Array.isArray(userGroups) ? userGroups.includes('Admin') : userGroups === 'Admin');
 
     if (!isAdmin && !isMockAdmin) {
       return buildResponse(403, null, 'Bạn không có quyền thực hiện hành động này. Yêu cầu nhóm quyền Admin.');
@@ -31,7 +31,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return buildResponse(400, null, 'Vui lòng cung cấp đầy đủ các trường thông tin bắt buộc: title, category, date, location, totalSeats.');
     }
 
-    const eventId = `evt_${uuidv4()}`;
+    const eventId = `evt_${randomUUID()}`;
     const newEvent = {
       PK: `EVENT#${eventId}`,
       SK: 'METADATA',

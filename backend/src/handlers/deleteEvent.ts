@@ -13,7 +13,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
     const userGroups = claims?.['cognito:groups'] || [];
     const isMockAdmin = claims?.role === 'Admin' || claims?.email === 'admin@eventapp.com';
-    const isAdmin = Array.isArray(userGroups) ? userGroups.includes('Admin') : userGroups === 'Admin';
+    const isAdmin = typeof userGroups === 'string' ? userGroups.includes('Admin') : (Array.isArray(userGroups) ? userGroups.includes('Admin') : userGroups === 'Admin');
 
     if (!isAdmin && !isMockAdmin) {
       return buildResponse(403, null, 'Bạn không có quyền thực hiện hành động này. Yêu cầu nhóm quyền Admin.');

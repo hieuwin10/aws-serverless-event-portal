@@ -198,8 +198,8 @@ export const dbService = {
     } else {
       const result = await ddbDocClient!.send(new QueryCommand({
         TableName: TABLE_NAME,
-        IndexName: 'UserRegistrationsIndex',
-        KeyConditionExpression: 'SK = :gsiPk AND begins_with(PK, :gsiSkPrefix)',
+        IndexName: 'GSI1Index',
+        KeyConditionExpression: 'GSI1PK = :gsiPk AND begins_with(GSI1SK, :gsiSkPrefix)',
         ExpressionAttributeValues: {
           ':gsiPk': `USER#${userId}`,
           ':gsiSkPrefix': 'EVENT#'

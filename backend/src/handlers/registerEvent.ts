@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { dbService } from '../services/dbService';
 import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
@@ -46,7 +46,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // 4. Generate registration and ticketCode
-    const registrationId = `reg_${uuidv4()}`;
+    const registrationId = `reg_${randomUUID()}`;
     const eventPrefix = id.slice(4, 8).toUpperCase();
     const userSuffix = userId.slice(-4).toUpperCase();
     const ticketCode = `TKT-AWS-${eventPrefix}-${userSuffix}`;
@@ -54,6 +54,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const newRegistration = {
       PK: `EVENT#${id}`,
       SK: `USER#${userId}`,
+      GSI1PK: `USER#${userId}`,
+      GSI1SK: `EVENT#${id}`,
       registrationId,
       eventId: id,
       userId,

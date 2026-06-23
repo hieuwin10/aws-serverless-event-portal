@@ -126,7 +126,7 @@ const AppContent: React.FC = () => {
           throw new Error('Vui lòng nhập đầy đủ họ tên, email và mật khẩu.');
         }
         await register(authEmail, authPassword, authName);
-        setAuthSuccess('Mã xác minh OTP đã được gửi! (Gợi ý: Nhập mã mock 123456)');
+        setAuthSuccess('Mã xác minh OTP đã được gửi! Vui lòng kiểm tra email của bạn.');
         setAuthMode('otp');
       } else if (authMode === 'otp') {
         await confirmOTP(authEmail, otpCode);
@@ -572,7 +572,7 @@ const AppContent: React.FC = () => {
                       maxLength={6}
                       required
                     />
-                    <span className="hint-label">Mã OTP mặc định: <code>123456</code></span>
+                    <span className="hint-label">Mã OTP có 6 chữ số</span>
                   </div>
                 )}
 
