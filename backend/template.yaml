@@ -145,6 +145,194 @@ Resources:
   # ----------------------------------------------------------
   # 5. LAMBDA FUNCTIONS
   # ----------------------------------------------------------
+  GetCategoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetCategories
+      Handler: handlers/getCategories.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetCategories:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /categories
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetLocationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetLocations
+      Handler: handlers/getLocations.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetLocations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /locations
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetOrganizersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetOrganizers
+      Handler: handlers/getOrganizers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetOrganizers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /organizers
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetOrganizerByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetOrganizerById
+      Handler: handlers/getOrganizerById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetOrganizerById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /organizers/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetSpeakersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSpeakers
+      Handler: handlers/getSpeakers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSpeakers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /speakers
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetSpeakerByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSpeakerById
+      Handler: handlers/getSpeakerById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSpeakerById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /speakers/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetSponsorsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSponsors
+      Handler: handlers/getSponsors.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSponsors:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /sponsors
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetSponsorByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetSponsorById
+      Handler: handlers/getSponsorById.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetSponsorById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /sponsors/{id}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetAuditLogsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetAuditLogs
+      Handler: handlers/getAuditLogs.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetAuditLogs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /audit-logs
+            Method: GET
+
+  GetHomepageEventsViewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetHomepageEventsView
+      Handler: handlers/getHomepageEventsView.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetHomepageEventsView:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /views/homepage-events
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
   GetEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -183,6 +371,167 @@ Resources:
             Auth:
               Authorizer: NONE
 
+  GetEventTicketsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventTickets
+      Handler: handlers/getEventTickets.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventTickets:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/tickets
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  GetEventCheckinsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventCheckins
+      Handler: handlers/getEventCheckins.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventCheckins:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/checkins
+            Method: GET
+
+  CheckinEventUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CheckinEventUser
+      Handler: handlers/checkinEventUser.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CheckinEventUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/checkin/{userId}
+            Method: POST
+
+  GetEventSpeakersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventSpeakers
+      Handler: handlers/getEventSpeakers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventSpeakers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/speakers
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  LinkEventSpeakerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-LinkEventSpeaker
+      Handler: handlers/linkEventSpeaker.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        LinkEventSpeaker:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/speakers/{speakerId}
+            Method: POST
+
+  GetEventSponsorsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventSponsors
+      Handler: handlers/getEventSponsors.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventSponsors:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/sponsors
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  LinkEventSponsorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-LinkEventSponsor
+      Handler: handlers/linkEventSponsor.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        LinkEventSponsor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/sponsors/{sponsorId}
+            Method: POST
+
+  GetEventFeedbacksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventFeedbacks
+      Handler: handlers/getEventFeedbacks.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventFeedbacks:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/feedbacks
+            Method: GET
+            Auth:
+              Authorizer: NONE
+
+  CreateEventFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CreateEventFeedback
+      Handler: handlers/createEventFeedback.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CreateEventFeedback:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/feedback
+            Method: POST
+
   CreateEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -217,6 +566,74 @@ Resources:
             Path: /events/{id}/register
             Method: POST
 
+  CreateRegistrationPaymentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CreateRegistrationPayment
+      Handler: handlers/createRegistrationPayment.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CreateRegistrationPayment:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /registrations/{registrationId}/payments
+            Method: POST
+
+  GetUserPaymentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUserPayments
+      Handler: handlers/getUserPayments.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUserPayments:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/payments
+            Method: GET
+
+  GetUserNotificationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUserNotifications
+      Handler: handlers/getUserNotifications.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUserNotifications:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/notifications
+            Method: GET
+
+  MarkNotificationReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-MarkNotificationRead
+      Handler: handlers/markNotificationRead.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        MarkNotificationRead:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/notifications/{notificationId}/read
+            Method: PUT
+
   GetUserRegistrationsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -232,6 +649,23 @@ Resources:
           Properties:
             RestApiId: !Ref EventAppApi
             Path: /users/registrations
+            Method: GET
+
+  GetUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUsers
+      Handler: handlers/getUsers.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users
             Method: GET
 
   UpdateEventFunction:
@@ -358,6 +792,66 @@ Resources:
   # ----------------------------------------------------------
   # 6. LOG RETENTION (COST-02)
   # ----------------------------------------------------------
+  GetCategoriesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetCategoriesFunction}"
+      RetentionInDays: 7
+
+  GetLocationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetLocationsFunction}"
+      RetentionInDays: 7
+
+  GetOrganizersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetOrganizersFunction}"
+      RetentionInDays: 7
+
+  GetOrganizerByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetOrganizerByIdFunction}"
+      RetentionInDays: 7
+
+  GetSpeakersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSpeakersFunction}"
+      RetentionInDays: 7
+
+  GetSpeakerByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSpeakerByIdFunction}"
+      RetentionInDays: 7
+
+  GetSponsorsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSponsorsFunction}"
+      RetentionInDays: 7
+
+  GetSponsorByIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetSponsorByIdFunction}"
+      RetentionInDays: 7
+
+  GetAuditLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetAuditLogsFunction}"
+      RetentionInDays: 7
+
+  GetHomepageEventsViewLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetHomepageEventsViewFunction}"
+      RetentionInDays: 7
+
   GetEventsLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -368,6 +862,60 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetEventByIdFunction}"
+      RetentionInDays: 7
+
+  GetEventTicketsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventTicketsFunction}"
+      RetentionInDays: 7
+
+  GetEventCheckinsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventCheckinsFunction}"
+      RetentionInDays: 7
+
+  CheckinEventUserLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CheckinEventUserFunction}"
+      RetentionInDays: 7
+
+  GetEventSpeakersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventSpeakersFunction}"
+      RetentionInDays: 7
+
+  LinkEventSpeakerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LinkEventSpeakerFunction}"
+      RetentionInDays: 7
+
+  GetEventSponsorsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventSponsorsFunction}"
+      RetentionInDays: 7
+
+  LinkEventSponsorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LinkEventSponsorFunction}"
+      RetentionInDays: 7
+
+  GetEventFeedbacksLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventFeedbacksFunction}"
+      RetentionInDays: 7
+
+  CreateEventFeedbackLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CreateEventFeedbackFunction}"
       RetentionInDays: 7
 
   CreateEventLogGroup:
@@ -382,10 +930,40 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${RegisterEventFunction}"
       RetentionInDays: 7
 
+  CreateRegistrationPaymentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CreateRegistrationPaymentFunction}"
+      RetentionInDays: 7
+
+  GetUserPaymentsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUserPaymentsFunction}"
+      RetentionInDays: 7
+
+  GetUserNotificationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUserNotificationsFunction}"
+      RetentionInDays: 7
+
+  MarkNotificationReadLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${MarkNotificationReadFunction}"
+      RetentionInDays: 7
+
   GetUserRegistrationsLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetUserRegistrationsFunction}"
+      RetentionInDays: 7
+
+  GetUsersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUsersFunction}"
       RetentionInDays: 7
 
   UpdateEventLogGroup:

@@ -76,7 +76,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setEvents(resJson.data);
       } else {
-        throw new Error(resJson.error || 'Lỗi khi tải danh sách sự kiện.');
+        throw new Error(resJson.error || 'Lá»—i khi táº£i danh sÃ¡ch sá»± kiá»‡n.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -111,13 +111,33 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       const resJson = await res.json();
       if (resJson.success) {
-        // Update user registrations
-        setRegistrations(prev => [...prev, resJson.data]);
-        return resJson.data;
+        const hydratedEvent =
+          events.find(event => event.id === eventId) ||
+          await getEventById(eventId);
+
+        const nextRegistration: Registration = {
+          ...resJson.data,
+          event: hydratedEvent
+        };
+
+        setRegistrations(prev => {
+          const alreadyExists = prev.some(reg => reg.registrationId === nextRegistration.registrationId);
+          if (alreadyExists) {
+            return prev;
+          }
+
+          return [...prev, nextRegistration];
+        });
+
+        if (user) {
+          void fetchUserRegistrations();
+        }
+
+        return nextRegistration;
       } else {
         // Rollback Optimistic UI
         setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: e.registeredCount - 1 } : e));
-        throw new Error(resJson.error || 'Đăng ký sự kiện thất bại.');
+        throw new Error(resJson.error || 'ÄÄƒng kÃ½ sá»± kiá»‡n tháº¥t báº¡i.');
       }
     } catch (err: any) {
       // Rollback Optimistic UI on network error
@@ -139,7 +159,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setEvents(prev => [resJson.data, ...prev]);
       } else {
-        throw new Error(resJson.error || 'Không thể tạo sự kiện mới.');
+        throw new Error(resJson.error || 'KhÃ´ng thá»ƒ táº¡o sá»± kiá»‡n má»›i.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -159,7 +179,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setEvents(prev => prev.map(e => e.id === id ? resJson.data : e));
       } else {
-        throw new Error(resJson.error || 'Cập nhật sự kiện thất bại.');
+        throw new Error(resJson.error || 'Cáº­p nháº­t sá»± kiá»‡n tháº¥t báº¡i.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -177,8 +197,9 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const resJson = await res.json();
       if (resJson.success) {
         setEvents(prev => prev.filter(e => e.id !== id));
+        setRegistrations(prev => prev.filter(reg => reg.eventId !== id));
       } else {
-        throw new Error(resJson.error || 'Không thể xóa sự kiện.');
+        throw new Error(resJson.error || 'KhÃ´ng thá»ƒ xÃ³a sá»± kiá»‡n.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -197,7 +218,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setRegistrations(resJson.data);
       } else {
-        throw new Error(resJson.error || 'Lỗi tải lịch sử đăng ký.');
+        throw new Error(resJson.error || 'Lá»—i táº£i lá»‹ch sá»­ Ä‘Äƒng kÃ½.');
       }
     } catch (err: any) {
       setError(err.message);

@@ -7,23 +7,21 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   try {
     logger.info('getEventById handler triggered');
     const pathParams = event.pathParameters || {};
-    const id = pathParams.id;
+    const eventId = pathParams.id;
 
-    if (!id) {
-      return buildResponse(400, null, 'Thiếu ID sự kiện trong yêu cầu.');
+    if (!eventId) {
+      return buildResponse(400, null, 'Thiáº¿u ID sá»± kiá»‡n trong yÃªu cáº§u.');
     }
 
-    const pk = `EVENT#${id}`;
-    const sk = 'METADATA';
-    const eventData = await dbService.getItem(pk, sk);
+    const eventData = await dbService.getEventById(eventId);
 
     if (!eventData) {
-      return buildResponse(404, null, `Không tìm thấy sự kiện với ID: ${id}`);
+      return buildResponse(404, null, `KhÃ´ng tÃ¬m tháº¥y sá»± kiá»‡n vá»›i ID: ${eventId}`);
     }
 
     return buildResponse(200, eventData);
   } catch (error: any) {
     logger.error('Error in getEventById handler', error);
-    return buildResponse(500, null, 'Không thể tải chi tiết sự kiện. Vui lòng thử lại sau.');
+    return buildResponse(500, null, 'KhÃ´ng thá»ƒ táº£i chi tiáº¿t sá»± kiá»‡n. Vui lÃ²ng thá»­ láº¡i sau.');
   }
 };

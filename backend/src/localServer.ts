@@ -1,6 +1,27 @@
+import 'dotenv/config';
 import express from 'express';
+import { handler as getCategories } from './handlers/getCategories';
+import { handler as getLocations } from './handlers/getLocations';
+import { handler as getOrganizers } from './handlers/getOrganizers';
+import { handler as getOrganizerById } from './handlers/getOrganizerById';
+import { handler as getSpeakers } from './handlers/getSpeakers';
+import { handler as getSpeakerById } from './handlers/getSpeakerById';
+import { handler as getSponsors } from './handlers/getSponsors';
+import { handler as getSponsorById } from './handlers/getSponsorById';
+import { handler as getAuditLogs } from './handlers/getAuditLogs';
+import { handler as getHomepageEventsView } from './handlers/getHomepageEventsView';
+import { handler as getUsers } from './handlers/getUsers';
 import { handler as getEvents } from './handlers/getEvents';
 import { handler as getEventById } from './handlers/getEventById';
+import { handler as getEventTickets } from './handlers/getEventTickets';
+import { handler as getEventCheckins } from './handlers/getEventCheckins';
+import { handler as checkinEventUser } from './handlers/checkinEventUser';
+import { handler as getEventSpeakers } from './handlers/getEventSpeakers';
+import { handler as linkEventSpeaker } from './handlers/linkEventSpeaker';
+import { handler as getEventSponsors } from './handlers/getEventSponsors';
+import { handler as linkEventSponsor } from './handlers/linkEventSponsor';
+import { handler as createEventFeedback } from './handlers/createEventFeedback';
+import { handler as getEventFeedbacks } from './handlers/getEventFeedbacks';
 import { handler as createEvent } from './handlers/createEvent';
 import { handler as updateEvent } from './handlers/updateEvent';
 import { handler as deleteEvent } from './handlers/deleteEvent';
@@ -11,6 +32,10 @@ import { handler as exportEventICS } from './handlers/exportEventICS';
 import { handler as qrCheckIn } from './handlers/qrCheckIn';
 import { handler as submitReview } from './handlers/submitReview';
 import { handler as joinWaitlist } from './handlers/joinWaitlist';
+import { handler as createRegistrationPayment } from './handlers/createRegistrationPayment';
+import { handler as getUserPayments } from './handlers/getUserPayments';
+import { handler as getUserNotifications } from './handlers/getUserNotifications';
+import { handler as markNotificationRead } from './handlers/markNotificationRead';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -98,8 +123,27 @@ const handleLambda = (handlerFn: any) => {
 };
 
 // Map Endpoints to Handlers
+app.get('/categories', handleLambda(getCategories));
+app.get('/locations', handleLambda(getLocations));
+app.get('/organizers', handleLambda(getOrganizers));
+app.get('/organizers/:id', handleLambda(getOrganizerById));
+app.get('/speakers', handleLambda(getSpeakers));
+app.get('/speakers/:id', handleLambda(getSpeakerById));
+app.get('/sponsors', handleLambda(getSponsors));
+app.get('/sponsors/:id', handleLambda(getSponsorById));
+app.get('/audit-logs', handleLambda(getAuditLogs));
+app.get('/views/homepage-events', handleLambda(getHomepageEventsView));
 app.get('/events', handleLambda(getEvents));
 app.get('/events/recommendations', handleLambda(getRecommendations)); // Must be before /events/:id
+app.get('/events/:id/tickets', handleLambda(getEventTickets));
+app.get('/events/:id/checkins', handleLambda(getEventCheckins));
+app.post('/events/:id/checkin/:userId', handleLambda(checkinEventUser));
+app.get('/events/:id/speakers', handleLambda(getEventSpeakers));
+app.post('/events/:id/speakers/:speakerId', handleLambda(linkEventSpeaker));
+app.get('/events/:id/sponsors', handleLambda(getEventSponsors));
+app.post('/events/:id/sponsors/:sponsorId', handleLambda(linkEventSponsor));
+app.get('/events/:id/feedbacks', handleLambda(getEventFeedbacks));
+app.post('/events/:id/feedback', handleLambda(createEventFeedback));
 app.get('/events/:id', handleLambda(getEventById));
 app.get('/events/:id/export', handleLambda(exportEventICS));
 app.post('/events', handleLambda(createEvent));
@@ -109,6 +153,11 @@ app.post('/events/:id/register', handleLambda(registerEvent));
 app.post('/events/:id/waitlist', handleLambda(joinWaitlist));
 app.post('/events/:id/checkin', handleLambda(qrCheckIn));
 app.post('/events/:id/reviews', handleLambda(submitReview));
+app.post('/registrations/:registrationId/payments', handleLambda(createRegistrationPayment));
+app.get('/users/payments', handleLambda(getUserPayments));
+app.get('/users/notifications', handleLambda(getUserNotifications));
+app.put('/users/notifications/:notificationId/read', handleLambda(markNotificationRead));
+app.get('/users', handleLambda(getUsers));
 app.get('/users/registrations', handleLambda(getUserRegistrations));
 
 app.listen(PORT, () => {
