@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Serverless Event Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <header class="header fade-in">
+        <div class="container nav-container">
+            <h1 class="logo">EventApp <span>Serverless</span></h1>
+            <nav>
+                <a href="https://github.com/hieuwin10/aws-serverless-event-portal" class="btn-github" target="_blank">View on GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero fade-in-up">
+            <div class="container hero-content">
+                <div class="badge">AWS Serverless Architecture</div>
+                <h2 class="title">Next-Gen Event Management</h2>
+                <p class="subtitle">Built with React, Vite, AWS Lambda, API Gateway, and DynamoDB Single-Table Design.</p>
+                <div class="hero-actions">
+                    <a href="#features" class="btn-primary">Explore Features</a>
+                    <a href="#architecture" class="btn-secondary">View Architecture</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features fade-in-up delay-1">
+            <div class="container">
+                <h3 class="section-title">Core Features</h3>
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-icon">🎟️</div>
+                        <h4>Smart Ticketing</h4>
+                        <p>Real-time seat allocation, waitlists, and dynamic QR Code generation for seamless event check-ins.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">⚡</div>
+                        <h4>Serverless Performance</h4>
+                        <p>Zero cold starts, auto-scaling backend powered by AWS Lambda and API Gateway.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">💾</div>
+                        <h4>Single-Table Design</h4>
+                        <p>Highly optimized DynamoDB schema grouping Events, Users, Speakers, and Tickets in one powerful table.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="architecture fade-in-up delay-2">
+            <div class="container">
+                <h3 class="section-title">Cloud Architecture</h3>
+                <div class="arch-diagram">
+                    <div class="arch-box s3">React + Vite (S3 / Pages)</div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-box cognito">AWS Cognito (Auth)</div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-box api">AWS API Gateway</div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-box lambda">AWS Lambda (36+ Functions)</div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-box ddb">DynamoDB (Single-Table)</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>AWS Serverless Event Portal - Engineered by Antigravity</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
