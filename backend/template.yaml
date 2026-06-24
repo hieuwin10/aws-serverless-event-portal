@@ -338,7 +338,7 @@ Resources:
     Properties:
       FunctionName: EventApp-GetEvents
       Handler: handlers/getEvents.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EventAppTable
@@ -357,7 +357,7 @@ Resources:
     Properties:
       FunctionName: EventApp-GetEventById
       Handler: handlers/getEventById.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EventAppTable
@@ -537,7 +537,7 @@ Resources:
     Properties:
       FunctionName: EventApp-CreateEvent
       Handler: handlers/createEvent.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
@@ -554,7 +554,7 @@ Resources:
     Properties:
       FunctionName: EventApp-RegisterEvent
       Handler: handlers/registerEvent.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
@@ -639,7 +639,7 @@ Resources:
     Properties:
       FunctionName: EventApp-GetUserRegistrations
       Handler: handlers/getUserRegistrations.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EventAppTable
@@ -673,7 +673,7 @@ Resources:
     Properties:
       FunctionName: EventApp-UpdateEvent
       Handler: handlers/updateEvent.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
@@ -690,7 +690,7 @@ Resources:
     Properties:
       FunctionName: EventApp-DeleteEvent
       Handler: handlers/deleteEvent.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
@@ -707,7 +707,7 @@ Resources:
     Properties:
       FunctionName: EventApp-GetRecommendations
       Handler: handlers/getRecommendations.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EventAppTable
@@ -724,7 +724,7 @@ Resources:
     Properties:
       FunctionName: EventApp-ExportEventICS
       Handler: handlers/exportEventICS.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref EventAppTable
@@ -743,7 +743,7 @@ Resources:
     Properties:
       FunctionName: EventApp-QRCheckIn
       Handler: handlers/qrCheckIn.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
@@ -760,7 +760,7 @@ Resources:
     Properties:
       FunctionName: EventApp-SubmitReview
       Handler: handlers/submitReview.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
@@ -777,7 +777,7 @@ Resources:
     Properties:
       FunctionName: EventApp-JoinWaitlist
       Handler: handlers/joinWaitlist.handler
-      CodeUri: s3://tram-trung-chuyen-code-20260623-141411/backend-code.zip
+      CodeUri: dist/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref EventAppTable
