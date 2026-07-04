@@ -25,42 +25,42 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrati
   const handleScan = (code = ticketCode) => {
     const normalized = code.trim().toUpperCase();
     if (!normalized) {
-      setMessage('Nhap hoac chon ma ve de check-in.');
+      setMessage('Nhập hoặc chọn mã vé để check-in.');
       return;
     }
 
     if (!demoTickets.includes(normalized)) {
-      setMessage('Khong tim thay ma ve trong danh sach dang ky.');
+      setMessage('Không tìm thấy mã vé trong danh sách đăng ký.');
       return;
     }
 
     if (checkedIn.includes(normalized)) {
-      setMessage('Ve nay da duoc check-in truoc do.');
+      setMessage('Vé này đã được check-in trước đó.');
       return;
     }
 
     setCheckedIn((current) => [normalized, ...current]);
     setTicketCode('');
-    setMessage(`Check-in thanh cong cho ve ${normalized}.`);
+    setMessage(`Check-in thành công cho vé ${normalized}.`);
   };
 
   return (
     <div className="page-check-in fade-in">
       <button className="btn-secondary" style={{ marginBottom: '25px' }} onClick={onBack}>
-        Quay Lai Admin
+        Quay lại trang quản trị
       </button>
 
       <div className="admin-header-row">
         <div>
           <h1 className="section-title">QR Check-in</h1>
-          <p className="text-secondary">Mo phong quet QR va xac nhan nguoi tham du tai cong su kien.</p>
+          <p className="text-secondary">Mô phỏng quét QR và xác nhận người tham dự tại cổng sự kiện.</p>
         </div>
       </div>
 
       <div className="check-in-layout">
         <section className="qr-scanner-card card-glass">
           <div className="form-group">
-            <label>Su kien</label>
+            <label>Sự kiện</label>
             <select value={selectedEvent?.id || ''} onChange={(event) => setSelectedEventId(event.target.value)}>
               {events.map((event) => (
                 <option key={event.id} value={event.id}>{event.title}</option>
@@ -80,34 +80,34 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrati
 
           <form className="check-in-form" onSubmit={(event) => { event.preventDefault(); handleScan(); }}>
             <div className="form-group">
-              <label>Ma ve / QR payload</label>
+              <label>Mã vé / QR payload</label>
               <input
                 value={ticketCode}
                 onChange={(event) => setTicketCode(event.target.value)}
                 placeholder="AWS-DEMO-1001"
               />
             </div>
-            <button type="submit" className="btn-primary w-full">Xac Nhan Check-in</button>
+            <button type="submit" className="btn-primary w-full">Xác nhận Check-in</button>
           </form>
 
           {message && <div className="alert alert-success" style={{ marginTop: '18px' }}>{message}</div>}
         </section>
 
         <section className="check-in-list card-glass">
-          <h2>Ve Mau De Quet</h2>
+          <h2>Vé mẫu để quét</h2>
           <div className="scan-ticket-list">
             {demoTickets.map((code) => (
               <button key={code} className="scan-ticket-item" onClick={() => handleScan(code)}>
                 <span>{code}</span>
-                <small>{checkedIn.includes(code) ? 'Da check-in' : 'Bam de quet'}</small>
+                <small>{checkedIn.includes(code) ? 'Đã check-in' : 'Bấm để quét'}</small>
               </button>
             ))}
           </div>
 
-          <h2 style={{ marginTop: '28px' }}>Da Check-in ({checkedIn.length})</h2>
+          <h2 style={{ marginTop: '28px' }}>Đã check-in ({checkedIn.length})</h2>
           <div className="checked-in-list">
             {checkedIn.length === 0 ? (
-              <p className="text-secondary">Chua co nguoi tham du nao duoc xac nhan.</p>
+              <p className="text-secondary">Chưa có người tham dự nào được xác nhận.</p>
             ) : (
               checkedIn.map((code) => (
                 <div key={code} className="checked-in-item">

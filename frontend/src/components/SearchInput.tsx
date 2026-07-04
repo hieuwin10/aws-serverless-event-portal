@@ -9,14 +9,14 @@ interface SearchInputProps {
 export const SearchInput: React.FC<SearchInputProps> = ({ value, onChange, onSubmit }) => (
   <form className="search-form form-glass" onSubmit={onSubmit}>
     <div className="search-input-wrapper">
-      <span className="search-icon">Search</span>
+      <span className="search-icon">Tìm kiếm</span>
       <input
         type="text"
-        placeholder="Tim kiem su kien theo ten hoac noi dung..."
+        placeholder="Tìm kiếm sự kiện theo tên hoặc nội dung..."
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
     </div>
-    <button type="submit" className="btn-primary">Tim Kiem</button>
+    <button type="submit" className="btn-primary">Tìm kiếm</button>
   </form>
 );

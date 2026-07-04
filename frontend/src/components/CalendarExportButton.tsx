@@ -48,10 +48,10 @@ export const CalendarExportButton: React.FC<CalendarExportButtonProps> = ({ even
   return (
     <div className="calendar-actions">
       <button type="button" className="btn-secondary" onClick={handleExport}>
-        Xuat lich .ics
+        Xuất lịch .ics
       </button>
       <a className="btn-secondary" href={googleUrl.toString()} target="_blank" rel="noreferrer">
-        Them vao Google Calendar
+        Thêm vào Google Calendar
       </a>
     </div>
   );

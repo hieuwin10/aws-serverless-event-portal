@@ -19,8 +19,8 @@ export const EventRecommendations: React.FC<EventRecommendationsProps> = ({ even
     <section className="recommendations-section">
       <div className="section-heading-row">
         <div>
-          <h2 className="section-title">Goi Y Su Kien</h2>
-          <p className="text-secondary">Lua chon dua tren danh muc va cac su kien con cho trong.</p>
+          <h2 className="section-title">Gợi ý sự kiện</h2>
+          <p className="text-secondary">Lựa chọn dựa trên danh mục và các sự kiện còn chỗ trống.</p>
         </div>
       </div>
       <div className="recommendations-grid">

@@ -34,10 +34,10 @@ type PageName =
   | 'not-found';
 
 const categories = [
-  { value: '', label: 'Tat Ca' },
-  { value: 'technology', label: 'Cong Nghe (AWS)' },
-  { value: 'music', label: 'Am Nhac' },
-  { value: 'education', label: 'Giao Duc' },
+  { value: '', label: 'Tất cả' },
+  { value: 'technology', label: 'Công nghệ (AWS)' },
+  { value: 'music', label: 'Âm nhạc' },
+  { value: 'education', label: 'Giáo dục' },
 ];
 
 const AppContent: React.FC = () => {
@@ -135,7 +135,7 @@ const AppContent: React.FC = () => {
       setAuthEmail('');
       setAuthPassword('');
       setAuthMode('login');
-      setAuthError('Vui long dang nhap de dang ky su kien.');
+      setAuthError('Vui lòng đăng nhập để đăng ký sự kiện.');
       setCurrentPage('login');
       return;
     }
@@ -145,13 +145,13 @@ const AppContent: React.FC = () => {
       setRegTicket(registration);
       setDetailEvent(await getEventById(eventId));
     } catch (error: any) {
-      alert(error.message || 'Dang ky that bai.');
+      alert(error.message || 'Đăng ký thất bại.');
     }
   };
 
   const handleJoinWaitlist = async (email: string) => {
     await new Promise((resolve) => setTimeout(resolve, 700));
-    alert(`Ban da duoc them vao danh sach cho voi email: ${email}`);
+    alert(`Bạn đã được thêm vào danh sách chờ với email: ${email}`);
     setCurrentPage('detail');
   };
 
@@ -169,16 +169,16 @@ const AppContent: React.FC = () => {
 
       if (authMode === 'register') {
         if (!authEmail || !authPassword || !authName) {
-          throw new Error('Vui long nhap day du ho ten, email va mat khau.');
+          throw new Error('Vui lòng nhập đầy đủ họ tên, email và mật khẩu.');
         }
         await register(authEmail, authPassword, authName);
-        setAuthSuccess('Mã xác minh OTP đã được gửi! Vui lòng kiểm tra email của bạn.');
+        setAuthSuccess('Mã xác minh OTP đã được gửi. Vui lòng kiểm tra email của bạn.');
         setAuthMode('otp');
         return;
       }
 
       await confirmOTP(authEmail, otpCode);
-      setAuthSuccess('Xac minh thanh cong. Ban co the dang nhap.');
+      setAuthSuccess('Xác minh thành công. Bạn có thể đăng nhập.');
       setAuthMode('login');
       setOtpCode('');
     } catch (error: any) {
@@ -233,17 +233,17 @@ const AppContent: React.FC = () => {
       setShowAdminModal(false);
       fetchEvents(selectedCategory, searchQuery);
     } catch (error: any) {
-      alert(error.message || 'Luu su kien that bai.');
+      alert(error.message || 'Lưu sự kiện thất bại.');
     }
   };
 
   const handleDeleteEvent = async (id: string) => {
-    if (!window.confirm('Ban co chac chan muon xoa su kien nay?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
     try {
       await deleteEvent(id);
       fetchEvents(selectedCategory, searchQuery);
     } catch (error: any) {
-      alert(error.message || 'Xoa su kien that bai.');
+      alert(error.message || 'Xóa sự kiện thất bại.');
     }
   };
 
@@ -268,17 +268,17 @@ const AppContent: React.FC = () => {
 
         <nav className="header-nav">
           <span className={`nav-item ${currentPage === 'home' ? 'active' : ''}`} onClick={goHome}>
-            Su Kien
+            Sự kiện
           </span>
           {user && (
             <span className={`nav-item ${currentPage === 'my-events' ? 'active' : ''}`} onClick={() => setCurrentPage('my-events')}>
-              Ve Cua Toi ({registrations.length})
+              Vé của tôi ({registrations.length})
             </span>
           )}
           {user?.role === 'Admin' && (
             <>
               <span className={`nav-item ${currentPage === 'admin' ? 'active' : ''}`} onClick={() => setCurrentPage('admin')}>
-                Quan Tri
+                Quản trị
               </span>
               <span className={`nav-item ${currentPage === 'check-in' ? 'active' : ''}`} onClick={() => setCurrentPage('check-in')}>
                 Check-in
@@ -292,14 +292,14 @@ const AppContent: React.FC = () => {
             <div className="profile-active">
               <div className="profile-info">
                 <span className="profile-name">{user.name}</span>
-                <span className="profile-badge">{user.role}</span>
+                <span className="profile-badge">{user.role === 'Admin' ? 'Quản trị' : 'Người dùng'}</span>
               </div>
-              <button className="btn-secondary compact-button" onClick={() => setCurrentPage('profile')}>Ho So</button>
-              <button className="btn-secondary compact-button" onClick={() => { logout(); setCurrentPage('home'); }}>Dang Xuat</button>
+              <button className="btn-secondary compact-button" onClick={() => setCurrentPage('profile')}>Hồ sơ</button>
+              <button className="btn-secondary compact-button" onClick={() => { logout(); setCurrentPage('home'); }}>Đăng xuất</button>
             </div>
           ) : (
             <button className="btn-primary compact-button" onClick={() => { setAuthMode('login'); setAuthError(null); setAuthSuccess(null); setCurrentPage('login'); }}>
-              Dang Nhap
+              Đăng nhập
             </button>
           )}
         </div>
@@ -309,20 +309,20 @@ const AppContent: React.FC = () => {
         {currentPage === 'home' && (
           <div className="page-home fade-in">
             <section className="hero-section">
-              <h1 className="hero-headline">Kham Pha & Dang Ky Su Kien <span className="gradient-text">AWS Serverless</span></h1>
-              <p className="hero-subtitle">Portal quan ly su kien, dang ky ve, waitlist va check-in cho cong dong AWS.</p>
+              <h1 className="hero-headline">Khám phá & đăng ký sự kiện <span className="gradient-text">AWS Serverless</span></h1>
+              <p className="hero-subtitle">Cổng quản lý sự kiện, đăng ký vé, danh sách chờ và check-in cho cộng đồng AWS.</p>
               <div className="hero-stat-row">
                 <div className="hero-stat-card">
                   <strong>{heroStats.totalEvents}</strong>
-                  <span>Su kien</span>
+                  <span>Sự kiện</span>
                 </div>
                 <div className="hero-stat-card">
                   <strong>{heroStats.totalRegistrations}</strong>
-                  <span>Dang ky</span>
+                  <span>Đăng ký</span>
                 </div>
                 <div className="hero-stat-card">
                   <strong>{heroStats.fillRate}%</strong>
-                  <span>Lap day</span>
+                  <span>Lấp đầy</span>
                 </div>
               </div>
               <SearchInput value={searchQuery} onChange={setSearchQuery} onSubmit={handleSearch} />
@@ -331,11 +331,11 @@ const AppContent: React.FC = () => {
 
             <section className="events-grid-section">
               {eventsLoading ? (
-                <LoadingSpinner label="Dang tai danh sach su kien..." />
+                <LoadingSpinner label="Đang tải danh sách sự kiện..." />
               ) : events.length === 0 ? (
                 <div className="empty-state text-center card-glass" style={{ padding: '60px' }}>
-                  <h3>Khong tim thay su kien nao</h3>
-                  <p className="text-secondary" style={{ marginTop: '8px' }}>Thu danh muc khac hoac tu khoa moi.</p>
+                  <h3>Không tìm thấy sự kiện nào</h3>
+                  <p className="text-secondary" style={{ marginTop: '8px' }}>Thử danh mục khác hoặc từ khóa mới.</p>
                 </div>
               ) : (
                 <div className="events-grid">
@@ -350,10 +350,10 @@ const AppContent: React.FC = () => {
 
         {currentPage === 'detail' && (
           <div className="page-detail fade-in">
-            <button className="btn-secondary" style={{ marginBottom: '25px' }} onClick={goHome}>Quay Lai Danh Sach</button>
+            <button className="btn-secondary" style={{ marginBottom: '25px' }} onClick={goHome}>Quay lại danh sách</button>
 
             {detailLoading || !detailEvent ? (
-              <LoadingSpinner label="Dang tai chi tiet su kien..." />
+              <LoadingSpinner label="Đang tải chi tiết sự kiện..." />
             ) : (
               <>
                 <div className="detail-layout">
@@ -368,13 +368,13 @@ const AppContent: React.FC = () => {
                         <span>{new Date(detailEvent.date).toLocaleString('vi-VN')}</span>
                         <span>{detailEvent.location}</span>
                       </div>
-                      <h3 className="section-sub-title" style={{ marginTop: '25px' }}>Mo Ta Su Kien</h3>
+                      <h3 className="section-sub-title" style={{ marginTop: '25px' }}>Mô tả sự kiện</h3>
                       <p className="detail-description text-secondary">{detailEvent.description}</p>
                       <CalendarExportButton event={detailEvent} />
                       <div className="detail-seat-status" style={{ marginTop: '30px' }}>
                         <div className="gauge-text-wrapper">
-                          <h3>Trang thai dat ve</h3>
-                          <span className="gauge-nums">{detailEvent.registeredCount} / {detailEvent.totalSeats} ghe</span>
+                          <h3>Trạng thái đặt vé</h3>
+                          <span className="gauge-nums">{detailEvent.registeredCount} / {detailEvent.totalSeats} ghế</span>
                         </div>
                         <div className="gauge-bar-bg" style={{ height: '12px', marginTop: '10px' }}>
                           <div
@@ -391,15 +391,15 @@ const AppContent: React.FC = () => {
                       <TicketCard event={detailEvent} registration={regTicket} />
                     ) : (
                       <div className="booking-card card-glass text-center" style={{ padding: '30px' }}>
-                        <h3>Dang Ky Tham Gia</h3>
-                        <p className="text-secondary" style={{ margin: '8px 0 25px' }}>Nhan ve dien tu mien phi cho su kien nay.</p>
+                        <h3>Đăng ký tham gia</h3>
+                        <p className="text-secondary" style={{ margin: '8px 0 25px' }}>Nhận vé điện tử miễn phí cho sự kiện này.</p>
                         {detailEvent.registeredCount >= detailEvent.totalSeats ? (
                           <button className="btn-primary w-full" style={{ justifyContent: 'center' }} onClick={() => setCurrentPage('waitlist')}>
-                            Tham Gia Danh Sach Cho
+                            Tham gia danh sách chờ
                           </button>
                         ) : (
                           <button className="btn-primary w-full" style={{ justifyContent: 'center' }} onClick={() => handleRegisterEvent(detailEvent.id)}>
-                            Dang Ky Ve
+                            Đăng ký vé
                           </button>
                         )}
                       </div>
@@ -417,11 +417,11 @@ const AppContent: React.FC = () => {
         {currentPage === 'my-events' && (
           <ProtectedRoute>
             <div className="page-my-events fade-in">
-              <h1 className="section-title">Ve Da Dang Ky Cua Toi ({registrations.length})</h1>
+              <h1 className="section-title">Vé đã đăng ký của tôi ({registrations.length})</h1>
               {registrations.length === 0 ? (
                 <div className="empty-state text-center card-glass" style={{ padding: '80px 40px' }}>
-                  <h3>Ban chua dang ky su kien nao</h3>
-                  <button className="btn-primary" style={{ marginTop: '20px' }} onClick={goHome}>Kham Pha Su Kien</button>
+                  <h3>Bạn chưa đăng ký sự kiện nào</h3>
+                  <button className="btn-primary" style={{ marginTop: '20px' }} onClick={goHome}>Khám phá sự kiện</button>
                 </div>
               ) : (
                 <div className="registrations-list">
@@ -436,10 +436,10 @@ const AppContent: React.FC = () => {
                         <p className="text-secondary">{registration.event.location}</p>
                       </div>
                       <div className="reg-ticket-info">
-                        <span className="field-lbl">MA VE</span>
+                        <span className="field-lbl">Mã vé</span>
                         <span className="ticket-code-highlight">{registration.ticketCode}</span>
                         <button className="btn-secondary" style={{ marginTop: '10px' }} onClick={() => viewEventDetails(registration.event!.id)}>
-                          Xem Chi Tiet
+                          Xem chi tiết
                         </button>
                       </div>
                     </div>
@@ -454,10 +454,10 @@ const AppContent: React.FC = () => {
           <div className="page-auth fade-in">
             <div className="auth-card card-glass">
               <h2 className="auth-card-title text-center">
-                {authMode === 'login' ? 'Dang Nhap Portal' : authMode === 'register' ? 'Tao Tai Khoan' : 'Nhap OTP Xac Minh'}
+                {authMode === 'login' ? 'Đăng nhập EventPortal' : authMode === 'register' ? 'Tạo tài khoản' : 'Nhập OTP xác minh'}
               </h2>
               <p className="auth-card-subtitle text-center text-secondary">
-                {authMode === 'otp' ? `Ma OTP mock da gui ve ${authEmail}.` : 'Dang nhap de quan ly va dang ky ve su kien.'}
+                {authMode === 'otp' ? `Mã OTP mock đã gửi về ${authEmail}.` : 'Đăng nhập để quản lý và đăng ký vé sự kiện.'}
               </p>
 
               {authError && <div className="alert alert-error">{authError}</div>}
@@ -466,8 +466,8 @@ const AppContent: React.FC = () => {
               <form className="auth-form" onSubmit={handleAuthSubmit}>
                 {authMode === 'register' && (
                   <div className="form-group">
-                    <label>Ho Ten</label>
-                    <input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nguyen Van A" />
+                    <label>Họ tên</label>
+                    <input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nguyễn Văn A" />
                   </div>
                 )}
 
@@ -476,12 +476,12 @@ const AppContent: React.FC = () => {
                     <div className="form-group" style={{ marginTop: '15px' }}>
                       <label>Email</label>
                       <input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} required />
-                      <span className="hint-label">Admin demo: <code>admin@eventapp.com</code></span>
+                      <span className="hint-label">Tài khoản admin demo: <code>admin@eventapp.com</code></span>
                     </div>
                     <div className="form-group" style={{ marginTop: '15px' }}>
-                      <label>Mat Khau</label>
+                      <label>Mật khẩu</label>
                       <input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} required />
-                      <span className="hint-label">Mat khau admin: <code>AdminPass123!</code></span>
+                      <span className="hint-label">Mật khẩu admin: <code>AdminPass123!</code></span>
                     </div>
                   </>
                 ) : (
@@ -500,15 +500,15 @@ const AppContent: React.FC = () => {
                 )}
 
                 <button type="submit" className="btn-primary w-full" style={{ justifyContent: 'center', marginTop: '25px' }}>
-                  {authMode === 'login' ? 'Dang Nhap' : authMode === 'register' ? 'Tao Tai Khoan' : 'Xac Minh OTP'}
+                  {authMode === 'login' ? 'Đăng nhập' : authMode === 'register' ? 'Tạo tài khoản' : 'Xác minh OTP'}
                 </button>
               </form>
 
               <div className="auth-card-footer text-center" style={{ marginTop: '20px' }}>
                 {authMode === 'login' ? (
-                  <p>Chua co tai khoan? <span className="auth-toggle-link" onClick={() => setAuthMode('register')}>Dang ky ngay</span></p>
+                  <p>Chưa có tài khoản? <span className="auth-toggle-link" onClick={() => setAuthMode('register')}>Đăng ký ngay</span></p>
                 ) : (
-                  <p>Da co tai khoan? <span className="auth-toggle-link" onClick={() => setAuthMode('login')}>Dang nhap</span></p>
+                  <p>Đã có tài khoản? <span className="auth-toggle-link" onClick={() => setAuthMode('login')}>Đăng nhập</span></p>
                 )}
               </div>
             </div>
@@ -520,26 +520,26 @@ const AppContent: React.FC = () => {
             <div className="page-admin fade-in">
               <div className="admin-header-row">
                 <div>
-                  <h1 className="section-title">Bang Dieu Khien Quan Tri</h1>
-                  <p className="text-secondary">Quan ly su kien, danh sach thanh vien va check-in.</p>
+                  <h1 className="section-title">Bảng điều khiển quản trị</h1>
+                  <p className="text-secondary">Quản lý sự kiện, danh sách thành viên và check-in.</p>
                 </div>
                 <div className="admin-action-row">
-                  <button className="btn-secondary" onClick={() => setCurrentPage('check-in')}>Mo QR Check-in</button>
-                  <button className="btn-primary" onClick={openAddModal}>Them Su Kien Moi</button>
+                  <button className="btn-secondary" onClick={() => setCurrentPage('check-in')}>Mở QR Check-in</button>
+                  <button className="btn-primary" onClick={openAddModal}>Thêm sự kiện mới</button>
                 </div>
               </div>
 
               <div className="admin-metrics-grid">
                 <div className="metric-card card-glass">
-                  <span className="metric-lbl text-secondary">Tong su kien</span>
+                  <span className="metric-lbl text-secondary">Tổng sự kiện</span>
                   <h2 className="metric-val">{events.length}</h2>
                 </div>
                 <div className="metric-card card-glass">
-                  <span className="metric-lbl text-secondary">Tong dat ve</span>
+                  <span className="metric-lbl text-secondary">Tổng đặt vé</span>
                   <h2 className="metric-val">{events.reduce((sum, event) => sum + event.registeredCount, 0)}</h2>
                 </div>
                 <div className="metric-card card-glass">
-                  <span className="metric-lbl text-secondary">Ti le lap day TB</span>
+                  <span className="metric-lbl text-secondary">Tỉ lệ lấp đầy TB</span>
                   <h2 className="metric-val">
                     {events.length > 0
                       ? `${Math.round((events.reduce((sum, event) => sum + event.registeredCount, 0) / events.reduce((sum, event) => sum + event.totalSeats, 0)) * 100)}%`
@@ -552,13 +552,13 @@ const AppContent: React.FC = () => {
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Anh</th>
-                      <th>Tieu de</th>
-                      <th>Danh muc</th>
-                      <th>Thoi gian</th>
-                      <th>Dia diem</th>
-                      <th>Ve dat</th>
-                      <th>Hanh dong</th>
+                      <th>Ảnh</th>
+                      <th>Tiêu đề</th>
+                      <th>Danh mục</th>
+                      <th>Thời gian</th>
+                      <th>Địa điểm</th>
+                      <th>Vé đặt</th>
+                      <th>Hành động</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -572,9 +572,9 @@ const AppContent: React.FC = () => {
                         <td><strong>{event.registeredCount}</strong> / {event.totalSeats}</td>
                         <td>
                           <div className="table-actions">
-                            <button className="btn-secondary table-button" onClick={() => openMemberList(event)}>Thanh vien</button>
-                            <button className="btn-secondary table-button" onClick={() => openEditModal(event)}>Sua</button>
-                            <button className="btn-secondary table-button text-error" onClick={() => handleDeleteEvent(event.id)}>Xoa</button>
+                            <button className="btn-secondary table-button" onClick={() => openMemberList(event)}>Thành viên</button>
+                            <button className="btn-secondary table-button" onClick={() => openEditModal(event)}>Sửa</button>
+                            <button className="btn-secondary table-button text-error" onClick={() => handleDeleteEvent(event.id)}>Xóa</button>
                           </div>
                         </td>
                       </tr>
@@ -585,49 +585,49 @@ const AppContent: React.FC = () => {
 
               {showAdminModal && (
                 <Modal
-                  title={adminModalMode === 'add' ? 'Them Su Kien Moi' : 'Chinh Sua Su Kien'}
+                  title={adminModalMode === 'add' ? 'Thêm sự kiện mới' : 'Chỉnh sửa sự kiện'}
                   onClose={() => setShowAdminModal(false)}
                 >
                   <form onSubmit={handleSaveEvent} className="modal-form">
                     <div className="form-group">
-                      <label>Tieu de su kien *</label>
+                      <label>Tiêu đề sự kiện *</label>
                       <input value={formTitle} onChange={(event) => setFormTitle(event.target.value)} required />
                     </div>
                     <div className="form-row" style={{ marginTop: '15px' }}>
                       <div className="form-group">
-                        <label>Danh muc</label>
+                        <label>Danh mục</label>
                         <select value={formCategory} onChange={(event) => setFormCategory(event.target.value)}>
-                          <option value="technology">Cong Nghe (AWS)</option>
-                          <option value="music">Am Nhac</option>
-                          <option value="education">Giao Duc</option>
+                          <option value="technology">Công nghệ (AWS)</option>
+                          <option value="music">Âm nhạc</option>
+                          <option value="education">Giáo dục</option>
                         </select>
                       </div>
                       <div className="form-group">
-                        <label>Tong so ghe *</label>
+                        <label>Tổng số ghế *</label>
                         <input type="number" min={1} value={formTotalSeats} onChange={(event) => setFormTotalSeats(Number(event.target.value))} required />
                       </div>
                     </div>
                     <div className="form-row" style={{ marginTop: '15px' }}>
                       <div className="form-group">
-                        <label>Thoi gian *</label>
+                        <label>Thời gian *</label>
                         <input type="datetime-local" value={formDate} onChange={(event) => setFormDate(event.target.value)} required />
                       </div>
                       <div className="form-group">
-                        <label>Dia diem *</label>
+                        <label>Địa điểm *</label>
                         <input value={formLocation} onChange={(event) => setFormLocation(event.target.value)} required />
                       </div>
                     </div>
                     <div className="form-group" style={{ marginTop: '15px' }}>
-                      <label>URL anh bia</label>
+                      <label>URL ảnh bìa</label>
                       <input value={formImageUrl} onChange={(event) => setFormImageUrl(event.target.value)} />
                     </div>
                     <div className="form-group" style={{ marginTop: '15px' }}>
-                      <label>Mo ta</label>
+                      <label>Mô tả</label>
                       <textarea value={formDescription} onChange={(event) => setFormDescription(event.target.value)} rows={4}></textarea>
                     </div>
                     <div className="modal-footer">
-                      <button type="button" className="btn-secondary" onClick={() => setShowAdminModal(false)}>Huy</button>
-                      <button type="submit" className="btn-primary">{adminModalMode === 'add' ? 'Tao Su Kien' : 'Luu Thay Doi'}</button>
+                      <button type="button" className="btn-secondary" onClick={() => setShowAdminModal(false)}>Hủy</button>
+                      <button type="submit" className="btn-primary">{adminModalMode === 'add' ? 'Tạo sự kiện' : 'Lưu thay đổi'}</button>
                     </div>
                   </form>
                 </Modal>
@@ -663,9 +663,9 @@ const AppContent: React.FC = () => {
       </main>
 
       <footer className="main-footer footer-glass text-center">
-        <p className="text-secondary">(c) 2026 AWS EventPortal Monorepo.</p>
+        <p className="text-secondary">(c) 2026 AWS EventPortal.</p>
         <p className="text-secondary" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
-          Powered by S3 + CloudFront + API Gateway + Lambda + DynamoDB
+          Vận hành với S3, CloudFront, API Gateway, Lambda và DynamoDB
         </p>
       </footer>
     </div>

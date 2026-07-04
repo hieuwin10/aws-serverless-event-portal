@@ -36,7 +36,7 @@ export const ReviewRating: React.FC<ReviewRatingProps> = ({ eventId, userName })
         id: `rev_${Date.now()}`,
         rating,
         text: text.trim(),
-        author: userName || 'Khach tham du',
+        author: userName || 'Khách tham dự',
         createdAt: new Date().toISOString(),
       },
       ...reviews,
@@ -52,15 +52,15 @@ export const ReviewRating: React.FC<ReviewRatingProps> = ({ eventId, userName })
     <section className="reviews-panel card-glass">
       <div className="section-heading-row">
         <div>
-          <h2 className="section-title">Danh Gia Su Kien</h2>
+          <h2 className="section-title">Đánh giá sự kiện</h2>
           <p className="text-secondary">
-            {reviews.length > 0 ? `${average.toFixed(1)} / 5 tu ${reviews.length} danh gia` : 'Chua co danh gia nao.'}
+            {reviews.length > 0 ? `${average.toFixed(1)} / 5 từ ${reviews.length} đánh giá` : 'Chưa có đánh giá nào.'}
           </p>
         </div>
       </div>
 
       <form className="review-form" onSubmit={handleSubmit}>
-        <div className="star-rating" aria-label="Chon so sao">
+        <div className="star-rating" aria-label="Chọn số sao">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
@@ -76,10 +76,10 @@ export const ReviewRating: React.FC<ReviewRatingProps> = ({ eventId, userName })
         <textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
-          placeholder="Viet cam nhan cua ban ve su kien..."
+          placeholder="Viết cảm nhận của bạn về sự kiện..."
           rows={4}
         />
-        <button type="submit" className="btn-primary">Gui Danh Gia</button>
+        <button type="submit" className="btn-primary">Gửi đánh giá</button>
       </form>
 
       <div className="review-list">

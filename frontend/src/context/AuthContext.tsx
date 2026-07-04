@@ -45,7 +45,7 @@ const createMockSession = (email: string, name?: string) => {
     user: {
       id: isAdmin ? 'usr_admin_9999_9999_9999_9999' : `usr_client_${username}`,
       email: normalizedEmail,
-      name: name || (isAdmin ? 'Quản Trị Viên' : username),
+      name: name || (isAdmin ? 'Quản trị viên' : username),
       role: isAdmin ? 'Admin' as const : 'User' as const
     },
     token: isAdmin ? 'mock_admin_token' : `mock_user_token_${username}`

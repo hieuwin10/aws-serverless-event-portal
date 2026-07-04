@@ -15,7 +15,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onOpen }) => {
       <div className="card-image-wrapper">
         <img src={event.imageUrl} alt={event.title} className="card-image" />
         <span className="card-category-tag">{event.category.toUpperCase()}</span>
-        {isSoldOut && <span className="card-sold-out-tag">Het ve</span>}
+        {isSoldOut && <span className="card-sold-out-tag">Hết vé</span>}
       </div>
       <div className="card-content">
         <span className="card-date-sub">
@@ -34,8 +34,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onOpen }) => {
 
         <div className="card-footer-gauge">
           <div className="gauge-text-wrapper">
-            <span className="text-secondary">Suc chua</span>
-            <span className="gauge-nums">{Math.max(0, event.totalSeats - event.registeredCount)} ghe trong</span>
+            <span className="text-secondary">Sức chứa</span>
+            <span className="gauge-nums">{Math.max(0, event.totalSeats - event.registeredCount)} ghế trống</span>
           </div>
           <div className="gauge-bar-bg">
             <div
@@ -45,7 +45,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onOpen }) => {
           </div>
         </div>
         <button className="btn-secondary w-full" style={{ justifyContent: 'center', marginTop: '15px' }}>
-          Xem Chi Tiet
+          Xem chi tiết
         </button>
       </div>
     </article>

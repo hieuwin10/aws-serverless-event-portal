@@ -11,9 +11,9 @@ export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrat
   if (!event) {
     return (
       <div className="page-members fade-in">
-        <button className="btn-secondary" onClick={onBack}>Quay Lai Admin</button>
+        <button className="btn-secondary" onClick={onBack}>Quay lại trang quản trị</button>
         <div className="empty-state card-glass text-center" style={{ padding: '50px', marginTop: '25px' }}>
-          <h2>Chua chon su kien</h2>
+          <h2>Chưa chọn sự kiện</h2>
         </div>
       </div>
     );
@@ -34,15 +34,15 @@ export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrat
   return (
     <div className="page-members fade-in">
       <button className="btn-secondary" style={{ marginBottom: '25px' }} onClick={onBack}>
-        Quay Lai Admin
+        Quay lại trang quản trị
       </button>
 
       <div className="admin-header-row">
         <div>
-          <h1 className="section-title">Danh Sach Nguoi Dang Ky</h1>
+          <h1 className="section-title">Danh sách người đăng ký</h1>
           <p className="text-secondary">{event.title}</p>
         </div>
-        <div className="member-count-badge">{members.length} thanh vien</div>
+        <div className="member-count-badge">{members.length} thành viên</div>
       </div>
 
       <div className="admin-table-container card-glass" style={{ overflowX: 'auto', padding: '20px' }}>
@@ -51,9 +51,9 @@ export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrat
             <tr>
               <th>#</th>
               <th>Email</th>
-              <th>Ma ve</th>
-              <th>Ngay dang ky</th>
-              <th>Trang thai</th>
+              <th>Mã vé</th>
+              <th>Ngày đăng ký</th>
+              <th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -63,7 +63,7 @@ export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrat
                 <td style={{ fontWeight: 'bold' }}>{member.email}</td>
                 <td><span className="ticket-code-highlight">{member.ticketCode}</span></td>
                 <td>{new Date(member.registeredAt).toLocaleString('vi-VN')}</td>
-                <td><span className="status-pill">Da dang ky</span></td>
+                <td><span className="status-pill">Đã đăng ký</span></td>
               </tr>
             ))}
           </tbody>

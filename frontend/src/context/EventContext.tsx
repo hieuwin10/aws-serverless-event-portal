@@ -93,7 +93,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return;
         }
 
-        throw new Error('API endpoint is not configured.');
+        throw new Error('Chưa cấu hình API endpoint.');
       }
 
       let url = `${API_BASE_URL}/events`;
@@ -114,7 +114,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             : filterMockEvents(category, search)
         );
       } else {
-        throw new Error(resJson.error || 'Lá»—i khi táº£i danh sÃ¡ch sá»± kiá»‡n.');
+        throw new Error(resJson.error || 'Lỗi khi tải danh sách sự kiện.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -186,7 +186,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } else {
         // Rollback Optimistic UI
         setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: e.registeredCount - 1 } : e));
-        throw new Error(resJson.error || 'ÄÄƒng kÃ½ sá»± kiá»‡n tháº¥t báº¡i.');
+        throw new Error(resJson.error || 'Đăng ký sự kiện thất bại.');
       }
     } catch (err: any) {
       // Rollback Optimistic UI on network error
@@ -208,7 +208,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setEvents(prev => [resJson.data, ...prev]);
       } else {
-        throw new Error(resJson.error || 'KhÃ´ng thá»ƒ táº¡o sá»± kiá»‡n má»›i.');
+        throw new Error(resJson.error || 'Không thể tạo sự kiện mới.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -228,7 +228,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setEvents(prev => prev.map(e => e.id === id ? resJson.data : e));
       } else {
-        throw new Error(resJson.error || 'Cáº­p nháº­t sá»± kiá»‡n tháº¥t báº¡i.');
+        throw new Error(resJson.error || 'Cập nhật sự kiện thất bại.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -248,7 +248,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setEvents(prev => prev.filter(e => e.id !== id));
         setRegistrations(prev => prev.filter(reg => reg.eventId !== id));
       } else {
-        throw new Error(resJson.error || 'KhÃ´ng thá»ƒ xÃ³a sá»± kiá»‡n.');
+        throw new Error(resJson.error || 'Không thể xóa sự kiện.');
       }
     } catch (err: any) {
       setError(err.message);
@@ -267,7 +267,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (resJson.success) {
         setRegistrations(resJson.data);
       } else {
-        throw new Error(resJson.error || 'Lá»—i táº£i lá»‹ch sá»­ Ä‘Äƒng kÃ½.');
+        throw new Error(resJson.error || 'Lỗi tải lịch sử đăng ký.');
       }
     } catch (err: any) {
       setError(err.message);
