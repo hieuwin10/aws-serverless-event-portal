@@ -35,7 +35,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // 4. Tìm registration theo ticketCode
     // Trong mock mode, scan để tìm registration có ticketCode matching
-    const registrations = await dbService.getEventRegistrations(eventId);
+    const registrations = await dbService.listRegistrationsByEventGSI2(eventId);
     const registration = registrations.find((reg: any) => reg.ticketCode === ticketCode);
 
     if (!registration) {

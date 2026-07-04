@@ -40,6 +40,9 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_PATH: /aws-serverless-event-portal/
+          VITE_AUTH_MODE: mock
+          VITE_USE_MOCK_AUTH: true
+          VITE_USE_MOCK_DATA: true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

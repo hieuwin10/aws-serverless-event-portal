@@ -27,7 +27,30 @@ const poolData = {
   UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || '',
   ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID || ''
 };
-const userPool = new CognitoUserPool(poolData);
+const useMockAuth =
+  import.meta.env.VITE_AUTH_MODE === 'mock' ||
+  import.meta.env.VITE_USE_MOCK_AUTH === 'true' ||
+  !poolData.UserPoolId ||
+  !poolData.ClientId;
+const userPool = useMockAuth ? null : new CognitoUserPool(poolData);
+const MOCK_USER_KEY = 'eventPortal.mockUser';
+const MOCK_TOKEN_KEY = 'eventPortal.mockToken';
+
+const createMockSession = (email: string, name?: string) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const isAdmin = normalizedEmail === 'admin@eventapp.com';
+  const username = normalizedEmail.split('@')[0] || 'user';
+
+  return {
+    user: {
+      id: isAdmin ? 'usr_admin_9999_9999_9999_9999' : `usr_client_${username}`,
+      email: normalizedEmail,
+      name: name || (isAdmin ? 'Quản Trị Viên' : username),
+      role: isAdmin ? 'Admin' as const : 'User' as const
+    },
+    token: isAdmin ? 'mock_admin_token' : `mock_user_token_${username}`
+  };
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -38,6 +61,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkUser = async () => {
+      if (useMockAuth) {
+        const storedUser = localStorage.getItem(MOCK_USER_KEY);
+        const storedToken = localStorage.getItem(MOCK_TOKEN_KEY);
+
+        if (storedUser && storedToken) {
+          setUser(JSON.parse(storedUser));
+          setToken(storedToken);
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      if (!userPool) {
+        setLoading(false);
+        return;
+      }
+
       const cognitoUser = userPool.getCurrentUser();
       if (cognitoUser) {
         cognitoUser.getSession((err: any, session: any) => {
@@ -82,6 +123,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+
+    if (useMockAuth) {
+      if (!email.trim() || !password.trim()) {
+        setLoading(false);
+        throw new Error('Vui lòng nhập email và mật khẩu');
+      }
+
+      const { user: mockUser, token: mockToken } = createMockSession(email);
+      localStorage.setItem(MOCK_USER_KEY, JSON.stringify(mockUser));
+      localStorage.setItem(MOCK_TOKEN_KEY, mockToken);
+      setUser(mockUser);
+      setToken(mockToken);
+      setLoading(false);
+      return;
+    }
+
+    if (!userPool) {
+      setLoading(false);
+      throw new Error('Cognito chưa được cấu hình');
+    }
+
     return new Promise<void>((resolve, reject) => {
       const authenticationDetails = new AuthenticationDetails({
         Username: email,
@@ -120,6 +182,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
+
+    if (useMockAuth) {
+      if (!email.trim() || !password.trim() || !name.trim()) {
+        setLoading(false);
+        throw new Error('Vui lòng nhập đầy đủ họ tên, email và mật khẩu');
+      }
+
+      setLoading(false);
+      return;
+    }
+
+    if (!userPool) {
+      setLoading(false);
+      throw new Error('Cognito chưa được cấu hình');
+    }
+
     return new Promise<void>((resolve, reject) => {
       const attributeList = [
         new CognitoUserAttribute({ Name: 'email', Value: email }),
@@ -139,6 +217,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const confirmOTP = async (email: string, code: string) => {
     setLoading(true);
+
+    if (useMockAuth) {
+      if (!code.trim()) {
+        setLoading(false);
+        throw new Error('Vui lòng nhập mã OTP');
+      }
+
+      const { user: mockUser, token: mockToken } = createMockSession(email);
+      localStorage.setItem(MOCK_USER_KEY, JSON.stringify(mockUser));
+      localStorage.setItem(MOCK_TOKEN_KEY, mockToken);
+      setUser(mockUser);
+      setToken(mockToken);
+      setLoading(false);
+      return;
+    }
+
+    if (!userPool) {
+      setLoading(false);
+      throw new Error('Cognito chưa được cấu hình');
+    }
+
     return new Promise<void>((resolve, reject) => {
       const cognitoUser = new CognitoUser({
         Username: email,
@@ -157,9 +256,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    const cognitoUser = userPool.getCurrentUser();
-    if (cognitoUser) {
-      cognitoUser.signOut();
+    if (useMockAuth) {
+      localStorage.removeItem(MOCK_USER_KEY);
+      localStorage.removeItem(MOCK_TOKEN_KEY);
+    } else if (userPool) {
+      const cognitoUser = userPool.getCurrentUser();
+      if (cognitoUser) {
+        cognitoUser.signOut();
+      }
     }
     setUser(null);
     setToken(null);

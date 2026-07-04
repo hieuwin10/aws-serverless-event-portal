@@ -29,12 +29,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onOpen }) => {
           })}
         </span>
         <h3 className="card-title-main">{event.title}</h3>
+        <div className="card-location-line">{event.location}</div>
         <p className="card-desc text-secondary">{event.description.slice(0, 110)}...</p>
 
         <div className="card-footer-gauge">
           <div className="gauge-text-wrapper">
             <span className="text-secondary">Suc chua</span>
-            <span className="gauge-nums">{event.registeredCount} / {event.totalSeats} ghe</span>
+            <span className="gauge-nums">{Math.max(0, event.totalSeats - event.registeredCount)} ghe trong</span>
           </div>
           <div className="gauge-bar-bg">
             <div

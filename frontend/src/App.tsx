@@ -88,6 +88,18 @@ const AppContent: React.FC = () => {
     [events, selectedAdminEventId],
   );
 
+  const heroStats = useMemo(() => {
+    const totalRegistrations = events.reduce((sum, event) => sum + event.registeredCount, 0);
+    const totalSeats = events.reduce((sum, event) => sum + event.totalSeats, 0);
+    const fillRate = totalSeats > 0 ? Math.round((totalRegistrations / totalSeats) * 100) : 0;
+
+    return {
+      totalEvents: events.length,
+      totalRegistrations,
+      fillRate
+    };
+  }, [events]);
+
   useEffect(() => {
     fetchEvents(selectedCategory, searchQuery);
   }, [selectedCategory]);
@@ -299,6 +311,20 @@ const AppContent: React.FC = () => {
             <section className="hero-section">
               <h1 className="hero-headline">Kham Pha & Dang Ky Su Kien <span className="gradient-text">AWS Serverless</span></h1>
               <p className="hero-subtitle">Portal quan ly su kien, dang ky ve, waitlist va check-in cho cong dong AWS.</p>
+              <div className="hero-stat-row">
+                <div className="hero-stat-card">
+                  <strong>{heroStats.totalEvents}</strong>
+                  <span>Su kien</span>
+                </div>
+                <div className="hero-stat-card">
+                  <strong>{heroStats.totalRegistrations}</strong>
+                  <span>Dang ky</span>
+                </div>
+                <div className="hero-stat-card">
+                  <strong>{heroStats.fillRate}%</strong>
+                  <span>Lap day</span>
+                </div>
+              </div>
               <SearchInput value={searchQuery} onChange={setSearchQuery} onSubmit={handleSearch} />
               <CategoryPills categories={categories} selectedCategory={selectedCategory} onSelect={setSelectedCategory} />
             </section>

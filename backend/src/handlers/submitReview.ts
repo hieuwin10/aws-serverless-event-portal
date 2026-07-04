@@ -33,7 +33,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // 4. Kiểm tra user đã đăng ký và check-in chưa
-    const registrations = await dbService.getEventRegistrations(eventId);
+    const registrations = await dbService.listRegistrationsByEventGSI2(eventId);
     const userRegistration = registrations.find((reg: any) => 
       reg.SK === `USER#${userClaims.sub}`
     );

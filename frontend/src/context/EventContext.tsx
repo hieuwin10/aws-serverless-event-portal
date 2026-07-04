@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { mockEvents } from '../data/mockEvents';
 
 export interface Event {
   id: string;
@@ -39,7 +40,25 @@ interface EventContextType {
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
-const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT;
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || '';
+const MOCK_DATA_MODE = import.meta.env.VITE_USE_MOCK_DATA;
+const FORCE_MOCK_DATA = MOCK_DATA_MODE === 'true';
+const ALLOW_MOCK_FALLBACK = MOCK_DATA_MODE !== 'false';
+
+const filterMockEvents = (category?: string, search?: string): Event[] => {
+  const query = search?.trim().toLowerCase();
+
+  return mockEvents.filter(event => {
+    const matchesCategory = !category || event.category === category;
+    const matchesSearch =
+      !query ||
+      event.title.toLowerCase().includes(query) ||
+      event.description.toLowerCase().includes(query) ||
+      event.location.toLowerCase().includes(query);
+
+    return matchesCategory && matchesSearch;
+  });
+};
 
 export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token, user } = useAuth();
@@ -63,6 +82,20 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLoading(true);
     setError(null);
     try {
+      if (FORCE_MOCK_DATA) {
+        setEvents(filterMockEvents(category, search));
+        return;
+      }
+
+      if (!API_BASE_URL) {
+        if (ALLOW_MOCK_FALLBACK) {
+          setEvents(filterMockEvents(category, search));
+          return;
+        }
+
+        throw new Error('API endpoint is not configured.');
+      }
+
       let url = `${API_BASE_URL}/events`;
       const params = new URLSearchParams();
       if (category) params.append('category', category);
@@ -74,27 +107,43 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const res = await fetch(url);
       const resJson = await res.json();
       if (resJson.success) {
-        setEvents(resJson.data);
+        const backendEvents = Array.isArray(resJson.data) ? resJson.data : [];
+        setEvents(
+          backendEvents.length > 0 || !ALLOW_MOCK_FALLBACK
+            ? backendEvents
+            : filterMockEvents(category, search)
+        );
       } else {
         throw new Error(resJson.error || 'Lá»—i khi táº£i danh sÃ¡ch sá»± kiá»‡n.');
       }
     } catch (err: any) {
       setError(err.message);
+      if (ALLOW_MOCK_FALLBACK) {
+        setEvents(filterMockEvents(category, search));
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const getEventById = async (id: string): Promise<Event | null> => {
+    if (FORCE_MOCK_DATA || (!API_BASE_URL && ALLOW_MOCK_FALLBACK)) {
+      return mockEvents.find(event => event.id === id) || null;
+    }
+
+    if (!API_BASE_URL) {
+      return null;
+    }
+
     try {
       const res = await fetch(`${API_BASE_URL}/events/${id}`);
       const resJson = await res.json();
       if (resJson.success) {
         return resJson.data;
       }
-      return null;
+      return ALLOW_MOCK_FALLBACK ? mockEvents.find(event => event.id === id) || null : null;
     } catch (err) {
-      return null;
+      return ALLOW_MOCK_FALLBACK ? mockEvents.find(event => event.id === id) || null : null;
     }
   };
 

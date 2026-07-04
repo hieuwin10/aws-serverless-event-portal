@@ -1131,3 +1131,225 @@
     gap: 15px;
   }
 }
+
+/* Modern AWS-inspired UI polish */
+.app-container {
+  background:
+    radial-gradient(circle at top right, rgba(255, 153, 0, 0.16), transparent 34%),
+    radial-gradient(circle at 8% 20%, rgba(20, 110, 180, 0.18), transparent 30%),
+    var(--bg-primary);
+  overflow-x: hidden;
+}
+
+.header-glass {
+  background: rgba(35, 47, 62, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.main-header {
+  gap: 24px;
+}
+
+.logo-aws {
+  background: #ff9900;
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(255, 153, 0, 0.22);
+  padding: 5px 10px;
+}
+
+.header-nav {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  gap: 4px;
+  padding: 6px;
+}
+
+.nav-item {
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.nav-item::after {
+  display: none;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-section {
+  padding: 56px 0 64px;
+}
+
+.hero-headline {
+  font-size: clamp(2.35rem, 5vw, 4.6rem);
+  letter-spacing: 0;
+  line-height: 1.05;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 960px;
+}
+
+.hero-subtitle {
+  line-height: 1.8;
+}
+
+.hero-stat-row {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  margin: 0 auto 30px;
+  max-width: 650px;
+}
+
+.hero-stat-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.hero-stat-card strong {
+  color: #ff9900;
+  display: block;
+  font-family: var(--font-primary);
+  font-size: 1.5rem;
+}
+
+.hero-stat-card span {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.search-form {
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  padding: 10px;
+}
+
+.search-icon {
+  background: rgba(20, 110, 180, 0.18);
+  border: 1px solid rgba(20, 110, 180, 0.32);
+  border-radius: 999px;
+  color: #8fd3ff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 5px 9px;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff9900 0%, #ffb84d 100%);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(255, 153, 0, 0.22);
+}
+
+.btn-secondary {
+  border-radius: 12px;
+}
+
+.pill-item {
+  border-radius: 999px;
+}
+
+.pill-item:hover,
+.pill-item.active {
+  background: #ff9900;
+}
+
+.events-grid {
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.event-card {
+  border-radius: 22px;
+  min-height: 520px;
+}
+
+.event-card:hover {
+  transform: translateY(-8px);
+}
+
+.card-image-wrapper {
+  height: 220px;
+}
+
+.card-image-wrapper::after {
+  background: linear-gradient(180deg, transparent 45%, rgba(35, 47, 62, 0.8));
+  content: '';
+  inset: 0;
+  position: absolute;
+}
+
+.card-category-tag,
+.card-sold-out-tag {
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.card-title-main {
+  font-size: 1.35rem;
+  letter-spacing: 0;
+}
+
+.card-location-line {
+  background: rgba(20, 110, 180, 0.12);
+  border: 1px solid rgba(20, 110, 180, 0.24);
+  border-radius: 999px;
+  color: #91d5ff;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  padding: 5px 10px;
+}
+
+.card-glass {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.empty-state {
+  border-radius: 22px;
+}
+
+.loading-spinner {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  display: flex;
+  margin: 40px auto;
+  max-width: 520px;
+}
+
+.main-footer {
+  background: rgba(35, 47, 62, 0.72);
+}
+
+@media (max-width: 900px) {
+  .main-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .header-nav {
+    justify-content: center;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-stat-row,
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-section {
+    padding-top: 34px;
+  }
+}

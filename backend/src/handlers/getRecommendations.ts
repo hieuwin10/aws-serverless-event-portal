@@ -4,6 +4,22 @@ import { buildResponse } from '../utils/responseBuilder';
 import { logger } from '../utils/logger';
 import { getUserClaims, isAuthenticated } from '../services/authService';
 
+interface RecommendationEvent {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  date: string;
+  location: string;
+  imageUrl: string;
+  totalSeats: number;
+  registeredCount: number;
+}
+
+interface ScoredRecommendationEvent extends RecommendationEvent {
+  recommendationScore: number;
+}
+
 /**
  * GET /events/recommendations
  * Lấy danh sách sự kiện được đề xuất cá nhân hóa dựa trên lịch sử đăng ký của user
@@ -38,19 +54,19 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     logger.info(`User ${userClaims.sub} preferred categories:`, preferredCategories);
 
     // 4. Lấy tất cả sự kiện
-    const allEvents = await dbService.scanEvents();
+    const allEvents = await dbService.listEvents() as RecommendationEvent[];
 
     // 5. Lọc bỏ các sự kiện đã đăng ký
     const registeredEventIds = new Set(
       userRegistrations.map((reg: any) => reg.eventId)
     );
 
-    const availableEvents = allEvents.filter((evt: any) => 
+    const availableEvents = allEvents.filter((evt: RecommendationEvent) =>
       !registeredEventIds.has(evt.id)
     );
 
     // 6. Scoring & ranking recommendations
-    const scoredEvents = availableEvents.map((evt: any) => {
+    const scoredEvents: ScoredRecommendationEvent[] = availableEvents.map((evt: RecommendationEvent) => {
       let score = 0;
 
       // Điểm theo category preference
@@ -89,9 +105,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // 7. Sắp xếp theo điểm và lấy top 10
     const recommendations = scoredEvents
-      .sort((a, b) => b.recommendationScore - a.recommendationScore)
+      .sort((a: ScoredRecommendationEvent, b: ScoredRecommendationEvent) => b.recommendationScore - a.recommendationScore)
       .slice(0, 10)
-      .map(evt => {
+      .map((evt: ScoredRecommendationEvent) => {
         // Remove internal scoring field before returning
         const { recommendationScore, ...eventData } = evt;
         return eventData;
