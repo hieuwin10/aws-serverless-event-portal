@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 interface UserProfilePageProps {
@@ -7,8 +7,56 @@ interface UserProfilePageProps {
 }
 
 export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBack }) => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences'>('profile');
+  const { user, changePassword, deleteAccount, token, refreshUserProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'payments' | 'notifications' | 'preferences'>('profile');
+  
+  // Refresh profile details on mount to get latest loyaltyPoints
+  useEffect(() => {
+    if (refreshUserProfile) {
+      void refreshUserProfile();
+    }
+  }, []);
+
+  const [payments, setPayments] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  // Fetch payments and notifications when tab changes
+  useEffect(() => {
+    const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    
+    if (activeTab === 'payments' && token) {
+      setPaymentsLoading(true);
+      fetch(`${API_BASE_URL}/users/payments`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data)) {
+          setPayments(json.data);
+        }
+      })
+      .catch(err => console.error('Failed to load payments', err))
+      .finally(() => setPaymentsLoading(false));
+    }
+
+    if (activeTab === 'notifications' && token) {
+      setNotificationsLoading(true);
+      fetch(`${API_BASE_URL}/users/notifications`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data)) {
+          setNotifications(json.data);
+        }
+      })
+      .catch(err => console.error('Failed to load notifications', err))
+      .finally(() => setNotificationsLoading(false));
+    }
+  }, [activeTab, token]);
+
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -39,12 +87,12 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
         throw new Error('Mật khẩu xác nhận không khớp.');
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await changePassword(passwordData.currentPassword, passwordData.newPassword);
       setPasswordSuccess('Mật khẩu đã được thay đổi thành công.');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
     } catch (err: any) {
-      setPasswordError(err.message);
+      setPasswordError(err.message || 'Có lỗi xảy ra khi đổi mật khẩu.');
     } finally {
       setLoading(false);
     }
@@ -57,11 +105,11 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
 
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await deleteAccount();
       alert('Tài khoản của bạn đã được xóa thành công.');
       onLogout();
-    } catch (err) {
-      alert('Có lỗi xảy ra khi xóa tài khoản.');
+    } catch (err: any) {
+      alert(err.message || 'Có lỗi xảy ra khi xóa tài khoản.');
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -124,12 +172,14 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
             {[
               { key: 'profile', label: 'Hồ sơ cá nhân' },
               { key: 'security', label: 'Bảo mật' },
+              { key: 'payments', label: 'Lịch sử thanh toán' },
+              { key: 'notifications', label: 'Thông báo' },
               { key: 'preferences', label: 'Tùy chọn' }
             ].map(item => (
               <button
                 key={item.key}
                 className={`profile-nav-item ${activeTab === item.key ? 'active' : ''}`}
-                onClick={() => setActiveTab(item.key as 'profile' | 'security' | 'preferences')}
+                onClick={() => setActiveTab(item.key as any)}
                 style={{
                   padding: '12px 16px',
                   border: 'none',
@@ -167,8 +217,12 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
                   <p style={{ marginTop: '8px', fontSize: '1.05rem' }}>{user.email}</p>
                 </div>
                 <div className="profile-info-item">
+                  <span className="text-secondary" style={{ fontSize: '0.85rem' }}>Điểm tích lũy (Loyalty Points)</span>
+                  <p style={{ marginTop: '8px', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{user.loyaltyPoints || 0} pts</p>
+                </div>
+                <div className="profile-info-item">
                   <span className="text-secondary" style={{ fontSize: '0.85rem' }}>ID người dùng</span>
-                  <p style={{ marginTop: '8px', fontSize: '0.9rem', fontFamily: 'monospace' }}>{user.id}</p>
+                  <p style={{ marginTop: '8px', fontSize: '0.9rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>{user.id}</p>
                 </div>
                 <div className="profile-info-item">
                   <span className="text-secondary" style={{ fontSize: '0.85rem' }}>Vai trò</span>
@@ -278,6 +332,75 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'payments' && (
+            <div className="tab-content card-glass fade-in">
+              <h2 style={{ marginBottom: '25px' }}>Lịch sử thanh toán</h2>
+              {paymentsLoading ? (
+                <div>Đang tải thông tin giao dịch...</div>
+              ) : payments.length === 0 ? (
+                <div className="text-secondary">Chưa có giao dịch thanh toán nào được thực hiện.</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        <th style={{ padding: '12px' }}>Mã giao dịch</th>
+                        <th style={{ padding: '12px' }}>Số tiền</th>
+                        <th style={{ padding: '12px' }}>Cổng thanh toán</th>
+                        <th style={{ padding: '12px' }}>Trạng thái</th>
+                        <th style={{ padding: '12px' }}>Ngày tạo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map((p) => (
+                        <tr key={p.paymentId || p.transactionId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '0.85rem' }}>{p.transactionId || p.paymentId}</td>
+                          <td style={{ padding: '12px', fontWeight: 'bold' }}>{Number(p.amount).toLocaleString('vi-VN')} {p.currency || 'VND'}</td>
+                          <td style={{ padding: '12px' }}>{p.provider || 'MOCK'}</td>
+                          <td style={{ padding: '12px' }}>
+                            <span style={{
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '0.8rem',
+                              backgroundColor: p.state === 'SUCCESS' ? 'rgba(40,167,69,0.2)' : 'rgba(255,193,7,0.2)',
+                              color: p.state === 'SUCCESS' ? '#28a745' : '#ffc107'
+                            }}>
+                              {p.state === 'SUCCESS' ? 'Thành công' : p.state}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px', fontSize: '0.85rem' }}>{p.createdAt ? new Date(p.createdAt).toLocaleString('vi-VN') : 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div className="tab-content card-glass fade-in">
+              <h2 style={{ marginBottom: '25px' }}>Thông báo ({notifications.length})</h2>
+              {notificationsLoading ? (
+                <div>Đang tải danh sách thông báo...</div>
+              ) : notifications.length === 0 ? (
+                <div className="text-secondary">Bạn không có thông báo mới nào.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {notifications.map((n) => (
+                    <div key={n.notificationId || n.SK} className="card-glass" style={{ padding: '15px', position: 'relative' }}>
+                      <h4 style={{ margin: '0 0 5px 0', color: 'var(--color-primary)' }}>{n.title}</h4>
+                      <p style={{ margin: '0 0 8px 0', fontSize: '0.95rem' }}>{n.message}</p>
+                      <span className="text-secondary" style={{ fontSize: '0.8rem' }}>
+                        {n.createdAt ? new Date(n.createdAt).toLocaleString('vi-VN') : 'Vừa xong'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

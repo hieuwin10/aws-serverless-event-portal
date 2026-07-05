@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Event, Registration } from '../context/EventContext';
 
 interface MemberListPageProps {
   event: Event | null;
   registrations: Registration[];
   onBack: () => void;
+  getEventRegistrations?: (eventId: string) => Promise<Registration[]>;
 }
 
-export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrations, onBack }) => {
+export const MemberListPage: React.FC<MemberListPageProps> = ({ event, onBack, getEventRegistrations }) => {
+  const [eventRegistrations, setEventRegistrations] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (getEventRegistrations && event) {
+      setLoading(true);
+      getEventRegistrations(event.id)
+        .then((regs) => setEventRegistrations(regs))
+        .catch((err) => console.error('Failed to load event registrations', err))
+        .finally(() => setLoading(false));
+    }
+  }, [event, getEventRegistrations]);
+
   if (!event) {
     return (
       <div className="page-members fade-in">
@@ -19,7 +33,6 @@ export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrat
     );
   }
 
-  const eventRegistrations = registrations.filter((registration) => registration.eventId === event.id);
   const members = eventRegistrations.length > 0
     ? eventRegistrations
     : Array.from({ length: Math.min(event.registeredCount, 12) }, (_, index) => ({
@@ -57,7 +70,11 @@ export const MemberListPage: React.FC<MemberListPageProps> = ({ event, registrat
             </tr>
           </thead>
           <tbody>
-            {members.map((member, index) => (
+            {loading ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>Đang tải danh sách thành viên...</td>
+              </tr>
+            ) : members.map((member, index) => (
               <tr key={member.registrationId}>
                 <td>{index + 1}</td>
                 <td style={{ fontWeight: 'bold' }}>{member.email}</td>

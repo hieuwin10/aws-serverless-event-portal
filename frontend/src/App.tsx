@@ -42,6 +42,14 @@ const categories = [
 
 const AppContent: React.FC = () => {
   const { user, login, register, confirmOTP, logout } = useAuth();
+  const useMockAuth = useMemo(() => {
+    return (
+      import.meta.env.VITE_AUTH_MODE === 'mock' ||
+      import.meta.env.VITE_USE_MOCK_AUTH === 'true' ||
+      !import.meta.env.VITE_COGNITO_USER_POOL_ID ||
+      !import.meta.env.VITE_COGNITO_CLIENT_ID
+    );
+  }, []);
   const {
     events,
     registrations,
@@ -52,6 +60,15 @@ const AppContent: React.FC = () => {
     createEvent,
     updateEvent,
     deleteEvent,
+    joinEventWaitlist,
+    submitFeedback,
+    getFeedbacks,
+    qrCheckIn,
+    fetchRecommendations,
+    cancelRegistration,
+    getEventRegistrations,
+    getEventWaitlist,
+    fetchUserRegistrations,
   } = useEvents();
 
   const [currentPage, setCurrentPage] = useState<PageName>('home');
@@ -60,6 +77,23 @@ const AppContent: React.FC = () => {
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [regTicket, setRegTicket] = useState<Registration | null>(null);
+  const [recommendedEvents, setRecommendedEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    const loadRecommendations = async () => {
+      if (user && !useMockAuth) {
+        try {
+          const recs = await fetchRecommendations();
+          setRecommendedEvents(recs);
+        } catch {
+          setRecommendedEvents([]);
+        }
+      } else {
+        setRecommendedEvents([]);
+      }
+    };
+    loadRecommendations();
+  }, [user, registrations, useMockAuth]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -149,10 +183,45 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleJoinWaitlist = async (email: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    alert(`Bạn đã được thêm vào danh sách chờ với email: ${email}`);
-    setCurrentPage('detail');
+  const handleCancelRegistration = async (eventId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn hủy đăng ký tham gia sự kiện này?')) {
+      return;
+    }
+    try {
+      await cancelRegistration(eventId);
+      setRegTicket(null);
+      setDetailEvent(await getEventById(eventId));
+      alert('Đã hủy đăng ký thành công.');
+    } catch (error: any) {
+      alert(error.message || 'Hủy đăng ký thất bại.');
+    }
+  };
+
+  const handleJoinWaitlist = async (_email: string) => {
+    if (!detailEvent) return;
+    try {
+      await joinEventWaitlist(detailEvent.id);
+
+      // Refresh user registrations — the backend may have auto-promoted this user
+      // from waitlist to registered if a seat was already free
+      await fetchUserRegistrations();
+
+      // Refresh event detail so seat counts are up-to-date
+      const refreshed = await getEventById(detailEvent.id);
+      setDetailEvent(refreshed);
+
+      // Check if user was immediately promoted (has a registration now)
+      const promoted = registrations.find((r) => r.eventId === detailEvent.id);
+      if (promoted) {
+        setRegTicket(promoted);
+        alert('Có vé trống! Bạn đã được tự động đặt vé thành công.');
+      } else {
+        alert('Bạn đã tham gia danh sách chờ thành công. Chúng tôi sẽ liên hệ khi có vé trống.');
+      }
+      setCurrentPage('detail');
+    } catch (error: any) {
+      alert(error.message || 'Có lỗi xảy ra khi tham gia danh sách chờ.');
+    }
   };
 
   const handleAuthSubmit = async (event: React.FormEvent) => {
@@ -172,7 +241,15 @@ const AppContent: React.FC = () => {
           throw new Error('Vui lòng nhập đầy đủ họ tên, email và mật khẩu.');
         }
         await register(authEmail, authPassword, authName);
-        setAuthSuccess('Mã xác minh OTP đã được gửi. Vui lòng kiểm tra email của bạn.');
+        if (useMockAuth) {
+          const generatedOtp = localStorage.getItem(`mock_otp_${authEmail.trim().toLowerCase()}`);
+          if (generatedOtp) {
+            setOtpCode(generatedOtp);
+          }
+          setAuthSuccess('Đăng ký tài khoản giả lập thành công. Mã OTP đã được điền tự động.');
+        } else {
+          setAuthSuccess('Mã xác minh OTP đã được gửi. Vui lòng kiểm tra email của bạn.');
+        }
         setAuthMode('otp');
         return;
       }
@@ -344,7 +421,7 @@ const AppContent: React.FC = () => {
               )}
             </section>
 
-            <EventRecommendations events={events} onOpen={viewEventDetails} />
+             <EventRecommendations events={recommendedEvents.length > 0 ? recommendedEvents : events} onOpen={viewEventDetails} />
           </div>
         )}
 
@@ -388,7 +465,21 @@ const AppContent: React.FC = () => {
 
                   <div className="detail-booking-sidebar">
                     {regTicket ? (
-                      <TicketCard event={detailEvent} registration={regTicket} />
+                      <div>
+                        <TicketCard event={detailEvent} registration={regTicket} />
+                        <button
+                          className="btn-secondary w-full"
+                          style={{
+                            marginTop: '15px',
+                            color: '#ff4d4f',
+                            borderColor: '#ff4d4f',
+                            justifyContent: 'center'
+                          }}
+                          onClick={() => handleCancelRegistration(detailEvent.id)}
+                        >
+                          Hủy đăng ký vé
+                        </button>
+                      </div>
                     ) : (
                       <div className="booking-card card-glass text-center" style={{ padding: '30px' }}>
                         <h3>Đăng ký tham gia</h3>
@@ -407,8 +498,13 @@ const AppContent: React.FC = () => {
                   </div>
                 </div>
 
-                <ReviewRating eventId={detailEvent.id} userName={user?.name} />
-                <EventRecommendations events={events} currentEvent={detailEvent} onOpen={viewEventDetails} />
+                 <ReviewRating 
+                  eventId={detailEvent.id} 
+                  userName={user?.name} 
+                  submitFeedback={submitFeedback} 
+                  getFeedbacks={getFeedbacks} 
+                />
+                <EventRecommendations events={recommendedEvents.length > 0 ? recommendedEvents : events} currentEvent={detailEvent} onOpen={viewEventDetails} />
               </>
             )}
           </div>
@@ -457,7 +553,15 @@ const AppContent: React.FC = () => {
                 {authMode === 'login' ? 'Đăng nhập EventPortal' : authMode === 'register' ? 'Tạo tài khoản' : 'Nhập OTP xác minh'}
               </h2>
               <p className="auth-card-subtitle text-center text-secondary">
-                {authMode === 'otp' ? `Mã OTP mock đã gửi về ${authEmail}.` : 'Đăng nhập để quản lý và đăng ký vé sự kiện.'}
+                {authMode === 'otp' ? (
+                  useMockAuth ? (
+                    <span>
+                      Hệ thống đang chạy chế độ <strong>GIẢ LẬP</strong>. Mã OTP đã tự động điền hoặc bạn có thể nhập: <code style={{ color: '#ff7a00', fontSize: '1.1rem', fontWeight: 'bold', background: '#ffe8d6', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px' }}>{localStorage.getItem(`mock_otp_${authEmail.trim().toLowerCase()}`)}</code>
+                    </span>
+                  ) : (
+                    `Mã OTP đã được gửi về ${authEmail}. Vui lòng kiểm tra email của bạn.`
+                  )
+                ) : 'Đăng nhập để quản lý và đăng ký vé sự kiện.'}
               </p>
 
               {authError && <div className="alert alert-error">{authError}</div>}
@@ -637,7 +741,12 @@ const AppContent: React.FC = () => {
         )}
 
         {currentPage === 'waitlist' && detailEvent && (
-          <WaitlistPage event={detailEvent} onBack={() => setCurrentPage('detail')} onJoinWaitlist={handleJoinWaitlist} />
+          <WaitlistPage 
+            event={detailEvent} 
+            onBack={() => setCurrentPage('detail')} 
+            onJoinWaitlist={handleJoinWaitlist}
+            getEventWaitlist={getEventWaitlist}
+          />
         )}
 
         {currentPage === 'profile' && (
@@ -646,15 +755,26 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         )}
 
-        {currentPage === 'check-in' && (
+         {currentPage === 'check-in' && (
           <ProtectedRoute requireAdmin>
-            <QRCheckInPage events={events} registrations={registrations} onBack={() => setCurrentPage('admin')} />
+            <QRCheckInPage 
+              events={events} 
+              registrations={registrations} 
+              onBack={() => setCurrentPage('admin')} 
+              qrCheckIn={qrCheckIn}
+              getEventRegistrations={getEventRegistrations}
+            />
           </ProtectedRoute>
         )}
 
         {currentPage === 'members' && (
           <ProtectedRoute requireAdmin>
-            <MemberListPage event={selectedAdminEvent} registrations={registrations} onBack={() => setCurrentPage('admin')} />
+            <MemberListPage 
+              event={selectedAdminEvent} 
+              registrations={registrations} 
+              onBack={() => setCurrentPage('admin')} 
+              getEventRegistrations={getEventRegistrations}
+            />
           </ProtectedRoute>
         )}
 
