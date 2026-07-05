@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import QrScanner from 'qr-scanner';
+import { useAuth } from '../context/AuthContext';
 import type { Event, Registration } from '../context/EventContext';
 
 interface QRCheckInPageProps {
@@ -8,10 +10,19 @@ interface QRCheckInPageProps {
 }
 
 export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrations, onBack }) => {
+  const { token } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || '';
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const qrScannerRef = useRef<QrScanner | null>(null);
+  
   const [ticketCode, setTicketCode] = useState('');
   const [selectedEventId, setSelectedEventId] = useState(events[0]?.id || '');
   const [checkedIn, setCheckedIn] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [scannerActive, setScannerActive] = useState(true);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const selectedEvent = events.find((event) => event.id === selectedEventId) || events[0];
   const demoTickets = useMemo(() => {
@@ -22,18 +33,95 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrati
     return realTickets.length > 0 ? realTickets : ['AWS-DEMO-1001', 'AWS-DEMO-1002', 'AWS-DEMO-1003'];
   }, [registrations, selectedEvent]);
 
-  const handleScan = (code = ticketCode) => {
+  // Initialize QR Scanner
+  useEffect(() => {
+    if (!videoRef.current || !scannerActive) return;
+
+    const initScanner = async () => {
+      try {
+        setCameraError(null);
+        qrScannerRef.current = new QrScanner(
+          videoRef.current!,
+          async (result) => {
+            // Auto-trigger check-in when QR code is detected
+            const qrCode = result.data.trim().toUpperCase();
+            if (qrCode && !loading) {
+              await handleScan(qrCode);
+            }
+          },
+          {
+            onDecodeError: (err) => {
+              // Silently handle decode errors during scanning
+              console.log('Decode error (ignored):', err.message);
+            },
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            maxScansPerSecond: 5,
+          }
+        );
+        
+        try {
+          await qrScannerRef.current.start();
+        } catch (err: any) {
+          setCameraError('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập và thử lại.');
+          console.error('Camera error:', err);
+        }
+      } catch (err: any) {
+        setCameraError('Lỗi khởi tạo QR scanner: ' + err.message);
+        console.error('Scanner init error:', err);
+      }
+    };
+
+    initScanner();
+
+    return () => {
+      if (qrScannerRef.current) {
+        qrScannerRef.current.destroy();
+        qrScannerRef.current = null;
+      }
+    };
+  }, [scannerActive]);
+
+  const handleScan = async (code: string) => {
     const normalized = code.trim().toUpperCase();
     if (!normalized) {
-      setMessage('Nhập hoặc chọn mã vé để check-in.');
+      setMessage('Quét mã QR hoặc nhập mã vé để check-in.');
       return;
     }
 
-    if (!demoTickets.includes(normalized)) {
-      setMessage('Không tìm thấy mã vé trong danh sách đăng ký.');
-      return;
+    // Try to call backend API first if configured
+    if (API_BASE_URL && selectedEvent) {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/events/${selectedEvent.id}/checkin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
+          body: JSON.stringify({ ticketCode: normalized, manualOverride: false })
+        });
+        const resJson = await res.json();
+        if (resJson.success) {
+          setCheckedIn((current) => [normalized, ...current]);
+          setTicketCode('');
+          setMessage(`✓ Check-in thành công! ${resJson.data.message || ''}`);
+          setLoading(false);
+          return;
+        } else {
+          // Backend returned error
+          setMessage(`❌ ${resJson.error || 'Lỗi check-in'}`);
+          setLoading(false);
+          return;
+        }
+      } catch (err: any) {
+        // API call failed, fallback to mock
+        console.warn('Backend API failed, falling back to mock mode', err.message);
+      }
+      setLoading(false);
     }
 
+    // Fallback to mock/demo mode
     if (checkedIn.includes(normalized)) {
       setMessage('Vé này đã được check-in trước đó.');
       return;
@@ -41,7 +129,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrati
 
     setCheckedIn((current) => [normalized, ...current]);
     setTicketCode('');
-    setMessage(`Check-in thành công cho vé ${normalized}.`);
+    setMessage(`(Mock) Check-in thành công cho vé ${normalized}. (Không kết nối backend)`);
   };
 
   return (
@@ -68,26 +156,43 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrati
             </select>
           </div>
 
-          <div className="scanner-frame">
-            <div className="scanner-line"></div>
-            <div className="mock-qr-code scanner-qr">
-              <div className="qr-corner qr-tl"></div>
-              <div className="qr-corner qr-tr"></div>
-              <div className="qr-corner qr-bl"></div>
-              <div className="qr-matrix"></div>
+          {cameraError && (
+            <div className="alert alert-error" style={{ marginBottom: '18px' }}>
+              {cameraError}
             </div>
+          )}
+
+          <div className="scanner-frame">
+            <video
+              ref={videoRef}
+              style={{
+                width: '100%',
+                borderRadius: '8px',
+                aspectRatio: '1',
+                objectFit: 'cover',
+                backgroundColor: '#000'
+              }}
+            />
+            <div className="scanner-line"></div>
           </div>
 
-          <form className="check-in-form" onSubmit={(event) => { event.preventDefault(); handleScan(); }}>
+          <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
+            <p>📱 Hướng camera đến mã QR để quét tự động</p>
+          </div>
+
+          <form className="check-in-form" onSubmit={(event) => { event.preventDefault(); handleScan(ticketCode); }}>
             <div className="form-group">
-              <label>Mã vé / QR payload</label>
+              <label>Hoặc nhập thủ công (nếu quét không được)</label>
               <input
                 value={ticketCode}
                 onChange={(event) => setTicketCode(event.target.value)}
                 placeholder="AWS-DEMO-1001"
+                disabled={loading}
               />
             </div>
-            <button type="submit" className="btn-primary w-full">Xác nhận Check-in</button>
+            <button type="submit" className="btn-primary w-full" disabled={loading}>
+              {loading ? 'Đang xử lý...' : '✓ Xác nhận'}
+            </button>
           </form>
 
           {message && <div className="alert alert-success" style={{ marginTop: '18px' }}>{message}</div>}
@@ -97,7 +202,12 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, registrati
           <h2>Vé mẫu để quét</h2>
           <div className="scan-ticket-list">
             {demoTickets.map((code) => (
-              <button key={code} className="scan-ticket-item" onClick={() => handleScan(code)}>
+              <button 
+                disabled={loading}
+                key={code} 
+                className="scan-ticket-item" 
+                onClick={() => handleScan(code)}
+              >
                 <span>{code}</span>
                 <small>{checkedIn.includes(code) ? 'Đã check-in' : 'Bấm để quét'}</small>
               </button>
