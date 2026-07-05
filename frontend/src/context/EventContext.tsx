@@ -45,6 +45,7 @@ interface EventContextType {
   cancelRegistration: (eventId: string) => Promise<void>;
   fetchUserRegistrations: () => Promise<void>;
   getEventRegistrations: (eventId: string) => Promise<Registration[]>;
+  getEventWaitlist: (eventId: string) => Promise<any[]>;
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
@@ -428,6 +429,22 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const getEventWaitlist = async (eventId: string): Promise<any[]> => {
+    if (!API_BASE_URL) return [];
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/waitlist`, {
+        headers: getHeaders()
+      });
+      const resJson = await res.json();
+      if (resJson.success && Array.isArray(resJson.data)) {
+        return resJson.data;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
   return (
     <EventContext.Provider value={{
       events,
@@ -447,7 +464,8 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       qrCheckIn,
       fetchRecommendations,
       cancelRegistration,
-      getEventRegistrations
+      getEventRegistrations,
+      getEventWaitlist
     }}>
       {children}
     </EventContext.Provider>

@@ -1,22 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Event } from '../context/EventContext';
+
+interface WaitlistEntry {
+  position: number;
+  name: string;
+  email: string;
+  registeredAt: string;
+}
 
 interface WaitlistPageProps {
   event: Event;
   onBack: () => void;
   onJoinWaitlist: (email: string) => Promise<void>;
+  getEventWaitlist?: (eventId: string) => Promise<WaitlistEntry[]>;
 }
 
 export const WaitlistPage: React.FC<WaitlistPageProps> = ({
   event,
   onBack,
-  onJoinWaitlist
+  onJoinWaitlist,
+  getEventWaitlist
 }) => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+
+  // Load real waitlist from backend on mount and when event changes
+  useEffect(() => {
+    if (getEventWaitlist && event) {
+      setWaitlistLoading(true);
+      getEventWaitlist(event.id)
+        .then((entries) => setWaitlist(entries))
+        .catch((err) => console.error('Failed to fetch waitlist:', err))
+        .finally(() => setWaitlistLoading(false));
+    }
+  }, [event, getEventWaitlist]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,18 +65,18 @@ export const WaitlistPage: React.FC<WaitlistPageProps> = ({
       setSuccess('Bạn đã được thêm vào danh sách chờ. Chúng tôi sẽ liên hệ khi có vé trống.');
       setEmail('');
       setPhoneNumber('');
+
+      // Refresh real waitlist after joining
+      if (getEventWaitlist) {
+        const updated = await getEventWaitlist(event.id);
+        setWaitlist(updated);
+      }
     } catch (err: any) {
       setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   };
-
-  const mockWaitlist = [
-    { position: 1, name: 'Nguyễn Văn A', registeredAt: new Date(Date.now() - 3600000).toLocaleString('vi-VN') },
-    { position: 2, name: 'Trần Thị B', registeredAt: new Date(Date.now() - 1800000).toLocaleString('vi-VN') },
-    { position: 3, name: 'Phạm Văn C', registeredAt: new Date(Date.now() - 900000).toLocaleString('vi-VN') },
-  ];
 
   return (
     <div className="page-waitlist fade-in">
@@ -153,7 +175,7 @@ export const WaitlistPage: React.FC<WaitlistPageProps> = ({
               <div className="stat-item" style={{ backgroundColor: 'rgba(0, 150, 255, 0.1)', padding: '15px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
                 <span className="stat-label text-secondary" style={{ fontSize: '0.85rem' }}>Đang chờ</span>
                 <span className="stat-value" style={{ fontSize: '1.8rem', color: 'var(--color-accent)', marginTop: '8px', display: 'block' }}>
-                  {mockWaitlist.length}
+                  {waitlistLoading ? '...' : waitlist.length}
                 </span>
               </div>
               <div className="stat-item" style={{ backgroundColor: 'rgba(200, 120, 255, 0.1)', padding: '15px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
@@ -167,22 +189,32 @@ export const WaitlistPage: React.FC<WaitlistPageProps> = ({
 
           <div className="waitlist-preview card-glass" style={{ padding: '20px' }}>
             <h3 style={{ marginBottom: '15px' }}>Danh sách chờ hiện tại</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {mockWaitlist.map((item) => (
-                <div key={item.position} className="waitlist-item" style={{ display: 'flex', alignItems: 'center', padding: '12px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-primary)' }}>
-                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-primary)', borderRadius: '50%', fontWeight: 'bold', marginRight: '12px', flexShrink: 0 }}>
-                    {item.position}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: '500' }}>{item.name}</p>
-                    <span className="text-secondary" style={{ fontSize: '0.85rem' }}>{item.registeredAt}</span>
-                  </div>
+            {waitlistLoading ? (
+              <p className="text-secondary" style={{ textAlign: 'center' }}>Đang tải danh sách chờ...</p>
+            ) : waitlist.length === 0 ? (
+              <p className="text-secondary" style={{ textAlign: 'center' }}>Chưa có ai trong danh sách chờ.</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {waitlist.slice(0, 10).map((item) => (
+                    <div key={item.position} className="waitlist-item" style={{ display: 'flex', alignItems: 'center', padding: '12px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--color-primary)' }}>
+                      <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-primary)', borderRadius: '50%', fontWeight: 'bold', marginRight: '12px', flexShrink: 0 }}>
+                        {item.position}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontWeight: '500' }}>{item.name}</p>
+                        <span className="text-secondary" style={{ fontSize: '0.85rem' }}>
+                          {new Date(item.registeredAt).toLocaleString('vi-VN')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <p className="text-secondary" style={{ marginTop: '15px', fontSize: '0.85rem', textAlign: 'center' }}>
-              Đang hiển thị top 3. Tổng cộng {mockWaitlist.length} người đang chờ.
-            </p>
+                <p className="text-secondary" style={{ marginTop: '15px', fontSize: '0.85rem', textAlign: 'center' }}>
+                  Tổng cộng {waitlist.length} người đang chờ.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

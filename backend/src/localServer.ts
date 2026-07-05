@@ -39,6 +39,7 @@ import { handler as markNotificationRead } from './handlers/markNotificationRead
 import { handler as getUserProfile } from './handlers/getUserProfile';
 import { handler as cancelRegistration } from './handlers/cancelRegistration';
 import { handler as getEventRegistrations } from './handlers/getEventRegistrations';
+import { handler as getEventWaitlist } from './handlers/getEventWaitlist';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -156,6 +157,7 @@ app.post('/events/:id/register', handleLambda(registerEvent));
 app.delete('/events/:id/register', handleLambda(cancelRegistration));
 app.get('/events/:id/registrations', handleLambda(getEventRegistrations));
 app.post('/events/:id/waitlist', handleLambda(joinWaitlist));
+app.get('/events/:id/waitlist', handleLambda(getEventWaitlist));
 app.post('/events/:id/checkin', handleLambda(qrCheckIn));
 app.post('/events/:id/reviews', handleLambda(submitReview));
 app.post('/registrations/:registrationId/payments', handleLambda(createRegistrationPayment));

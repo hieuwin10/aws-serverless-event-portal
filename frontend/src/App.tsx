@@ -67,6 +67,8 @@ const AppContent: React.FC = () => {
     fetchRecommendations,
     cancelRegistration,
     getEventRegistrations,
+    getEventWaitlist,
+    fetchUserRegistrations,
   } = useEvents();
 
   const [currentPage, setCurrentPage] = useState<PageName>('home');
@@ -199,7 +201,23 @@ const AppContent: React.FC = () => {
     if (!detailEvent) return;
     try {
       await joinEventWaitlist(detailEvent.id);
-      alert('Bạn đã tham gia danh sách chờ thành công. Chúng tôi sẽ liên hệ khi có vé trống.');
+
+      // Refresh user registrations — the backend may have auto-promoted this user
+      // from waitlist to registered if a seat was already free
+      await fetchUserRegistrations();
+
+      // Refresh event detail so seat counts are up-to-date
+      const refreshed = await getEventById(detailEvent.id);
+      setDetailEvent(refreshed);
+
+      // Check if user was immediately promoted (has a registration now)
+      const promoted = registrations.find((r) => r.eventId === detailEvent.id);
+      if (promoted) {
+        setRegTicket(promoted);
+        alert('Có vé trống! Bạn đã được tự động đặt vé thành công.');
+      } else {
+        alert('Bạn đã tham gia danh sách chờ thành công. Chúng tôi sẽ liên hệ khi có vé trống.');
+      }
       setCurrentPage('detail');
     } catch (error: any) {
       alert(error.message || 'Có lỗi xảy ra khi tham gia danh sách chờ.');
@@ -723,7 +741,12 @@ const AppContent: React.FC = () => {
         )}
 
         {currentPage === 'waitlist' && detailEvent && (
-          <WaitlistPage event={detailEvent} onBack={() => setCurrentPage('detail')} onJoinWaitlist={handleJoinWaitlist} />
+          <WaitlistPage 
+            event={detailEvent} 
+            onBack={() => setCurrentPage('detail')} 
+            onJoinWaitlist={handleJoinWaitlist}
+            getEventWaitlist={getEventWaitlist}
+          />
         )}
 
         {currentPage === 'profile' && (
