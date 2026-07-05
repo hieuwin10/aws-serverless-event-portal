@@ -26,31 +26,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Frontend Dependencies
-        working-directory: frontend
-        run: npm install
-
-      - name: Build Frontend
-        working-directory: frontend
-        run: npm run build
-        env:
-          VITE_BASE_PATH: /aws-serverless-event-portal/
-          VITE_AUTH_MODE: mock
-          VITE_USE_MOCK_AUTH: true
-          VITE_USE_MOCK_DATA: true
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './frontend/dist'
+          path: './landing-page'
 
       - name: Deploy to GitHub Pages
         id: deployment
