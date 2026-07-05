@@ -101,7 +101,8 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
   }, [eventRegistrations]);
 
   const handleScan = async (code = ticketCode) => {
-    const normalized = code.trim().toUpperCase();
+    const normalized = code.replace(/[^a-zA-Z0-9-]/g, '').trim().toUpperCase();
+    setTicketCode(normalized);
     if (!normalized) {
       setMessage('Nhập hoặc chọn mã vé để check-in.');
       return;
