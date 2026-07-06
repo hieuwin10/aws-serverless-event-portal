@@ -62,24 +62,13 @@ Dữ liệu được tổ chức khoa học trong một bảng duy nhất `Event
 
 ---
 
-## 📂 3. Bản Đồ 14 Tệp Tài Liệu Kỹ Thuật (docs/)
+## 📂 3. Bản Đồ Tài Liệu Kỹ Thuật (docs/)
 
-Toàn bộ các khía cạnh nghiệp vụ, giao diện, API, hạ tầng và CI/CD của hệ thống được tài liệu hóa chi tiết tại thư mục `docs/`:
+Toàn bộ tài liệu kỹ thuật của dự án đã được nâng cấp theo chuẩn **AWS Well-Architected Framework** và phương pháp **BMAD-METHOD**. Mời bạn truy cập thư mục `docs/` để xem chi tiết:
 
-1.  **[index.md](./docs/index.md) (Chỉ Mục Tài Liệu):** Điểm điều hướng trung tâm của toàn bộ hệ thống tài liệu.
-2.  **[project-overview.md](./docs/project-overview.md) (Tổng Quan Dự Án):** Tóm tắt dự án, tính năng cốt lõi và lịch sử các phiên bản v1.3.
-3.  **[source-tree-analysis.md](./docs/source-tree-analysis.md) (Cấu Trúc Thư Mục):** Phân tích sơ đồ Monorepo và bản đồ phụ thuộc thư viện NPM.
-4.  **[team-alignment-matrix.md](./docs/team-alignment-matrix.md) (Tài Liệu Họp Team):** Ma trận trách nhiệm **RACI** và 3 kịch bản nghiệm thu offline Milestone 1.
-5.  **[db.md](./db.md) (Sơ Đồ Thực Thể Database):** Thiết kế chi tiết cấu trúc bảng quan hệ (DBML) của 17 thực thể.
-6.  **[data-models.md](./docs/data-models.md) (Đặc Tả DynamoDB):** Thiết kế Single-Table chi tiết, 15 Access Patterns (AP-1 đến AP-15) và mô phỏng Layout.
-7.  **[integration-architecture.md](./docs/integration-architecture.md) (Kiến Trúc Tích Hợp):** Đặc tả 7 dịch vụ AWS, quyền IAM Roles và kiểm soát chi phí Free Tier.
-8.  **[architecture-frontend.md](./docs/architecture-frontend.md) (Kiến Trúc Frontend):** Cấu trúc React Context, Responsive layout mobile-first và route guard bảo mật.
-9.  **[architecture-backend.md](./docs/architecture-backend.md) (Kiến Trúc Backend):** Thiết kế độc lập 7 hàm Lambda (Single-purpose) và bộ builder response đính kèm CORS.
-10. **[api-contracts.md](./docs/api-contracts.md) (Thông Số API):** Định nghĩa cấu trúc request/response và các HTTP code lỗi chuẩn hóa.
-11. **[development-guide.md](./docs/development-guide.md) (Hướng Dẫn Phát Triển):** Cách cấu hình biến môi trường `.env` và mock offline cục bộ.
-12. **[infrastructure-as-code.md](./docs/infrastructure-as-code.md) (Hạ Tầng Dưới Dạng Mã):** Tệp cấu hình AWS SAM `template.yaml` hoàn chỉnh.
-13. **[testing-strategy.md](./docs/testing-strategy.md) (Chiến Lược Kiểm Thử):** Kim tự tháp kiểm thử gồm Unit, Integration và E2E tests.
-14. **[operations-backup-cicd.md](./docs/operations-backup-cicd.md) (CI/CD Pipeline):** Thiết lập GitHub Actions tự động hóa quy trình deploy khi push code.
+- **[INDEX - Chỉ Mục Tài Liệu](./docs/index.md):** Điểm điều hướng trung tâm phân loại theo 5 trụ cột AWS (Security, Reliability, Performance, Cost, Operations).
+- **[Tổng Quan Dự Án](./docs/README.md):** Hướng dẫn xử lý các Use Case và giải quyết sự cố thực tế.
+- **Tài liệu gốc (Legacy Docs):** Chứa các sơ đồ như [db.md](./db.md) (Sơ Đồ Thực Thể Database) và đặc tả API/hạ tầng.
 
 ---
 
@@ -88,7 +77,7 @@ Toàn bộ các khía cạnh nghiệp vụ, giao diện, API, hạ tầng và CI
 Thực hiện lần lượt các bước sau để đẩy toàn bộ dự án lên kho lưu trữ GitHub mới của bạn:
 
 ### Bước 1: Khởi tạo Git tại máy cục bộ
-Mở Terminal tại thư mục `Demo` và chạy:
+Mở Terminal tại thư mục `aws-serverless-event-portal` và chạy:
 ```bash
 # Khởi tạo repository cục bộ
 git init
@@ -112,12 +101,24 @@ Chạy các dòng lệnh hiển thị trên màn hình GitHub của bạn (thay 
 # Đổi tên nhánh chính thành main
 git branch -M main
 
-# Liên kết với Github repo vừa tạo (thay thế hieuvin10 bằng tài khoản của bạn)
-git remote add origin https://github.com/hieuvin10/aws-serverless-event-portal.git
+# Liên kết với Github repo vừa tạo
+git remote add origin https://github.com/hieuwin10/aws-serverless-event-portal.git
 
 # Đẩy code lên GitHub
 git push -u origin main
 ```
+
+---
+
+## 🛠️ 5. Hướng Dẫn Cấu Hình Và Triển Khai (CloudFormation IaC)
+
+Hệ thống hỗ trợ triển khai hoàn toàn tự động lên AWS chỉ trong 3 phút bằng công nghệ **Infrastructure as Code (IaC)**. Mời bạn xem các tài liệu hướng dẫn cấu hình và dọn dẹp chi tiết tại thư mục `huong dan cau hinh/`:
+
+1. **[00-Tong-Quan.md](./huong%20dan%20cau%20hinh/00-Tong-Quan.md):** Tổng quan quy trình triển khai bằng CloudFormation.
+2. **[01-Chuan-Bi-Code.md](./huong%20dan%20cau%20hinh/01-Chuan-Bi-Code.md):** Đóng gói mã nguồn Backend.
+3. **[02-Trien-Khai-CloudFormation.md](./huong%20dan%20cau%20hinh/02-Trien-Khai-CloudFormation.md):** Nạp bản vẽ `template.yaml` để tự động hóa hạ tầng.
+4. **[03-Trien-Khai-Frontend.md](./huong%20dan%20cau%20hinh/03-Trien-Khai-Frontend.md):** Đẩy code Frontend tĩnh lên Amazon S3 Bucket.
+5. **[04-Don-Dep-Tai-Nguyen.md](./huong%20dan%20cau%20hinh/04-Don-Dep-Tai-Nguyen.md):** Hướng dẫn xóa sạch các dịch vụ AWS sau khi test để tránh phát sinh chi phí.
 
 ---
 *Tài liệu được biên soạn dựa trên tiêu chuẩn kiến trúc BMAD Method v6 (Breakthrough Method for Agile AI-Driven Development).*

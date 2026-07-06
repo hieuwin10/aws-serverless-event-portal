@@ -167,23 +167,21 @@ tags: [index, navigation, bmad-method]
 
 ---
 
-## 📚 Tài Liệu Kỹ Thuật Cũ (Technical Reference Docs)
+## 📚 Tài Liệu Cũ (Technical Reference)
 
 > Đây là các tài liệu technical docs gốc của dự án, không theo BMAD-METHOD.
 
-| File | Mô Tả |
-|------|--------|
-| [index.md](./index.md) | Chỉ mục tài liệu kỹ thuật gốc |
-| [project-overview.md](./project-overview.md) | Tổng quan dự án |
-| [architecture-backend.md](./architecture-backend.md) | Kiến trúc Lambda/API |
-| [architecture-frontend.md](./architecture-frontend.md) | Kiến trúc React/S3 |
-| [data-models.md](./data-models.md) | DynamoDB Single-Table Design |
-| [api-contracts.md](./api-contracts.md) | API Gateway endpoints |
-| [infrastructure-as-code.md](./infrastructure-as-code.md) | SAM template.yaml |
-| [development-guide.md](./development-guide.md) | Setup guide |
-| [testing-strategy.md](./testing-strategy.md) | Test pyramid |
-| [integration-architecture.md](./integration-architecture.md) | AWS service integration |
-| [error-handling-troubleshooting.md](./error-handling-troubleshooting.md) | Error catalog |
+- [index.md](./legacy/index.md) — Chỉ mục tài liệu gốc
+- [project-overview.md](./legacy/project-overview.md) — Tổng quan dự án
+- [architecture-backend.md](./legacy/architecture-backend.md) — Kiến trúc Lambda/API
+- [architecture-frontend.md](./legacy/architecture-frontend.md) — Kiến trúc React/S3
+- [data-models.md](./legacy/data-models.md) — DynamoDB Single-Table Design
+- [api-contracts.md](./legacy/api-contracts.md) — API Gateway endpoints
+- [infrastructure-as-code.md](./legacy/infrastructure-as-code.md) — SAM template.yaml
+- [development-guide.md](./legacy/development-guide.md) — Setup guide
+- [testing-strategy.md](./legacy/testing-strategy.md) — Test pyramid
+- [integration-architecture.md](./legacy/integration-architecture.md) — AWS service integration
+- [error-handling-troubleshooting.md](./legacy/error-handling-troubleshooting.md) — Error catalog
 
 ---
 
