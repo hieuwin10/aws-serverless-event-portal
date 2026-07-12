@@ -35,9 +35,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     const existingPayments = await dbService.listPaymentsByRegistration(registrationId);
-    const hasSuccessfulPayment = existingPayments.some(p => p.state === 'SUCCESS');
-    if (hasSuccessfulPayment) {
-      return buildResponse(400, null, 'Thanh toán cho mã đăng ký này đã được hoàn tất trước đó.');
+    const hasActivePayment = existingPayments.some(p => ['PENDING', 'SUCCESS'].includes(String(p.state || '').toUpperCase()));
+    if (hasActivePayment) {
+      return buildResponse(400, null, 'Thanh toán cho mã đăng ký này đang xử lý hoặc đã được hoàn tất trước đó.');
     }
 
     const amount = body.amount === undefined || body.amount === null ? 0 : Number(body.amount);

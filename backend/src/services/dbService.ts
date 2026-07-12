@@ -2865,7 +2865,30 @@ export const dbService = {
       updatedAt: now
     };
 
-    await dbService.putItem(item);
+    if (DB_MODE === 'mock') {
+      const existingItem = await dbService.getItem(keys.PK, keys.SK);
+      if (existingItem) {
+        throw new Error('Ban da dang ky tham gia su kien nay roi.');
+      }
+
+      await dbService.putItem(item);
+      return item;
+    }
+
+    try {
+      await ddbDocClient!.send(new PutCommand({
+        TableName: TABLE_NAME,
+        Item: item,
+        ConditionExpression: 'attribute_not_exists(PK) AND attribute_not_exists(SK)'
+      }));
+    } catch (err: any) {
+      if (err.name === 'ConditionalCheckFailedException') {
+        throw new Error('Ban da dang ky tham gia su kien nay roi.');
+      }
+
+      throw err;
+    }
+
     return item;
   },
 
@@ -3162,6 +3185,22 @@ export const dbService = {
     const keys = buildEventKeys(eventId);
     logger.info(`dbService.incrementRemainingSeats: eventId=${eventId}`);
 
+    if (DB_MODE === 'dynamodb' && ddbDocClient) {
+      const result = await ddbDocClient.send(new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: keys,
+        UpdateExpression: 'SET remainingSeats = remainingSeats + :inc, registeredCount = if_not_exists(registeredCount, :inc) - :inc, updatedAt = :updatedAt',
+        ConditionExpression: 'remainingSeats < totalSeats',
+        ExpressionAttributeValues: {
+          ':inc': 1,
+          ':updatedAt': new Date().toISOString()
+        },
+        ReturnValues: 'ALL_NEW'
+      }));
+
+      return result.Attributes;
+    }
+
     const existingItem = await dbService.getItem(keys.PK, keys.SK);
     if (!existingItem) {
       return null;
@@ -3192,6 +3231,22 @@ export const dbService = {
   incrementTicketRemainingQuantity: async (eventId: string, ticketId: string): Promise<any | null> => {
     const keys = buildTicketKeys(eventId, ticketId);
     logger.info(`dbService.incrementTicketRemainingQuantity: eventId=${eventId}, ticketId=${ticketId}`);
+
+    if (DB_MODE === 'dynamodb' && ddbDocClient) {
+      const result = await ddbDocClient.send(new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: keys,
+        UpdateExpression: 'SET remainingQuantity = remainingQuantity + :inc, updatedAt = :updatedAt',
+        ConditionExpression: 'remainingQuantity < totalQuantity',
+        ExpressionAttributeValues: {
+          ':inc': 1,
+          ':updatedAt': new Date().toISOString()
+        },
+        ReturnValues: 'ALL_NEW'
+      }));
+
+      return result.Attributes;
+    }
 
     const existingTicket = await dbService.getItem(keys.PK, keys.SK);
     if (!existingTicket) {

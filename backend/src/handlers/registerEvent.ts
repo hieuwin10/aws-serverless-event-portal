@@ -76,19 +76,47 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const ticketCode = `TKT-AWS-${eventPrefix}-${userSuffix}`;
     const registeredAt = new Date().toISOString();
 
-    const newRegistration = await dbService.createRegistrationItem({
-      registrationId,
-      userId,
-      eventId: id,
-      email,
-      registeredAt,
-      ticketCode,
-      ticketId
-    });
+    let seatsReserved = false;
+    let ticketReserved = false;
 
-    // Decrement remaining seats and keep compatibility counters in sync
-    await dbService.decrementRemainingSeats(id);
-    await dbService.decrementTicketRemainingQuantity(id, ticketId);
+    try {
+      await dbService.decrementRemainingSeats(id);
+      seatsReserved = true;
+      await dbService.decrementTicketRemainingQuantity(id, ticketId);
+      ticketReserved = true;
+    } catch (reserveError: any) {
+      if (seatsReserved) {
+        await dbService.incrementRemainingSeats(id);
+      }
+
+      return buildResponse(400, null, reserveError?.message || 'Su kien da het ve trong tham gia.');
+    }
+
+    let newRegistration: any;
+    try {
+      newRegistration = await dbService.createRegistrationItem({
+        registrationId,
+        userId,
+        eventId: id,
+        email,
+        registeredAt,
+        ticketCode,
+        ticketId
+      });
+    } catch (createError: any) {
+      if (ticketReserved) {
+        await dbService.incrementTicketRemainingQuantity(id, ticketId);
+      }
+      if (seatsReserved) {
+        await dbService.incrementRemainingSeats(id);
+      }
+
+      if (String(createError?.message || '').includes('dang ky')) {
+        return buildResponse(400, null, createError.message);
+      }
+
+      throw createError;
+    }
 
     await writeAuditLogSafely({
       action: 'REGISTER_EVENT',

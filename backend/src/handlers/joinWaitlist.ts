@@ -32,11 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // 4. Kiểm tra user đã đăng ký hoặc trong waitlist chưa
-    const registrations = await dbService.listRegistrationsByEventGSI2(eventId);
-    const alreadyRegistered = registrations.some((reg: any) => 
-      reg.userId === userClaims.sub || 
-      (reg.GSI2SK && reg.GSI2SK === `USER#${userClaims.sub}`)
-    );
+    const alreadyRegistered = await dbService.getRegistrationByUserAndEvent(userClaims.sub, eventId);
 
     if (alreadyRegistered) {
       return buildResponse(400, null, 'Bạn đã đăng ký sự kiện này rồi');
@@ -44,11 +40,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // Kiểm tra đã trong waitlist chưa (scan items with SK begins_with WAITLIST#)
     // Trong production, nên dùng query hoặc GSI
-    const existingWaitlist = registrations.filter((item: any) => 
-      item.SK?.startsWith('WAITLIST#') && item.userId === userClaims.sub
-    );
+    const existingWaitlist = await dbService.getEventWaitlist(eventId);
+    const alreadyWaitlisted = existingWaitlist.some((item: any) => item.userId === userClaims.sub);
 
-    if (existingWaitlist.length > 0) {
+    if (alreadyWaitlisted) {
       return buildResponse(400, null, 'Bạn đã có trong danh sách chờ rồi');
     }
 
