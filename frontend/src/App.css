@@ -147,21 +147,32 @@
   width: 100%;
 }
 
+.header-profile {
+  min-width: 0;
+}
+
 .profile-active {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .profile-info {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  min-width: 0;
 }
 
 .profile-name {
   font-weight: 600;
   font-size: 0.95rem;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-badge {
@@ -290,6 +301,7 @@
   flex-direction: column;
   overflow: hidden;
   cursor: pointer;
+  min-width: 0;
 }
 
 .card-image-wrapper {
@@ -345,6 +357,11 @@
   margin-bottom: 10px;
   line-height: 1.35;
   transition: var(--transition-smooth);
+  display: -webkit-box;
+  min-height: 3.4em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .event-card:hover .card-title-main {
@@ -925,6 +942,37 @@
   transform: scale(1.1);
 }
 
+.scan-mode-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 6px;
+}
+
+.scan-mode-toggle button {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 42px;
+}
+
+.scan-mode-toggle button.active {
+  background: linear-gradient(135deg, #ff9900 0%, #ffb84d 100%);
+  color: #111827;
+  box-shadow: 0 10px 24px rgba(255, 153, 0, 0.2);
+}
+
+.scan-mode-toggle button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 @keyframes scanLine {
   0%, 100% { top: 18%; }
   50% { top: 80%; }
@@ -1268,7 +1316,7 @@
 
 .event-card {
   border-radius: 22px;
-  min-height: 520px;
+  min-height: 500px;
 }
 
 .event-card:hover {
@@ -1306,7 +1354,11 @@
   font-size: 0.82rem;
   font-weight: 700;
   margin-bottom: 14px;
+  max-width: 100%;
+  overflow: hidden;
   padding: 5px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-glass {
@@ -1341,6 +1393,15 @@
     justify-content: center;
     overflow-x: auto;
   }
+
+  .header-profile,
+  .profile-active {
+    justify-content: center;
+  }
+
+  .profile-info {
+    align-items: center;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1351,5 +1412,13 @@
 
   .hero-section {
     padding-top: 34px;
+  }
+
+  .card-content {
+    padding: 20px;
+  }
+
+  .event-card {
+    min-height: auto;
   }
 }

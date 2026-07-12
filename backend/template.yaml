@@ -806,6 +806,23 @@ Resources:
             Path: /events/{id}/checkin
             Method: POST
 
+  CheckoutEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CheckoutEvent
+      Handler: handlers/checkoutEvent.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CheckoutEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/checkout
+            Method: POST
+
   SubmitReviewFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1063,6 +1080,12 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${QRCheckInFunction}"
+      RetentionInDays: 7
+
+  CheckoutEventLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CheckoutEventFunction}"
       RetentionInDays: 7
 
   SubmitReviewLogGroup:

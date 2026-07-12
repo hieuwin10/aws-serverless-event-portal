@@ -805,6 +805,13 @@ export const mapRegistrationItemToDto = (item: any, eventItem?: any): any | null
     email: item.email || '',
     registeredAt: item.registeredAt || item.createdAt || '',
     ticketCode: item.ticketCode || item.ticketId || '',
+    checkedIn: Boolean(item.checkedIn),
+    checkedInAt: item.checkedInAt || '',
+    checkedInBy: item.checkedInBy || '',
+    checkedOut: Boolean(item.checkedOut),
+    checkedOutAt: item.checkedOutAt || '',
+    checkedOutBy: item.checkedOutBy || '',
+    manualOverride: Boolean(item.manualOverride),
     event: mappedEvent
   };
 };

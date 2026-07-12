@@ -30,6 +30,7 @@ import { handler as getUserRegistrations } from './handlers/getUserRegistrations
 import { handler as getRecommendations } from './handlers/getRecommendations';
 import { handler as exportEventICS } from './handlers/exportEventICS';
 import { handler as qrCheckIn } from './handlers/qrCheckIn';
+import { handler as checkoutEvent } from './handlers/checkoutEvent';
 import { handler as submitReview } from './handlers/submitReview';
 import { handler as joinWaitlist } from './handlers/joinWaitlist';
 import { handler as createRegistrationPayment } from './handlers/createRegistrationPayment';
@@ -159,6 +160,7 @@ app.get('/events/:id/registrations', handleLambda(getEventRegistrations));
 app.post('/events/:id/waitlist', handleLambda(joinWaitlist));
 app.get('/events/:id/waitlist', handleLambda(getEventWaitlist));
 app.post('/events/:id/checkin', handleLambda(qrCheckIn));
+app.post('/events/:id/checkout', handleLambda(checkoutEvent));
 app.post('/events/:id/reviews', handleLambda(submitReview));
 app.post('/registrations/:registrationId/payments', handleLambda(createRegistrationPayment));
 app.get('/users/payments', handleLambda(getUserPayments));

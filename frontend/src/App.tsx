@@ -64,6 +64,7 @@ const AppContent: React.FC = () => {
     submitFeedback,
     getFeedbacks,
     qrCheckIn,
+    qrCheckOut,
     fetchRecommendations,
     cancelRegistration,
     getEventRegistrations,
@@ -762,6 +763,7 @@ const AppContent: React.FC = () => {
               registrations={registrations} 
               onBack={() => setCurrentPage('admin')} 
               qrCheckIn={qrCheckIn}
+              qrCheckOut={qrCheckOut}
               getEventRegistrations={getEventRegistrations}
             />
           </ProtectedRoute>

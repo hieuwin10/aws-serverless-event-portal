@@ -24,6 +24,10 @@ export interface Registration {
   event?: Event | null;
   checkedIn?: boolean;
   checkedInAt?: string;
+  checkedInBy?: string;
+  checkedOut?: boolean;
+  checkedOutAt?: string;
+  checkedOutBy?: string;
 }
 
 interface EventContextType {
@@ -41,6 +45,7 @@ interface EventContextType {
   submitFeedback: (eventId: string, rating: number, comment: string) => Promise<any>;
   getFeedbacks: (eventId: string) => Promise<any[]>;
   qrCheckIn: (eventId: string, ticketCode: string) => Promise<{ success: boolean; message: string }>;
+  qrCheckOut: (eventId: string, ticketCode: string) => Promise<{ success: boolean; message: string }>;
   fetchRecommendations: () => Promise<Event[]>;
   cancelRegistration: (eventId: string) => Promise<void>;
   fetchUserRegistrations: () => Promise<void>;
@@ -372,6 +377,27 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const qrCheckOut = async (eventId: string, ticketCode: string): Promise<{ success: boolean; message: string }> => {
+    if (!API_BASE_URL) {
+      return { success: false, message: 'Chưa cấu hình API endpoint.' };
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/checkout`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ ticketCode })
+      });
+      const resJson = await res.json();
+      if (resJson.success) {
+        return { success: true, message: resJson.data.message || 'Check-out thành công.' };
+      } else {
+        return { success: false, message: resJson.error || 'Check-out thất bại.' };
+      }
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi kết nối khi check-out.' };
+    }
+  };
+
   const fetchRecommendations = async (): Promise<Event[]> => {
     if (!API_BASE_URL) return [];
     try {
@@ -462,6 +488,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       submitFeedback,
       getFeedbacks,
       qrCheckIn,
+      qrCheckOut,
       fetchRecommendations,
       cancelRegistration,
       getEventRegistrations,

@@ -2,36 +2,53 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import type { Event, Registration } from '../context/EventContext';
 
+type ScanMode = 'checkin' | 'checkout';
+
 interface QRCheckInPageProps {
   events: Event[];
   registrations: Registration[];
   onBack: () => void;
   qrCheckIn?: (eventId: string, ticketCode: string) => Promise<{ success: boolean; message: string }>;
+  qrCheckOut?: (eventId: string, ticketCode: string) => Promise<{ success: boolean; message: string }>;
   getEventRegistrations?: (eventId: string) => Promise<Registration[]>;
 }
 
-export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qrCheckIn, getEventRegistrations }) => {
+export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qrCheckIn, qrCheckOut, getEventRegistrations }) => {
   const [ticketCode, setTicketCode] = useState('');
   const [selectedEventId, setSelectedEventId] = useState(events[0]?.id || '');
   const [eventRegistrations, setEventRegistrations] = useState<Registration[]>([]);
   const [checkedIn, setCheckedIn] = useState<string[]>([]);
+  const [checkedOut, setCheckedOut] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [scanMode, setScanMode] = useState<ScanMode>('checkin');
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scanThrottleRef = useRef<boolean>(false);
+  const scanModeRef = useRef<ScanMode>('checkin');
 
   const selectedEvent = events.find((event) => event.id === selectedEventId) || events[0];
 
+  const loadEventRegistrations = async () => {
+    if (getEventRegistrations && selectedEvent) {
+      try {
+        const regs = await getEventRegistrations(selectedEvent.id);
+        setEventRegistrations(regs);
+      } catch (err) {
+        console.error('Failed to fetch registrations', err);
+      }
+    }
+  };
+
   // Fetch real registrations for the selected event on mount/change
   useEffect(() => {
-    if (getEventRegistrations && selectedEvent) {
-      getEventRegistrations(selectedEvent.id).then(regs => {
-        setEventRegistrations(regs);
-      }).catch(err => console.error('Failed to fetch registrations', err));
-    }
+    void loadEventRegistrations();
   }, [selectedEvent, getEventRegistrations]);
+
+  useEffect(() => {
+    scanModeRef.current = scanMode;
+  }, [scanMode]);
 
   // Cleanup camera scanner on unmount
   useEffect(() => {
@@ -58,7 +75,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
           if (scanThrottleRef.current) return;
           scanThrottleRef.current = true;
           
-          handleScan(decodedText).finally(() => {
+          handleTicketAction(decodedText).finally(() => {
             setTimeout(() => {
               scanThrottleRef.current = false;
             }, 3000);
@@ -90,13 +107,16 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
     const items = eventRegistrations.map((registration) => ({
       code: registration.ticketCode,
       email: registration.email || 'Ẩn danh',
-      checkedIn: registration.checkedIn || false
+      checkedIn: registration.checkedIn || false,
+      checkedOut: registration.checkedOut || false,
+      checkedInAt: registration.checkedInAt,
+      checkedOutAt: registration.checkedOutAt
     }));
 
     return items.length > 0 ? items : [
-      { code: 'AWS-DEMO-1001', email: 'user1@example.com', checkedIn: false },
-      { code: 'AWS-DEMO-1002', email: 'user2@example.com', checkedIn: false },
-      { code: 'AWS-DEMO-1003', email: 'user3@example.com', checkedIn: false }
+      { code: 'AWS-DEMO-1001', email: 'user1@example.com', checkedIn: false, checkedOut: false },
+      { code: 'AWS-DEMO-1002', email: 'user2@example.com', checkedIn: false, checkedOut: false },
+      { code: 'AWS-DEMO-1003', email: 'user3@example.com', checkedIn: false, checkedOut: false }
     ];
   }, [eventRegistrations]);
 
@@ -117,6 +137,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
           setCheckedIn((current) => [normalized, ...current]);
           setMessage(res.message);
           setTicketCode('');
+          await loadEventRegistrations();
         } else {
           setMessage(`Lỗi: ${res.message}`);
         }
@@ -145,6 +166,55 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
     }
   };
 
+  const handleCheckOut = async (code: string) => {
+    const normalized = code.trim().toUpperCase();
+    if (!normalized || !selectedEvent) return;
+
+    if (qrCheckOut) {
+      setLoading(true);
+      setMessage('Đang xử lý check-out...');
+      try {
+        const res = await qrCheckOut(selectedEvent.id, normalized);
+        if (res.success) {
+          setCheckedOut((current) => [normalized, ...current]);
+          setMessage(res.message);
+          await loadEventRegistrations();
+        } else {
+          setMessage(`Lỗi: ${res.message}`);
+        }
+      } catch (err: any) {
+        setMessage(`Lỗi kết nối: ${err.message || 'Không thể liên lạc với server.'}`);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!checkedIn.includes(normalized)) {
+      setMessage('Vé này chưa check-in nên chưa thể check-out.');
+      return;
+    }
+    setCheckedOut((current) => [normalized, ...current]);
+    setMessage(`Check-out thành công cho vé ${normalized}.`);
+  };
+
+  const handleTicketAction = async (code = ticketCode) => {
+    const normalized = code.trim().toUpperCase();
+    setTicketCode(normalized);
+
+    if (!normalized) {
+      setMessage(`Nhap hoac quet ma ve de ${scanModeRef.current === 'checkout' ? 'check-out' : 'check-in'}.`);
+      return;
+    }
+
+    if (scanModeRef.current === 'checkout') {
+      await handleCheckOut(normalized);
+      return;
+    }
+
+    await handleScan(normalized);
+  };
+
   return (
     <div className="page-check-in fade-in">
       <button className="btn-secondary" style={{ marginBottom: '25px' }} onClick={onBack}>
@@ -154,7 +224,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
       <div className="admin-header-row">
         <div>
           <h1 className="section-title">QR Check-in</h1>
-          <p className="text-secondary">Mô phỏng quét QR và xác nhận người tham dự tại cổng sự kiện.</p>
+          <p className="text-secondary">Quét QR và xác nhận trạng thái tham dự tại cổng sự kiện.</p>
         </div>
       </div>
 
@@ -167,6 +237,28 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
                 <option key={event.id} value={event.id}>{event.title}</option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <label>Chế độ quét</label>
+            <div className="scan-mode-toggle" role="group" aria-label="Chế độ quét vé">
+              <button
+                type="button"
+                className={scanMode === 'checkin' ? 'active' : ''}
+                onClick={() => setScanMode('checkin')}
+                disabled={loading}
+              >
+                Check-in
+              </button>
+              <button
+                type="button"
+                className={scanMode === 'checkout' ? 'active' : ''}
+                onClick={() => setScanMode('checkout')}
+                disabled={loading || !qrCheckOut}
+              >
+                Check-out
+              </button>
+            </div>
           </div>
 
           <div className="scanner-frame" style={{ position: 'relative', overflow: 'hidden', minHeight: '260px' }}>
@@ -192,7 +284,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
                   onClick={startScanner}
                   style={{ padding: '12px 24px', cursor: 'pointer' }}
                 >
-                  Bật Camera điểm danh
+                  Bật Camera {scanMode === 'checkout' ? 'check-out' : 'check-in'}
                 </button>
               </div>
             )}
@@ -219,7 +311,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
             )}
           </div>
 
-          <form className="check-in-form" onSubmit={(event) => { event.preventDefault(); handleScan(); }}>
+          <form className="check-in-form" onSubmit={(event) => { event.preventDefault(); void handleTicketAction(); }}>
             <div className="form-group">
               <label>Mã vé / QR payload</label>
               <input
@@ -230,7 +322,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
               />
             </div>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
-              {loading ? 'Đang điểm danh...' : 'Xác nhận Check-in'}
+              {loading ? 'Đang xử lý...' : `Xác nhận ${scanMode === 'checkout' ? 'Check-out' : 'Check-in'}`}
             </button>
           </form>
 
@@ -238,42 +330,68 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
         </section>
 
         <section className="check-in-list card-glass">
-          <h2>Vé mẫu để quét</h2>
+          <h2>Danh sách vé tham dự</h2>
           <div className="scan-ticket-list">
-            {demoTickets.map((ticket) => (
-              <button 
-                key={ticket.code} 
-                className="scan-ticket-item" 
-                onClick={() => handleScan(ticket.code)}
+            {demoTickets.map((ticket) => {
+              const isCheckedIn = ticket.checkedIn || checkedIn.includes(ticket.code);
+              const isCheckedOut = ticket.checkedOut || checkedOut.includes(ticket.code);
+              return (
+              <div
+                key={ticket.code}
+                className="scan-ticket-item"
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   width: '100%',
                   textAlign: 'left',
-                  opacity: (ticket.checkedIn || checkedIn.includes(ticket.code)) ? 0.6 : 1
+                  gap: '14px',
+                  opacity: isCheckedOut ? 0.6 : 1
                 }}
               >
                 <div>
                   <strong style={{ display: 'block' }}>{ticket.code}</strong>
                   <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>{ticket.email}</span>
+                  <span style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginTop: '3px' }}>
+                    {isCheckedOut ? 'Đã check-out' : isCheckedIn ? 'Đã check-in, chờ check-out' : 'Chưa check-in'}
+                  </span>
                 </div>
-                <small>{(ticket.checkedIn || checkedIn.includes(ticket.code)) ? 'Đã check-in' : 'Bấm để quét'}</small>
-              </button>
-            ))}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  {!isCheckedIn && (
+                    <button type="button" className="btn-secondary table-button" onClick={() => handleScan(ticket.code)} disabled={loading}>
+                      Check-in
+                    </button>
+                  )}
+                  {isCheckedIn && !isCheckedOut && (
+                    <button type="button" className="btn-primary table-button" onClick={() => handleCheckOut(ticket.code)} disabled={loading}>
+                      Check-out
+                    </button>
+                  )}
+                  {isCheckedOut && <small>Hoàn tất</small>}
+                </div>
+              </div>
+            )})}
           </div>
 
-          <h2 style={{ marginTop: '28px' }}>Đã check-in ({checkedIn.length})</h2>
+          <h2 style={{ marginTop: '28px' }}>Phiên vừa xử lý</h2>
           <div className="checked-in-list">
-            {checkedIn.length === 0 ? (
-              <p className="text-secondary">Chưa có người tham dự nào được xác nhận.</p>
+            {checkedIn.length === 0 && checkedOut.length === 0 ? (
+              <p className="text-secondary">Chưa có thao tác check-in/check-out nào trong phiên này.</p>
             ) : (
-              checkedIn.map((code) => (
-                <div key={code} className="checked-in-item">
-                  <strong>{code}</strong>
-                  <span className="text-secondary">{new Date().toLocaleTimeString('vi-VN')}</span>
-                </div>
-              ))
+              <>
+                {checkedIn.map((code) => (
+                  <div key={`in-${code}`} className="checked-in-item">
+                    <strong>{code}</strong>
+                    <span className="status-pill">Check-in</span>
+                  </div>
+                ))}
+                {checkedOut.map((code) => (
+                  <div key={`out-${code}`} className="checked-in-item">
+                    <strong>{code}</strong>
+                    <span className="status-pill">Check-out</span>
+                  </div>
+                ))}
+              </>
             )}
           </div>
         </section>

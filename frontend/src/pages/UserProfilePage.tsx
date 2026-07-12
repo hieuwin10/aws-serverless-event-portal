@@ -8,7 +8,7 @@ interface UserProfilePageProps {
 
 export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBack }) => {
   const { user, changePassword, deleteAccount, token, refreshUserProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'payments' | 'notifications' | 'preferences'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'attendance' | 'security' | 'payments' | 'notifications' | 'preferences'>('profile');
   
   // Refresh profile details on mount to get latest loyaltyPoints
   useEffect(() => {
@@ -19,12 +19,29 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
 
   const [payments, setPayments] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   // Fetch payments and notifications when tab changes
   useEffect(() => {
     const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
+    if (activeTab === 'attendance' && token) {
+      setAttendanceLoading(true);
+      fetch(`${API_BASE_URL}/users/registrations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data)) {
+          setAttendanceHistory(json.data);
+        }
+      })
+      .catch(err => console.error('Failed to load attendance history', err))
+      .finally(() => setAttendanceLoading(false));
+    }
     
     if (activeTab === 'payments' && token) {
       setPaymentsLoading(true);
@@ -125,6 +142,8 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
   }
 
   const roleLabel = user.role === 'Admin' ? 'Quản trị viên' : 'Người dùng';
+  const attendedCount = attendanceHistory.filter(item => item.checkedIn).length;
+  const completedCount = attendanceHistory.filter(item => item.checkedIn && item.checkedOut).length;
 
   return (
     <div className="page-profile fade-in">
@@ -171,6 +190,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
           <div className="profile-nav" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {[
               { key: 'profile', label: 'Hồ sơ cá nhân' },
+              { key: 'attendance', label: 'Lịch sử tham dự' },
               { key: 'security', label: 'Bảo mật' },
               { key: 'payments', label: 'Lịch sử thanh toán' },
               { key: 'notifications', label: 'Thông báo' },
@@ -236,6 +256,96 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onLogout, onBa
                   Để cập nhật tên, ảnh đại diện hoặc thông tin cá nhân khác, vui lòng liên hệ quản trị viên trong bản demo này.
                 </p>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'attendance' && (
+            <div className="tab-content card-glass fade-in">
+              <h2 style={{ marginBottom: '10px' }}>Lịch sử tham dự sự kiện</h2>
+              <p className="text-secondary" style={{ marginBottom: '25px' }}>
+                Theo dõi toàn bộ sự kiện bạn đã đăng ký cùng trạng thái check-in và check-out.
+              </p>
+
+              <div className="admin-metrics-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(160px, 1fr))', marginBottom: '25px' }}>
+                <div className="metric-card card-glass">
+                  <span className="metric-lbl text-secondary">Đã đăng ký</span>
+                  <h2 className="metric-val">{attendanceHistory.length}</h2>
+                </div>
+                <div className="metric-card card-glass">
+                  <span className="metric-lbl text-secondary">Đã check-in</span>
+                  <h2 className="metric-val">{attendedCount}</h2>
+                </div>
+                <div className="metric-card card-glass">
+                  <span className="metric-lbl text-secondary">Đã check-out</span>
+                  <h2 className="metric-val">{completedCount}</h2>
+                </div>
+              </div>
+
+              {attendanceLoading ? (
+                <div>Đang tải lịch sử tham dự...</div>
+              ) : attendanceHistory.length === 0 ? (
+                <div className="empty-state text-center" style={{ padding: '35px' }}>
+                  <h3>Bạn chưa có lịch sử tham dự</h3>
+                  <p className="text-secondary" style={{ marginTop: '8px' }}>
+                    Khi bạn đăng ký và check-in sự kiện, lịch sử sẽ xuất hiện tại đây.
+                  </p>
+                </div>
+              ) : (
+                <div className="attendance-history-list" style={{ display: 'grid', gap: '14px' }}>
+                  {attendanceHistory.map((registration) => {
+                    const event = registration.event;
+                    const statusLabel = registration.checkedOut
+                      ? 'Đã check-out'
+                      : registration.checkedIn
+                        ? 'Đã check-in'
+                        : 'Đã đăng ký';
+                    const statusColor = registration.checkedOut
+                      ? 'var(--color-success)'
+                      : registration.checkedIn
+                        ? 'var(--color-primary)'
+                        : 'var(--color-accent)';
+
+                    return (
+                      <div key={registration.registrationId || `${registration.eventId}-${registration.ticketCode}`} className="card-glass" style={{ padding: '18px', display: 'grid', gap: '14px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr auto', gap: '16px', alignItems: 'center' }}>
+                          <div style={{ width: '96px', height: '68px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'rgba(255,255,255,0.08)' }}>
+                            {event?.imageUrl && (
+                              <img src={event.imageUrl} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            )}
+                          </div>
+                          <div>
+                            <span className="card-date-sub">{event?.date ? new Date(event.date).toLocaleString('vi-VN') : 'Chưa có thời gian'}</span>
+                            <h3 style={{ margin: '4px 0' }}>{event?.title || registration.eventId}</h3>
+                            <p className="text-secondary" style={{ margin: 0 }}>{event?.location || 'Chưa có địa điểm'}</p>
+                          </div>
+                          <span className="status-pill" style={{ color: statusColor, borderColor: statusColor, background: 'rgba(255,255,255,0.04)' }}>
+                            {statusLabel}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(120px, 1fr))', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '14px' }}>
+                          <div>
+                            <span className="field-lbl">Mã vé</span>
+                            <span className="field-val">{registration.ticketCode || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="field-lbl">Đăng ký lúc</span>
+                            <span className="field-val">{registration.registeredAt ? new Date(registration.registeredAt).toLocaleString('vi-VN') : 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="field-lbl">Check-in</span>
+                            <span className="field-val">{registration.checkedInAt ? new Date(registration.checkedInAt).toLocaleString('vi-VN') : 'Chưa check-in'}</span>
+                          </div>
+                          <div>
+                            <span className="field-lbl">Check-out</span>
+                            <span className="field-val">{registration.checkedOutAt ? new Date(registration.checkedOutAt).toLocaleString('vi-VN') : 'Chưa check-out'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
