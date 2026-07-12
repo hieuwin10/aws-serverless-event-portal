@@ -7,7 +7,8 @@ import {
   PutCommand,
   ScanCommand,
   QueryCommand,
-  DeleteCommand
+  DeleteCommand,
+  UpdateCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../utils/logger';
 
@@ -1294,6 +1295,28 @@ export const dbService = {
     const keys = buildTicketKeys(eventId, ticketId);
     logger.info(`dbService.decrementTicketRemainingQuantity: eventId=${eventId}, ticketId=${ticketId}`);
 
+    if (DB_MODE === 'dynamodb' && ddbDocClient) {
+      try {
+        const result = await ddbDocClient.send(new UpdateCommand({
+          TableName: TABLE_NAME,
+          Key: keys,
+          UpdateExpression: 'SET remainingQuantity = remainingQuantity - :dec, updatedAt = :updatedAt',
+          ConditionExpression: 'remainingQuantity >= :dec',
+          ExpressionAttributeValues: {
+            ':dec': 1,
+            ':updatedAt': new Date().toISOString()
+          },
+          ReturnValues: 'ALL_NEW'
+        }));
+        return result.Attributes;
+      } catch (err: any) {
+        if (err.name === 'ConditionalCheckFailedException') {
+          throw new Error('Loại vé này đã hết.');
+        }
+        throw err;
+      }
+    }
+
     const existingTicket = await dbService.getItem(keys.PK, keys.SK);
     if (!existingTicket) {
       return null;
@@ -1304,9 +1327,13 @@ export const dbService = {
     }
 
     const currentRemainingQuantity = Number(existingTicket.remainingQuantity || 0);
+    if (currentRemainingQuantity <= 0) {
+      throw new Error('Loại vé này đã hết.');
+    }
+    
     const updatedTicket = {
       ...existingTicket,
-      remainingQuantity: Math.max(0, currentRemainingQuantity - 1),
+      remainingQuantity: currentRemainingQuantity - 1,
       updatedAt: new Date().toISOString()
     };
 
@@ -2847,6 +2874,28 @@ export const dbService = {
     const keys = buildEventKeys(eventId);
     logger.info(`dbService.decrementRemainingSeats: eventId=${eventId}`);
 
+    if (DB_MODE === 'dynamodb' && ddbDocClient) {
+      try {
+        const result = await ddbDocClient.send(new UpdateCommand({
+          TableName: TABLE_NAME,
+          Key: keys,
+          UpdateExpression: 'SET remainingSeats = remainingSeats - :dec, registeredCount = registeredCount + :dec, updatedAt = :updatedAt',
+          ConditionExpression: 'remainingSeats >= :dec',
+          ExpressionAttributeValues: {
+            ':dec': 1,
+            ':updatedAt': new Date().toISOString()
+          },
+          ReturnValues: 'ALL_NEW'
+        }));
+        return result.Attributes;
+      } catch (err: any) {
+        if (err.name === 'ConditionalCheckFailedException') {
+          throw new Error('Sự kiện đã hết vé.');
+        }
+        throw err;
+      }
+    }
+
     const existingItem = await dbService.getItem(keys.PK, keys.SK);
     if (!existingItem) {
       return null;
@@ -2858,8 +2907,13 @@ export const dbService = {
       existingItem.remainingSeats !== undefined
         ? Number(existingItem.remainingSeats || 0)
         : Math.max(0, totalSeats - currentRegisteredCount);
-    const nextRemainingSeats = Math.max(0, currentRemainingSeats - 1);
-    const nextRegisteredCount = Math.max(0, totalSeats - nextRemainingSeats);
+        
+    if (currentRemainingSeats <= 0) {
+      throw new Error('Sự kiện đã hết vé.');
+    }
+    
+    const nextRemainingSeats = currentRemainingSeats - 1;
+    const nextRegisteredCount = currentRegisteredCount + 1;
 
     const updatedItem = {
       ...existingItem,

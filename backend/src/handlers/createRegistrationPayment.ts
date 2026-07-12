@@ -34,6 +34,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return buildResponse(404, null, 'Registration not found.');
     }
 
+    const existingPayments = await dbService.listPaymentsByRegistration(registrationId);
+    const hasSuccessfulPayment = existingPayments.some(p => p.state === 'SUCCESS');
+    if (hasSuccessfulPayment) {
+      return buildResponse(400, null, 'Thanh toán cho mã đăng ký này đã được hoàn tất trước đó.');
+    }
+
     const amount = body.amount === undefined || body.amount === null ? 0 : Number(body.amount);
     if (!Number.isFinite(amount) || amount < 0) {
       return buildResponse(400, null, 'Amount must be a non-negative number.');
