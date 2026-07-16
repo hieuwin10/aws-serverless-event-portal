@@ -93,6 +93,20 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return headers;
   };
 
+  // Safe JSON parser to avoid trying to parse HTML error pages
+  const safeParseJson = async (res: Response) => {
+    const contentType = res.headers.get('content-type') || '';
+    const text = await res.text();
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Invalid JSON response from server: ${text.slice(0, 200)}`);
+    }
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      throw new Error('Failed to parse JSON response from server.');
+    }
+  };
+
   const fetchEvents = async (category?: string, search?: string) => {
     setLoading(true);
     setError(null);
@@ -120,7 +134,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       const res = await fetch(url);
-      const resJson = await res.json();
+      const resJson = await safeParseJson(res);
       if (resJson.success) {
         const backendEvents = Array.isArray(resJson.data) ? resJson.data : [];
         setEvents(
@@ -152,7 +166,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       const res = await fetch(`${API_BASE_URL}/events/${id}`);
-      const resJson = await res.json();
+      const resJson = await safeParseJson(res);
       if (resJson.success) {
         return resJson.data;
       }
@@ -168,12 +182,68 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Optimistic UI updates count before call finishes
       setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: e.registeredCount + 1 } : e));
 
+      // If running in mock mode or API not configured, use mock fallback
+      if (FORCE_MOCK_DATA || (!API_BASE_URL && ALLOW_MOCK_FALLBACK)) {
+        const mockEvent = mockEvents.find(ev => ev.id === eventId) || null;
+        const nextRegistration: Registration = {
+          registrationId: `mock-${Date.now()}`,
+          eventId,
+          userId: user?.id || 'mock-user',
+          email: user?.email || 'mock@example.com',
+          registeredAt: new Date().toISOString(),
+          ticketCode: `TICKET-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
+          event: mockEvent
+        };
+
+        setRegistrations(prev => [...prev, nextRegistration]);
+        if (user) {
+          void fetchUserRegistrations();
+        }
+
+        return nextRegistration;
+      }
+
+      if (!API_BASE_URL) {
+        // Rollback optimistic update
+        setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: Math.max(0, e.registeredCount - 1) } : e));
+        throw new Error('Chưa cấu hình API endpoint.');
+      }
+
       const res = await fetch(`${API_BASE_URL}/events/${eventId}/register`, {
         method: 'POST',
         headers: getHeaders()
       });
-      
-      const resJson = await res.json();
+
+      let resJson: any;
+      try {
+        resJson = await safeParseJson(res);
+      } catch (parseErr: any) {
+        // If server returned HTML or non-JSON and mock fallback is allowed, use mock registration
+        if (ALLOW_MOCK_FALLBACK) {
+          // Rollback optimistic UI before using mock
+          setEvents(prev => prev.map(e => e.id === eventId ? { ...e, registeredCount: Math.max(0, e.registeredCount - 1) } : e));
+          const mockEvent = mockEvents.find(ev => ev.id === eventId) || null;
+          const nextRegistration: Registration = {
+            registrationId: `mock-${Date.now()}`,
+            eventId,
+            userId: user?.id || 'mock-user',
+            email: user?.email || 'mock@example.com',
+            registeredAt: new Date().toISOString(),
+            ticketCode: `TICKET-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
+            event: mockEvent
+          };
+
+          setRegistrations(prev => [...prev, nextRegistration]);
+          if (user) {
+            void fetchUserRegistrations();
+          }
+
+          return nextRegistration;
+        }
+
+        // Re-throw with clearer message
+        throw new Error(parseErr.message || 'Server did not return valid JSON.');
+      }
       if (resJson.success) {
         const hydratedEvent =
           events.find(event => event.id === eventId) ||
@@ -219,7 +289,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: getHeaders(),
         body: JSON.stringify(eventData)
       });
-      const resJson = await res.json();
+      const resJson = await safeParseJson(res);
       if (resJson.success) {
         setEvents(prev => [resJson.data, ...prev]);
       } else {
@@ -239,7 +309,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: getHeaders(),
         body: JSON.stringify(eventData)
       });
-      const resJson = await res.json();
+      const resJson = await safeParseJson(res);
       if (resJson.success) {
         setEvents(prev => prev.map(e => e.id === id ? resJson.data : e));
       } else {
@@ -258,7 +328,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         method: 'DELETE',
         headers: getHeaders()
       });
-      const resJson = await res.json();
+      const resJson = await safeParseJson(res);
       if (resJson.success) {
         setEvents(prev => prev.filter(e => e.id !== id));
         setRegistrations(prev => prev.filter(reg => reg.eventId !== id));
@@ -278,7 +348,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const res = await fetch(`${API_BASE_URL}/users/registrations`, {
         headers: getHeaders()
       });
-      const resJson = await res.json();
+      const resJson = await safeParseJson(res);
       if (resJson.success) {
         setRegistrations(resJson.data);
       } else {

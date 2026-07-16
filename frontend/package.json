@@ -13,6 +13,7 @@
     "amazon-cognito-identity-js": "^6.3.18",
     "event-app-monorepo": "file:..",
     "html5-qrcode": "^2.3.8",
+    "qr-scanner": "^1.4.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

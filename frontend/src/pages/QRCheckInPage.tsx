@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import QrScanner from 'qr-scanner';
+// import { useAuth } from '../context/AuthContext';
 import type { Event, Registration } from '../context/EventContext';
 
 type ScanMode = 'checkin' | 'checkout';
@@ -14,6 +15,11 @@ interface QRCheckInPageProps {
 }
 
 export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qrCheckIn, qrCheckOut, getEventRegistrations }) => {
+  // const { token } = useAuth();
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const qrScannerRef = useRef<QrScanner | null>(null);
+  
   const [ticketCode, setTicketCode] = useState('');
   const [selectedEventId, setSelectedEventId] = useState(events[0]?.id || '');
   const [eventRegistrations, setEventRegistrations] = useState<Registration[]>([]);
@@ -21,12 +27,21 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
   const [checkedOut, setCheckedOut] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [scanning, setScanning] = useState(false);
+  
   const [scanMode, setScanMode] = useState<ScanMode>('checkin');
+  const [scannerActive] = useState(true);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const scanThrottleRef = useRef<boolean>(false);
   const scanModeRef = useRef<ScanMode>('checkin');
+  const loadingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    scanModeRef.current = scanMode;
+  }, [scanMode]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   const selectedEvent = events.find((event) => event.id === selectedEventId) || events[0];
 
@@ -41,67 +56,9 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
     }
   };
 
-  // Fetch real registrations for the selected event on mount/change
   useEffect(() => {
     void loadEventRegistrations();
   }, [selectedEvent, getEventRegistrations]);
-
-  useEffect(() => {
-    scanModeRef.current = scanMode;
-  }, [scanMode]);
-
-  // Cleanup camera scanner on unmount
-  useEffect(() => {
-    return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        void scannerRef.current.stop().catch(err => console.error(err));
-      }
-    };
-  }, []);
-
-  const startScanner = async () => {
-    setMessage(null);
-    try {
-      const html5QrCode = new Html5Qrcode("reader");
-      scannerRef.current = html5QrCode;
-
-      await html5QrCode.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        (decodedText) => {
-          if (scanThrottleRef.current) return;
-          scanThrottleRef.current = true;
-          
-          handleTicketAction(decodedText).finally(() => {
-            setTimeout(() => {
-              scanThrottleRef.current = false;
-            }, 3000);
-          });
-        },
-        () => {
-          // Ignored verbose error logs
-        }
-      );
-      setScanning(true);
-    } catch (err) {
-      console.error(err);
-      setMessage("Lỗi: Không thể truy cập Camera thiết bị. Vui lòng cấp quyền.");
-    }
-  };
-
-  const stopScanner = async () => {
-    if (scannerRef.current && scannerRef.current.isScanning) {
-      try {
-        await scannerRef.current.stop();
-        setScanning(false);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
 
   const demoTickets = useMemo(() => {
     const items = eventRegistrations.map((registration) => ({
@@ -120,11 +77,58 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
     ];
   }, [eventRegistrations]);
 
+  // Initialize QR Scanner
+  useEffect(() => {
+    if (!videoRef.current || !scannerActive) return;
+
+    const initScanner = async () => {
+      try {
+        setCameraError(null);
+        qrScannerRef.current = new QrScanner(
+          videoRef.current!,
+          async (result) => {
+            const qrCode = result.data.trim().toUpperCase();
+            if (qrCode && !loadingRef.current) {
+              await handleTicketAction(qrCode);
+            }
+          },
+          {
+            onDecodeError: () => {
+              // Silently handle decode errors during scanning
+            },
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            maxScansPerSecond: 2,
+          }
+        );
+        
+        try {
+          await qrScannerRef.current.start();
+        } catch (err: any) {
+          setCameraError('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập và thử lại.');
+          console.error('Camera error:', err);
+        }
+      } catch (err: any) {
+        setCameraError('Lỗi khởi tạo QR scanner: ' + err.message);
+        console.error('Scanner init error:', err);
+      }
+    };
+
+    initScanner();
+
+    return () => {
+      if (qrScannerRef.current) {
+        qrScannerRef.current.destroy();
+        qrScannerRef.current = null;
+      }
+    };
+  }, [scannerActive]);
+
   const handleScan = async (code = ticketCode) => {
     const normalized = code.trim().toUpperCase();
     setTicketCode(normalized);
     if (!normalized) {
-      setMessage('Nhập hoặc chọn mã vé để check-in.');
+      setMessage('Quét mã QR hoặc nhập mã vé để check-in.');
       return;
     }
 
@@ -135,7 +139,7 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
         const res = await qrCheckIn(selectedEvent.id, normalized);
         if (res.success) {
           setCheckedIn((current) => [normalized, ...current]);
-          setMessage(res.message);
+          setMessage(`✓ ${res.message}`);
           setTicketCode('');
           await loadEventRegistrations();
         } else {
@@ -177,7 +181,8 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
         const res = await qrCheckOut(selectedEvent.id, normalized);
         if (res.success) {
           setCheckedOut((current) => [normalized, ...current]);
-          setMessage(res.message);
+          setMessage(`✓ ${res.message}`);
+          setTicketCode('');
           await loadEventRegistrations();
         } else {
           setMessage(`Lỗi: ${res.message}`);
@@ -261,59 +266,33 @@ export const QRCheckInPage: React.FC<QRCheckInPageProps> = ({ events, onBack, qr
             </div>
           </div>
 
-          <div className="scanner-frame" style={{ position: 'relative', overflow: 'hidden', minHeight: '260px' }}>
-            <div id="reader" style={{ width: '100%', minHeight: '260px', borderRadius: '8px' }}></div>
-            {!scanning && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
+          {cameraError && (
+            <div className="alert alert-error" style={{ marginBottom: '18px' }}>
+              {cameraError}
+            </div>
+          )}
+
+          <div className="scanner-frame">
+            <video
+              ref={videoRef}
+              style={{
                 width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                background: 'rgba(0,0,0,0.6)',
-                zIndex: 10,
-                borderRadius: '8px'
-              }}>
-                <button 
-                  type="button" 
-                  className="btn-primary" 
-                  onClick={startScanner}
-                  style={{ padding: '12px 24px', cursor: 'pointer' }}
-                >
-                  Bật Camera {scanMode === 'checkout' ? 'check-out' : 'check-in'}
-                </button>
-              </div>
-            )}
-            {scanning && (
-              <>
-                <div className="scanner-line" style={{ zIndex: 5 }}></div>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={stopScanner}
-                  style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 12,
-                    padding: '6px 16px',
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  Tắt Camera
-                </button>
-              </>
-            )}
+                borderRadius: '8px',
+                aspectRatio: '1',
+                objectFit: 'cover',
+                backgroundColor: '#000'
+              }}
+            />
+            <div className="scanner-line"></div>
+          </div>
+
+          <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
+            <p>📱 Hướng camera đến mã QR để quét tự động</p>
           </div>
 
           <form className="check-in-form" onSubmit={(event) => { event.preventDefault(); void handleTicketAction(); }}>
             <div className="form-group">
-              <label>Mã vé / QR payload</label>
+              <label>Hoặc nhập thủ công (nếu quét không được)</label>
               <input
                 value={ticketCode}
                 onChange={(event) => setTicketCode(event.target.value)}
