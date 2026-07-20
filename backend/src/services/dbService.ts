@@ -178,7 +178,7 @@ const INITIAL_EVENTS = [
     price: 0,
     currency: 'VND',
     totalQuantity: 500,
-    remainingQuantity: 358,
+    remainingQuantity: 499,
     salesStart: '2026-06-15T09:00:00Z',
     salesEnd: '2026-06-15T12:00:00Z',
     createdAt: '2026-05-20T08:00:00Z',
@@ -374,11 +374,11 @@ const INITIAL_EVENTS = [
     organizerId: 'usr_admin_9999_9999_9999_9999',
     categoryId: 'technology',
     locationId: 'virtual-zoom',
-    title: 'Há»™i Tháº£o AWS Serverless Äá»™t PhÃ¡ 2026',
-    description: 'Chia sáº» kinh nghiá»‡m thá»±c táº¿ vá» tá»‘i Æ°u hÃ³a chi phÃ­ vÃ  xÃ¢y dá»±ng á»©ng dá»¥ng khÃ´ng mÃ¡y chá»§ trÃªn AWS.',
+    title: 'Hội Thảo AWS Serverless Đột Phá 2026',
+    description: 'Chia sẻ kinh nghiệm thực tế về tối ưu hóa chi phí và xây dựng ứng dụng không máy chủ trên AWS.',
     startTime: '2026-06-15T09:00:00Z',
     endTime: '2026-06-15T12:00:00Z',
-    remainingSeats: 358,
+    remainingSeats: 499,
     totalSeats: 500,
     status: 'PUBLISHED',
     GSI1PK: 'CAT#technology',
@@ -390,8 +390,88 @@ const INITIAL_EVENTS = [
     id: 'evt_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     category: 'technology',
     date: '2026-06-15T09:00:00Z',
-    location: 'Trá»±c tuyáº¿n (Zoom)',
-    registeredCount: 142
+    location: 'Trực tuyến (Zoom)',
+    registeredCount: 1
+  },
+  {
+    PK: 'EVENT#evt_education_2026',
+    SK: 'TICKET#GENERAL',
+    entityType: 'TICKET',
+    ticketId: 'GENERAL',
+    eventId: 'evt_education_2026',
+    ticketName: 'General Admission',
+    price: 0,
+    currency: 'VND',
+    totalQuantity: 100,
+    remainingQuantity: 100,
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'EVENT#evt_education_2026',
+    SK: 'METADATA',
+    entityType: 'EVENT',
+    eventId: 'evt_education_2026',
+    organizerId: 'usr_admin_9999_9999_9999_9999',
+    categoryId: 'education',
+    locationId: 'online',
+    title: 'Khóa học AI/ML cho người mới bắt đầu 2026',
+    description: 'Tìm hiểu các khái niệm cơ bản về Trí tuệ nhân tạo và Học máy thông qua bài tập thực hành.',
+    startTime: '2026-07-20T09:00:00Z',
+    endTime: '2026-07-20T12:00:00Z',
+    remainingSeats: 100,
+    totalSeats: 100,
+    status: 'PUBLISHED',
+    GSI1PK: 'CAT#education',
+    GSI1SK: 'START#2026-07-20T09:00:00Z#EVENT#evt_education_2026',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z',
+    imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
+    id: 'evt_education_2026',
+    category: 'education',
+    date: '2026-07-20T09:00:00Z',
+    location: 'Trực tuyến (Zoom)',
+    registeredCount: 0
+  },
+  {
+    PK: 'EVENT#evt_music_2026',
+    SK: 'TICKET#GENERAL',
+    entityType: 'TICKET',
+    ticketId: 'GENERAL',
+    eventId: 'evt_music_2026',
+    ticketName: 'General Admission',
+    price: 0,
+    currency: 'VND',
+    totalQuantity: 300,
+    remainingQuantity: 300,
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z'
+  },
+  {
+    PK: 'EVENT#evt_music_2026',
+    SK: 'METADATA',
+    entityType: 'EVENT',
+    eventId: 'evt_music_2026',
+    organizerId: 'usr_admin_9999_9999_9999_9999',
+    categoryId: 'music',
+    locationId: 'hcm',
+    title: 'Lễ hội Âm nhạc AWS Community 2026',
+    description: 'Gặp gỡ giao lưu và tận hưởng những giai điệu âm nhạc tuyệt vời cùng cộng đồng công nghệ AWS.',
+    startTime: '2026-08-15T18:00:00Z',
+    endTime: '2026-08-15T22:00:00Z',
+    remainingSeats: 300,
+    totalSeats: 300,
+    status: 'PUBLISHED',
+    GSI1PK: 'CAT#music',
+    GSI1SK: 'START#2026-08-15T18:00:00Z#EVENT#evt_music_2026',
+    createdAt: '2026-05-20T08:00:00Z',
+    updatedAt: '2026-05-20T08:00:00Z',
+    imageUrl: 'https://images.unsplash.com/photo-1506157786151-b8491531f063',
+    id: 'evt_music_2026',
+    category: 'music',
+    date: '2026-08-15T18:00:00Z',
+    location: 'Hồ Chí Minh Campus',
+    registeredCount: 0
   },
   {
     PK: 'USER#usr_c66ff888-2c2c-4aaa-bbb-8b0d7b3d8888',
@@ -602,7 +682,8 @@ export const mapUserItemToDto = (item: any): any | null => {
     id: item.userId || userIdFromPk,
     email: item.email || '',
     fullName: item.fullName || item.name || '',
-    role: item.role || 'User'
+    role: item.role || 'User',
+    loyaltyPoints: item.loyaltyPoints !== undefined ? Number(item.loyaltyPoints || 0) : 0
   };
 };
 
@@ -1470,6 +1551,7 @@ export const dbService = {
       email,
       fullName: input.fullName || email,
       role: input.role || 'User',
+      loyaltyPoints: existingUser?.loyaltyPoints !== undefined ? Number(existingUser.loyaltyPoints) : 0,
       createdAt: existingUser?.createdAt || now,
       updatedAt: now
     };
@@ -3011,6 +3093,103 @@ export const dbService = {
         enriched.push(mapRegistrationItemToDto(reg, eventItem));
       }
       return enriched;
+    }
+  },
+
+  // Increment remaining seats while keeping compatibility counters updated
+  incrementRemainingSeats: async (eventId: string): Promise<any | null> => {
+    const keys = buildEventKeys(eventId);
+    logger.info(`dbService.incrementRemainingSeats: eventId=${eventId}`);
+
+    const existingItem = await dbService.getItem(keys.PK, keys.SK);
+    if (!existingItem) {
+      return null;
+    }
+
+    const totalSeats = Number(existingItem.totalSeats || 0);
+    const currentRegisteredCount = calculateRegisteredCount(existingItem);
+    const currentRemainingSeats =
+      existingItem.remainingSeats !== undefined
+        ? Number(existingItem.remainingSeats || 0)
+        : Math.max(0, totalSeats - currentRegisteredCount);
+    
+    const nextRemainingSeats = Math.min(totalSeats, currentRemainingSeats + 1);
+    const nextRegisteredCount = Math.max(0, totalSeats - nextRemainingSeats);
+
+    const updatedItem = {
+      ...existingItem,
+      remainingSeats: nextRemainingSeats,
+      registeredCount: nextRegisteredCount,
+      updatedAt: new Date().toISOString()
+    };
+
+    await dbService.putItem(updatedItem);
+    return updatedItem;
+  },
+
+  // Increment ticket remaining quantity
+  incrementTicketRemainingQuantity: async (eventId: string, ticketId: string): Promise<any | null> => {
+    const keys = buildTicketKeys(eventId, ticketId);
+    logger.info(`dbService.incrementTicketRemainingQuantity: eventId=${eventId}, ticketId=${ticketId}`);
+
+    const existingTicket = await dbService.getItem(keys.PK, keys.SK);
+    if (!existingTicket) {
+      return null;
+    }
+
+    if (existingTicket.entityType && existingTicket.entityType !== 'TICKET') {
+      return null;
+    }
+
+    const totalQuantity = Number(existingTicket.totalQuantity || 0);
+    const currentRemainingQuantity = Number(existingTicket.remainingQuantity || 0);
+    const updatedTicket = {
+      ...existingTicket,
+      remainingQuantity: Math.min(totalQuantity, currentRemainingQuantity + 1),
+      updatedAt: new Date().toISOString()
+    };
+
+    await dbService.putItem(updatedTicket);
+    return updatedTicket;
+  },
+
+  // Increment user loyalty points balance in database
+  incrementUserLoyaltyPoints: async (userId: string, points: number): Promise<void> => {
+    logger.info(`dbService.incrementUserLoyaltyPoints: userId=${userId}, points=${points}`);
+    const keys = buildUserKeys(userId);
+    const user = await dbService.getItem(keys.PK, keys.SK);
+    if (user && user.entityType === 'USER') {
+      const currentPoints = Number(user.loyaltyPoints || 0);
+      user.loyaltyPoints = currentPoints + points;
+      user.updatedAt = new Date().toISOString();
+      await dbService.putItem(user);
+    } else {
+      // If user metadata item does not exist, create it first
+      await dbService.createUserItem({
+        userId,
+        email: `${userId}@example.com`,
+        role: 'User'
+      });
+      const updatedUser = await dbService.getItem(keys.PK, keys.SK);
+      if (updatedUser) {
+        updatedUser.loyaltyPoints = points;
+        await dbService.putItem(updatedUser);
+      }
+    }
+  },
+
+  // Delete item by PK and SK
+  deleteItem: async (pk: string, sk: string): Promise<void> => {
+    logger.info(`dbService.deleteItem: PK=${pk}, SK=${sk}`);
+    if (DB_MODE === 'mock') {
+      const items = readMockDb();
+      const filtered = items.filter(item => !(item.PK === pk && item.SK === sk));
+      writeMockDb(filtered);
+    } else {
+      await ddbDocClient!.send(new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: { PK: pk, SK: sk }
+      }));
     }
   }
 };

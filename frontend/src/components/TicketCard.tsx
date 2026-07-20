@@ -10,12 +10,13 @@ export const TicketCard: React.FC<TicketCardProps> = ({ event, registration }) =
   <div className="ticket-premium-card fade-in">
     <div className="ticket-border-dashed">
       <div className="ticket-top-badge">Vé tham dự AWS</div>
-      <div className="ticket-qr-section">
-        <div className="mock-qr-code">
-          <div className="qr-corner qr-tl"></div>
-          <div className="qr-corner qr-tr"></div>
-          <div className="qr-corner qr-bl"></div>
-          <div className="qr-matrix"></div>
+      <div className="ticket-qr-section" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
+        <div className="real-qr-code" style={{ padding: '8px', background: '#fff', borderRadius: '8px', display: 'inline-flex' }}>
+          <img 
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${registration.ticketCode}`} 
+            alt="QR Code" 
+            style={{ width: '130px', height: '130px', display: 'block' }}
+          />
         </div>
       </div>
       <div className="ticket-details-box">

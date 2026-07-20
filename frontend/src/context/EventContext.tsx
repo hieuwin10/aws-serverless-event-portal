@@ -22,6 +22,8 @@ export interface Registration {
   registeredAt: string;
   ticketCode: string;
   event?: Event | null;
+  checkedIn?: boolean;
+  checkedInAt?: string;
 }
 
 interface EventContextType {
@@ -35,12 +37,20 @@ interface EventContextType {
   createEvent: (eventData: Omit<Event, 'id' | 'registeredCount'>) => Promise<void>;
   updateEvent: (id: string, eventData: Partial<Event>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
+  joinEventWaitlist: (eventId: string) => Promise<void>;
+  submitFeedback: (eventId: string, rating: number, comment: string) => Promise<any>;
+  getFeedbacks: (eventId: string) => Promise<any[]>;
+  qrCheckIn: (eventId: string, ticketCode: string) => Promise<{ success: boolean; message: string }>;
+  fetchRecommendations: () => Promise<Event[]>;
+  cancelRegistration: (eventId: string) => Promise<void>;
   fetchUserRegistrations: () => Promise<void>;
+  getEventRegistrations: (eventId: string) => Promise<Registration[]>;
+  getEventWaitlist: (eventId: string) => Promise<any[]>;
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
-const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 const MOCK_DATA_MODE = import.meta.env.VITE_USE_MOCK_DATA;
 const FORCE_MOCK_DATA = MOCK_DATA_MODE === 'true';
 const ALLOW_MOCK_FALLBACK = MOCK_DATA_MODE !== 'false';
@@ -354,6 +364,157 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [user]);
 
+  const joinEventWaitlist = async (eventId: string): Promise<void> => {
+    setError(null);
+    if (!API_BASE_URL) {
+      throw new Error('Chưa cấu hình API endpoint.');
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/waitlist`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      const resJson = await res.json();
+      if (!resJson.success) {
+        throw new Error(resJson.error || 'Tham gia danh sách chờ thất bại.');
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const submitFeedback = async (eventId: string, rating: number, comment: string): Promise<any> => {
+    setError(null);
+    if (!API_BASE_URL) {
+      throw new Error('Chưa cấu hình API endpoint.');
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/feedback`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ rating, comment })
+      });
+      const resJson = await res.json();
+      if (resJson.success) {
+        return resJson.data;
+      } else {
+        throw new Error(resJson.error || 'Gửi đánh giá thất bại.');
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const getFeedbacks = async (eventId: string): Promise<any[]> => {
+    if (!API_BASE_URL) return [];
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/feedbacks`);
+      const resJson = await res.json();
+      if (resJson.success && Array.isArray(resJson.data)) {
+        return resJson.data;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const qrCheckIn = async (eventId: string, ticketCode: string): Promise<{ success: boolean; message: string }> => {
+    if (!API_BASE_URL) {
+      return { success: false, message: 'Chưa cấu hình API endpoint.' };
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/checkin`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ ticketCode })
+      });
+      const resJson = await res.json();
+      if (resJson.success) {
+        return { success: true, message: resJson.data.message || 'Check-in thành công.' };
+      } else {
+        return { success: false, message: resJson.error || 'Check-in thất bại.' };
+      }
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi kết nối khi check-in.' };
+    }
+  };
+
+  const fetchRecommendations = async (): Promise<Event[]> => {
+    if (!API_BASE_URL) return [];
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/recommendations`, {
+        headers: getHeaders()
+      });
+      const resJson = await res.json();
+      if (resJson.success && Array.isArray(resJson.data)) {
+        return resJson.data;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const cancelRegistration = async (eventId: string): Promise<void> => {
+    setError(null);
+    if (!API_BASE_URL) {
+      throw new Error('Chưa cấu hình API endpoint.');
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/register`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      const resJson = await res.json();
+      if (resJson.success) {
+        setRegistrations(prev => prev.filter(reg => reg.eventId !== eventId));
+        if (user) {
+          void fetchUserRegistrations();
+        }
+      } else {
+        throw new Error(resJson.error || 'Hủy đăng ký thất bại.');
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const getEventRegistrations = async (eventId: string): Promise<Registration[]> => {
+    if (!API_BASE_URL) return [];
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/registrations`, {
+        headers: getHeaders()
+      });
+      const resJson = await res.json();
+      if (resJson.success && Array.isArray(resJson.data)) {
+        return resJson.data;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const getEventWaitlist = async (eventId: string): Promise<any[]> => {
+    if (!API_BASE_URL) return [];
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/waitlist`, {
+        headers: getHeaders()
+      });
+      const resJson = await res.json();
+      if (resJson.success && Array.isArray(resJson.data)) {
+        return resJson.data;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
   return (
     <EventContext.Provider value={{
       events,
@@ -366,7 +527,15 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       createEvent,
       updateEvent,
       deleteEvent,
-      fetchUserRegistrations
+      fetchUserRegistrations,
+      joinEventWaitlist,
+      submitFeedback,
+      getFeedbacks,
+      qrCheckIn,
+      fetchRecommendations,
+      cancelRegistration,
+      getEventRegistrations,
+      getEventWaitlist
     }}>
       {children}
     </EventContext.Provider>

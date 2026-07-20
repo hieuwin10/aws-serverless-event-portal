@@ -566,6 +566,23 @@ Resources:
             Path: /events/{id}/register
             Method: POST
 
+  CancelRegistrationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-CancelRegistration
+      Handler: handlers/cancelRegistration.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        CancelRegistration:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/register
+            Method: DELETE
+
   CreateRegistrationPaymentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -617,6 +634,23 @@ Resources:
             Path: /users/notifications
             Method: GET
 
+  GetUserProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetUserProfile
+      Handler: handlers/getUserProfile.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetUserProfile:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /users/profile
+            Method: GET
+
   MarkNotificationReadFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -649,6 +683,23 @@ Resources:
           Properties:
             RestApiId: !Ref EventAppApi
             Path: /users/registrations
+            Method: GET
+
+  GetEventRegistrationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventApp-GetEventRegistrations
+      Handler: handlers/getEventRegistrations.handler
+      CodeUri: dist/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EventAppTable
+      Events:
+        GetEventRegistrations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventAppApi
+            Path: /events/{id}/registrations
             Method: GET
 
   GetUsersFunction:
@@ -930,6 +981,12 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${RegisterEventFunction}"
       RetentionInDays: 7
 
+  CancelRegistrationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CancelRegistrationFunction}"
+      RetentionInDays: 7
+
   CreateRegistrationPaymentLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -946,6 +1003,18 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${GetUserNotificationsFunction}"
+      RetentionInDays: 7
+
+  GetUserProfileLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetUserProfileFunction}"
+      RetentionInDays: 7
+
+  GetEventRegistrationsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetEventRegistrationsFunction}"
       RetentionInDays: 7
 
   MarkNotificationReadLogGroup:

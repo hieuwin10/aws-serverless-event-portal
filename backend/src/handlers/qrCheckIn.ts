@@ -62,6 +62,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // 7. Cộng loyalty points cho user (10 points)
     const loyaltyPoints = 10;
     logger.info(`Adding ${loyaltyPoints} loyalty points to user ${registration.userId}`);
+    await dbService.incrementUserLoyaltyPoints(registration.userId, loyaltyPoints);
 
     // 8. Trả về kết quả thành công
     return buildResponse(200, {

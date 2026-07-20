@@ -11,6 +11,7 @@ export interface User {
   email: string;
   name: string;
   role: 'User' | 'Admin';
+  loyaltyPoints?: number;
 }
 
 interface AuthContextType {
@@ -20,6 +21,9 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<void>;
   confirmOTP: (email: string, code: string) => Promise<void>;
   logout: () => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
   token: string | null;
 }
 
@@ -59,6 +63,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const fetchUserProfile = async (tokenStr: string): Promise<any> => {
+    const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/profile`, {
+        headers: {
+          'Authorization': `Bearer ${tokenStr}`
+        }
+      });
+      const resJson = await res.json();
+      if (resJson.success) {
+        return resJson.data;
+      }
+    } catch (err) {
+      console.error('Failed to fetch user profile', err);
+    }
+    return null;
+  };
+
   useEffect(() => {
     const checkUser = async () => {
       if (useMockAuth) {
@@ -66,8 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedToken = localStorage.getItem(MOCK_TOKEN_KEY);
 
         if (storedUser && storedToken) {
-          setUser(JSON.parse(storedUser));
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
           setToken(storedToken);
+          
+          // Refresh details from backend
+          void fetchUserProfile(storedToken).then(profile => {
+            if (profile) {
+              setUser(prev => prev ? { ...prev, loyaltyPoints: profile.loyaltyPoints || 0 } : null);
+            }
+          });
         }
 
         setLoading(false);
@@ -108,6 +138,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 role
               });
               setToken(idToken);
+              setLoading(false);
+
+              // Load profile for loyalty points
+              void fetchUserProfile(idToken).then(profile => {
+                if (profile) {
+                  setUser(prev => prev ? { ...prev, loyaltyPoints: profile.loyaltyPoints || 0 } : null);
+                }
+              });
             });
           } else {
             setLoading(false);
@@ -156,17 +194,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: (result) => {
+        onSuccess: async (result) => {
           const idToken = result.getIdToken().getJwtToken();
           const payload = result.getIdToken().payload;
           const groups = payload['cognito:groups'] || [];
           const role = groups.includes('Admin') ? 'Admin' : 'User';
           
+          const profile = await fetchUserProfile(idToken);
           setUser({
             id: payload.sub,
             email: payload.email,
             name: payload.name || 'User',
-            role
+            role,
+            loyaltyPoints: profile?.loyaltyPoints || 0
           });
           setToken(idToken);
           setLoading(false);
@@ -188,6 +228,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
         throw new Error('Vui lòng nhập đầy đủ họ tên, email và mật khẩu');
       }
+
+      // Generate a mock 6-digit OTP code for local simulation
+      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      localStorage.setItem(`mock_otp_${email.trim().toLowerCase()}`, mockOtp);
+      
+      console.log(`[Mock Email Service] Gửi mã OTP xác thực đăng ký đến ${email}: ${mockOtp}`);
 
       setLoading(false);
       return;
@@ -224,6 +270,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Vui lòng nhập mã OTP');
       }
 
+      const savedOtp = localStorage.getItem(`mock_otp_${email.trim().toLowerCase()}`);
+      if (savedOtp && code.trim() !== savedOtp) {
+        setLoading(false);
+        throw new Error('Mã OTP không chính xác. Vui lòng thử lại.');
+      }
+      
+      // Clean up mock OTP after successful verification
+      localStorage.removeItem(`mock_otp_${email.trim().toLowerCase()}`);
+
       const { user: mockUser, token: mockToken } = createMockSession(email);
       localStorage.setItem(MOCK_USER_KEY, JSON.stringify(mockUser));
       localStorage.setItem(MOCK_TOKEN_KEY, mockToken);
@@ -255,6 +310,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    setLoading(true);
+
+    if (useMockAuth) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setLoading(false);
+      return;
+    }
+
+    if (!userPool) {
+      setLoading(false);
+      throw new Error('Cognito chưa được cấu hình');
+    }
+
+    const cognitoUser = userPool.getCurrentUser();
+    if (!cognitoUser) {
+      setLoading(false);
+      throw new Error('Không tìm thấy người dùng hiện tại.');
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      cognitoUser.getSession((err: any, session: any) => {
+        if (err || !session.isValid()) {
+          setLoading(false);
+          reject(new Error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'));
+          return;
+        }
+
+        cognitoUser.changePassword(currentPassword, newPassword, (err, _result) => {
+          setLoading(false);
+          if (err) {
+            reject(new Error(err.message || 'Thay đổi mật khẩu thất bại.'));
+            return;
+          }
+          resolve();
+        });
+      });
+    });
+  };
+
+  const deleteAccount = async () => {
+    setLoading(true);
+
+    if (useMockAuth) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      localStorage.removeItem(MOCK_USER_KEY);
+      localStorage.removeItem(MOCK_TOKEN_KEY);
+      setUser(null);
+      setToken(null);
+      setLoading(false);
+      return;
+    }
+
+    if (!userPool) {
+      setLoading(false);
+      throw new Error('Cognito chưa được cấu hình');
+    }
+
+    const cognitoUser = userPool.getCurrentUser();
+    if (!cognitoUser) {
+      setLoading(false);
+      throw new Error('Không tìm thấy người dùng hiện tại.');
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      cognitoUser.getSession((err: any, session: any) => {
+        if (err || !session.isValid()) {
+          setLoading(false);
+          reject(new Error('Phiên đăng nhập hết hạn.'));
+          return;
+        }
+
+        cognitoUser.deleteUser((err, _result) => {
+          setLoading(false);
+          if (err) {
+            reject(new Error(err.message || 'Xóa tài khoản thất bại.'));
+            return;
+          }
+          setUser(null);
+          setToken(null);
+          resolve();
+        });
+      });
+    });
+  };
+
+  const refreshUserProfile = async () => {
+    if (token) {
+      const profile = await fetchUserProfile(token);
+      if (profile) {
+        setUser(prev => prev ? { ...prev, loyaltyPoints: profile.loyaltyPoints || 0 } : null);
+      }
+    }
+  };
+
   const logout = () => {
     if (useMockAuth) {
       localStorage.removeItem(MOCK_USER_KEY);
@@ -270,7 +420,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, confirmOTP, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      loading, 
+      login, 
+      register, 
+      confirmOTP, 
+      logout,
+      changePassword,
+      deleteAccount,
+      refreshUserProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );
